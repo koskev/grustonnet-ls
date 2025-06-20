@@ -1,0 +1,140 @@
+{
+	"Binds": [
+		{
+			"VarFodder": [],
+			"Body": {
+				"OriginalString": "5",
+				"Fodder": [],
+				"Ctx": "thunk \u003ca\u003e from \u003c$\u003e",
+				"FreeVars": [],
+				"LocRange": {
+					"File": {
+						"DiagnosticFileName": "",
+						"Lines": [
+							"local a = 5;\n",
+							"[5]\n",
+							"\n"
+						]
+					},
+					"FileName": "",
+					"Begin": {
+						"Line": 1,
+						"Column": 11
+					},
+					"End": {
+						"Line": 1,
+						"Column": 12
+					}
+				}
+			},
+			"EqFodder": [],
+			"Variable": "a",
+			"CloseFodder": [],
+			"Fun": null,
+			"LocRange": {
+				"File": {
+					"DiagnosticFileName": "",
+					"Lines": [
+						"local a = 5;\n",
+						"[5]\n",
+						"\n"
+					]
+				},
+				"FileName": "",
+				"Begin": {
+					"Line": 1,
+					"Column": 7
+				},
+				"End": {
+					"Line": 1,
+					"Column": 12
+				}
+			}
+		}
+	],
+	"Body": {
+		"Elements": [
+			{
+				"Expr": {
+					"OriginalString": "5",
+					"Fodder": [],
+					"Ctx": "thunk from \u003c$\u003e",
+					"FreeVars": [],
+					"LocRange": {
+						"File": {
+							"DiagnosticFileName": "",
+							"Lines": [
+								"local a = 5;\n",
+								"[5]\n",
+								"\n"
+							]
+						},
+						"FileName": "",
+						"Begin": {
+							"Line": 2,
+							"Column": 2
+						},
+						"End": {
+							"Line": 2,
+							"Column": 3
+						}
+					}
+				},
+				"CommaFodder": null
+			}
+		],
+		"CloseFodder": [],
+		"Fodder": [
+			{
+				"Comment": [],
+				"Kind": 0,
+				"Blanks": 0,
+				"Indent": 0
+			}
+		],
+		"Ctx": "$",
+		"FreeVars": [],
+		"LocRange": {
+			"File": {
+				"DiagnosticFileName": "",
+				"Lines": [
+					"local a = 5;\n",
+					"[5]\n",
+					"\n"
+				]
+			},
+			"FileName": "",
+			"Begin": {
+				"Line": 2,
+				"Column": 1
+			},
+			"End": {
+				"Line": 2,
+				"Column": 4
+			}
+		},
+		"TrailingComma": false
+	},
+	"Fodder": null,
+	"Ctx": "$",
+	"FreeVars": [],
+	"LocRange": {
+		"File": {
+			"DiagnosticFileName": "",
+			"Lines": [
+				"local a = 5;\n",
+				"[5]\n",
+				"\n"
+			]
+		},
+		"FileName": "",
+		"Begin": {
+			"Line": 1,
+			"Column": 1
+		},
+		"End": {
+			"Line": 2,
+			"Column": 4
+		}
+	}
+}
