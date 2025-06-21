@@ -34,7 +34,6 @@ impl From<lsp_types::Position> for Location {
 
 impl LocationRange {
     pub fn in_range(&self, location: &Location) -> bool {
-        return true;
         // Same line but before range
         if self.end.line == location.line && self.begin.column > location.column {
             return false;
@@ -46,6 +45,25 @@ impl LocationRange {
         }
 
         // In between
-        return self.end.line < location.line && self.end.line < location.line;
+        return self.begin.line < location.line && self.end.line > location.line;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_range() {
+        let range = LocationRange {
+            begin: Location { line: 1, column: 3 },
+            end: Location { line: 4, column: 4 },
+            ..Default::default()
+        };
+
+        assert!(range.in_range(&Location {
+            line: 2,
+            column: 14
+        }));
     }
 }

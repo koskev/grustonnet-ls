@@ -29,17 +29,10 @@ pub struct Node {
 
 impl Node {
     pub fn get_stack_by_position(&self, pos: &Location) -> NodeStack {
-        eprintln!("Getting position");
         let mut stack: NodeStack = self
             .iter()
             .filter(|child| {
                 let in_range = child.loc_range.in_range(pos);
-                eprintln!(
-                    "Is in range? {} parent {} child {}",
-                    in_range,
-                    self.node_kind.variant_name(),
-                    child.node_kind.variant_name()
-                );
                 in_range
             })
             .map(|child: &Node| child.get_stack_by_position(pos))
@@ -65,10 +58,6 @@ pub struct NodeIter<'a> {
 impl<'a> Iterator for NodeIter<'a> {
     type Item = &'a Node;
     fn next(&mut self) -> Option<Self::Item> {
-        eprintln!(
-            "######## Checking: {:?}",
-            (*self.root_node.node_kind).variant_name()
-        );
         match &(*self.root_node.node_kind) {
             NodeKind::Array(arr) => {
                 if let Some(elements) = &arr.elements {
