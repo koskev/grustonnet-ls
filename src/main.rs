@@ -1,19 +1,15 @@
 use std::error::Error;
 
-use crate::{
-    node::Node,
-    server::{JsonnetServer, LSPResponse, LSPServer},
-};
-use anyhow::{Result, anyhow};
+use crate::server::{JsonnetServer, LSPResponse, LSPServer};
+use anyhow::Result;
 use lsp_server::{
     Connection, ErrorCode, ExtractError, Message, Notification, Request, RequestId, Response,
     ResponseError,
 };
 use lsp_types::{
-    CompletionList, CompletionOptions, GotoDefinitionResponse, InitializeParams,
-    ServerCapabilities, TextDocumentSyncKind, TextDocumentSyncOptions,
+    InitializeParams,
     notification::{DidChangeConfiguration, DidChangeTextDocument},
-    request::{Completion, GotoDefinition, Initialize},
+    request::Completion,
 };
 
 mod ast;
@@ -78,23 +74,30 @@ fn main_loop<S: LSPServer>(server: S) -> Result<(), Box<dyn Error + Sync + Send>
     Ok(())
 }
 
+macro_rules! lsp_handle_notification {
+    ($server: expr, $name:ident, $param:ty, $req: expr) => {
+        match cast_notification::<$param>($req) {
+            Ok(params) => {
+                match $server.$name(params) {
+                    Ok(_) => (),
+                    Err(_) => (),
+                };
+                return Ok(());
+            }
+            Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
+            Err(ExtractError::MethodMismatch(req)) => req,
+        }
+    };
+}
+
 fn handle_notification<S: LSPServer>(req: Notification, server: &S) -> Result<(), ResponseError> {
-    match cast_notification::<DidChangeConfiguration>(req.clone()) {
-        Ok(params) => match server.did_change_configuration(params) {
-            Ok(()) => eprintln!("Config changed"),
-            Err(err) => eprintln!("Notification error: {}", err),
-        },
-        Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
-        Err(ExtractError::MethodMismatch(_req)) => (),
-    };
-    match cast_notification::<DidChangeTextDocument>(req) {
-        Ok(params) => match server.did_change_text(params) {
-            Ok(()) => (),
-            Err(err) => eprintln!("Notification error: {}", err),
-        },
-        Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
-        Err(ExtractError::MethodMismatch(_req)) => (),
-    };
+    let req = lsp_handle_notification!(
+        server,
+        did_change_configuration,
+        DidChangeConfiguration,
+        req
+    );
+    lsp_handle_notification!(server, did_change_text, DidChangeTextDocument, req);
 
     Err(ResponseError {
         code: ErrorCode::MethodNotFound as i32,
@@ -103,25 +106,21 @@ fn handle_notification<S: LSPServer>(req: Notification, server: &S) -> Result<()
     })
 }
 
+macro_rules! lsp_handle_request {
+    ($server: expr, $name:ident, $param:ty, $req: expr) => {
+        match cast_req::<$param>($req) {
+            Ok((_id, params)) => {
+                let resp = $server.$name(params);
+                return resp;
+            }
+            Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
+            Err(ExtractError::MethodMismatch(req)) => req,
+        }
+    };
+}
+
 fn handle_request<S: LSPServer>(req: Request, server: &S) -> Result<LSPResponse, ResponseError> {
-    let req = match cast_req::<Initialize>(req) {
-        Ok((_id, params)) => {
-            let resp = server.initialize(params);
-            eprintln!("Initialized server!");
-            return resp;
-        }
-        Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
-        Err(ExtractError::MethodMismatch(req)) => req,
-    };
-    match cast_req::<Completion>(req) {
-        Ok((_id, params)) => {
-            eprintln!("äääääääääääääääää");
-            let resp = server.completion(params);
-            return resp;
-        }
-        Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
-        Err(ExtractError::MethodMismatch(req)) => req,
-    };
+    let _req = lsp_handle_request!(server, completion, Completion, req);
 
     Err(ResponseError {
         code: ErrorCode::MethodNotFound as i32,

@@ -13,6 +13,22 @@ use crate::{
     node::{NodeKind, TypedDebug},
 };
 
+macro_rules! lsp_function_req {
+    ($name:ident, $param:ty) => {
+        fn $name(&self, params: $param) -> Result<LSPResponse, ResponseError> {
+            Err(not_implemented_error())
+        }
+    };
+}
+
+macro_rules! lsp_function_not {
+    ($name:ident, $param:ty) => {
+        fn $name(&self, params: $param) -> Result<()> {
+            Err(anyhow!("Not implemented"))
+        }
+    };
+}
+
 #[derive(Default)]
 pub struct LSPResponse(serde_json::Value);
 
@@ -44,27 +60,12 @@ fn not_implemented_error() -> ResponseError {
 pub trait LSPServer {
     fn get_capabilities(&self) -> ServerCapabilities;
 
-    fn initialize(&self, params: InitializeParams) -> Result<LSPResponse, ResponseError> {
-        Err(not_implemented_error())
-    }
-
-    fn goto_definition(&self, params: GotoDefinitionParams) -> Result<LSPResponse, ResponseError> {
-        Err(not_implemented_error())
-    }
-
-    fn completion(&self, params: CompletionParams) -> Result<LSPResponse, ResponseError> {
-        Err(not_implemented_error())
-    }
+    lsp_function_req!(completion, CompletionParams);
 
     // Notifications
 
-    fn did_change_configuration(&self, params: DidChangeConfigurationParams) -> Result<()> {
-        Err(anyhow!("Not implemented"))
-    }
-
-    fn did_change_text(&self, params: DidChangeTextDocumentParams) -> Result<()> {
-        Err(anyhow!("Not implemented"))
-    }
+    lsp_function_not!(did_change_configuration, DidChangeConfigurationParams);
+    lsp_function_not!(did_change_text, DidChangeTextDocumentParams);
 }
 
 #[derive(Default, Debug)]
