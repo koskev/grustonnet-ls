@@ -3,13 +3,15 @@ use lsp_server::{ErrorCode, ResponseError};
 use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionList, CompletionOptions, CompletionParams,
     CompletionResponse, DidChangeConfigurationParams, DidChangeTextDocumentParams,
-    GotoDefinitionParams, InitializeParams, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions,
+    DidOpenTextDocumentParams, GotoDefinitionParams, InitializeParams, ServerCapabilities,
+    TextDocumentSyncKind, TextDocumentSyncOptions, notification::DidOpenTextDocument,
 };
+use ropey::Rope;
 use serde::Serialize;
 
 use crate::{
     cache::Cache,
+    completion::{Completion, global::GlobalCompletion},
     node::{NodeKind, TypedDebug},
 };
 
@@ -66,6 +68,7 @@ pub trait LSPServer {
 
     lsp_function_not!(did_change_configuration, DidChangeConfigurationParams);
     lsp_function_not!(did_change_text, DidChangeTextDocumentParams);
+    lsp_function_not!(did_open, DidOpenTextDocumentParams);
 }
 
 #[derive(Default, Debug)]
@@ -87,7 +90,7 @@ impl LSPServer for JsonnetServer {
             text_document_sync: Some(lsp_types::TextDocumentSyncCapability::Options(
                 TextDocumentSyncOptions {
                     open_close: Some(true),
-                    change: Some(TextDocumentSyncKind::FULL),
+                    change: Some(TextDocumentSyncKind::INCREMENTAL),
                     ..Default::default()
                 },
             )),
@@ -101,64 +104,51 @@ impl LSPServer for JsonnetServer {
     }
 
     fn did_change_text(&self, params: DidChangeTextDocumentParams) -> Result<()> {
-        let mut params = params.clone();
-        if let Some(change) = params.content_changes.pop() {
+        for change in params.content_changes {
+            let current_text = match self.cache.get_document(params.text_document.uri.as_str()) {
+                Some(doc) => doc,
+                None => return Err(anyhow!("Unable to find document in cache!")),
+            };
+
+            let range = match change.range {
+                Some(r) => r,
+                None => return Err(anyhow!("Got change params without range")),
+            };
+            let mut rope = Rope::from_str(&current_text.content);
+            let idx_start =
+                rope.line_to_char(range.start.line as usize) + range.start.character as usize;
+            let idx_end = rope.line_to_char(range.end.line as usize) + range.end.character as usize;
+            rope.remove(idx_start..idx_end);
+            rope.insert(idx_start, &change.text);
             self.cache
-                .update_content(params.text_document.uri.as_str(), &change.text);
+                .update_content(params.text_document.uri.as_str(), rope.to_string().as_str());
         }
+        Ok(())
+    }
+
+    fn did_open(&self, params: DidOpenTextDocumentParams) -> Result<()> {
+        self.cache.update_content(
+            params.text_document.uri.as_str(),
+            &params.text_document.text,
+        );
+
         Ok(())
     }
 
     fn completion(&self, params: CompletionParams) -> Result<LSPResponse, ResponseError> {
         // Global completion
-        let doc = self
-            .cache
-            .get_document(params.text_document_position.text_document.uri.as_str())
-            .unwrap();
-        //eprintln!("########: {:?}", (*doc.ast.node_kind).typed_debug());
+        let global_completion = GlobalCompletion::new(&self.cache);
+        let mut lists = vec![];
+        lists.push(global_completion.complete(
+            params.text_document_position.position.into(),
+            params.text_document_position.text_document.uri.as_str(),
+        ));
 
-        let stack = doc
-            .ast
-            .get_stack_by_position(&params.text_document_position.position.into());
-        eprintln!("STACK: {:?}", stack.typed_debug());
-        for node in &stack.stack {
-            eprintln!("Node of Type {}", (*node.node_kind).variant_name(),)
-        }
-        let items: Vec<CompletionItem> = stack
-            .stack
-            .iter()
-            .filter_map(|node| match &(*node.node_kind) {
-                crate::node::NodeKind::LocalBind(bind) => {
-                    eprintln!("Got bind!");
-                    Some(CompletionItem {
-                        label: bind.variable.clone(),
-                        ..Default::default()
-                    })
-                }
-                NodeKind::Local { binds, body } => {
-                    eprintln!("Got local!");
-
-                    Some(CompletionItem {
-                        label: binds[0].variable.clone(),
-                        kind: Some(CompletionItemKind::VARIABLE),
-                        ..Default::default()
-                    })
-                }
-                _ => {
-                    eprintln!("No bind {}", node.node_kind.variant_name());
-                    None
-                }
-            })
-            .collect();
-        eprintln!("ITEMS: {:?}", items);
-        match *doc.ast.node_kind {
-            crate::node::NodeKind::LocalBind(_) => eprintln!("LocalBind"),
-            _ => eprintln!("Unkown root node"),
-        }
-        Ok(CompletionResponse::List(CompletionList {
-            is_incomplete: false,
-            items,
-        })
-        .into())
+        let is_incomplete = lists.iter().any(|list| list.is_incomplete);
+        let completion_list = CompletionList {
+            items: lists.into_iter().flat_map(|list| list.items).collect(),
+            is_incomplete,
+        };
+        Ok(CompletionResponse::List(completion_list).into())
     }
 }

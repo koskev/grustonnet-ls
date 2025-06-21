@@ -8,12 +8,13 @@ use lsp_server::{
 };
 use lsp_types::{
     InitializeParams,
-    notification::{DidChangeConfiguration, DidChangeTextDocument},
+    notification::{DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument},
     request::Completion,
 };
 
 mod ast;
 mod cache;
+mod completion;
 mod node;
 mod server;
 mod utils;
@@ -80,7 +81,7 @@ macro_rules! lsp_handle_notification {
             Ok(params) => {
                 match $server.$name(params) {
                     Ok(_) => (),
-                    Err(_) => (),
+                    Err(e) => eprintln!("Notification failed: {}", e),
                 };
                 return Ok(());
             }
@@ -91,14 +92,16 @@ macro_rules! lsp_handle_notification {
 }
 
 fn handle_notification<S: LSPServer>(req: Notification, server: &S) -> Result<(), ResponseError> {
-    let req = lsp_handle_notification!(
+    let mut req = lsp_handle_notification!(
         server,
         did_change_configuration,
         DidChangeConfiguration,
         req
     );
-    lsp_handle_notification!(server, did_change_text, DidChangeTextDocument, req);
+    req = lsp_handle_notification!(server, did_change_text, DidChangeTextDocument, req);
+    req = lsp_handle_notification!(server, did_open, DidOpenTextDocument, req);
 
+    let _ = req;
     Err(ResponseError {
         code: ErrorCode::MethodNotFound as i32,
         message: "Method not implemented".into(),
