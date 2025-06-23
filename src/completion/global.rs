@@ -40,6 +40,10 @@ impl<'a> Completion for GlobalCompletion<'a> {
                     Some(CompletionItem {
                         label: binds[0].variable.clone(),
                         kind: Some(CompletionItemKind::VARIABLE),
+                        detail: match body {
+                            Some(body) => Some(body.node_kind.variant_name().to_string()),
+                            None => None,
+                        },
                         ..Default::default()
                     })
                 }

@@ -11,7 +11,7 @@ use serde::Serialize;
 
 use crate::{
     cache::Cache,
-    completion::{Completion, global::GlobalCompletion},
+    completion::{Completion, global::GlobalCompletion, keyword::KeywordCompletion},
     node::{NodeKind, TypedDebug},
 };
 
@@ -140,6 +140,12 @@ impl LSPServer for JsonnetServer {
         let global_completion = GlobalCompletion::new(&self.cache);
         let mut lists = vec![];
         lists.push(global_completion.complete(
+            params.text_document_position.position.into(),
+            params.text_document_position.text_document.uri.as_str(),
+        ));
+        // Keyword completion
+        let keyword_completion = KeywordCompletion::new(&self.cache);
+        lists.push(keyword_completion.complete(
             params.text_document_position.position.into(),
             params.text_document_position.text_document.uri.as_str(),
         ));

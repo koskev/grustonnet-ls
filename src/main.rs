@@ -12,9 +12,10 @@ use lsp_types::{
     request::Completion,
 };
 
-mod ast;
+mod bridge;
 mod cache;
 mod completion;
+mod diagnostics;
 mod node;
 mod server;
 mod utils;

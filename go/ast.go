@@ -12,50 +12,84 @@ import (
 type GoAst struct{}
 
 func init() {
-	GenerateASTImpl = GoAst{}
+	ASTBridgeImpl = GoAst{}
 }
 
-func (GoAst) get_ast(filename *string) string {
-	node, _, _ := jsonnet.MakeVM().ImportAST("", *filename)
-	nodeJson, _ := json.Marshal(node)
-	//fmt.Printf("%+s", nodeJson)
-	return string(nodeJson)
-}
-
-func (GoAst) get_ast_snippet(snippet *string) string {
-	node, err := jsonnet.SnippetToAST("", *snippet)
+func (GoAst) get_ast(filename *string) ASTInfo {
+	info := ASTInfo{}
+	node, _, err := jsonnet.MakeVM().ImportAST("", *filename)
 	if err != nil {
-		fmt.Printf("### Unmarshal ERROR in snippet: %+v", err)
-		return fmt.Sprintf("%v", err)
+		info.error_data = err.Error()
+		return info
 	}
 	nodeJson, err := json.Marshal(node)
 	if err != nil {
-		fmt.Printf("### Unmarshal ERROR in snippet: %+v", err)
-		return fmt.Sprintf("%v", err)
+		info.error_data = err.Error()
+		return info
 	}
-	return string(nodeJson)
+	info.ast_data = string(nodeJson)
+	//fmt.Printf("%+s", nodeJson)
+	return info
 }
 
-func (GoAst) evaluate_ast(astString *string, ext_vars *[]ExtValue, ext_code *[]ExtValue) string {
+func (GoAst) get_ast_snippet(snippet *string) ASTInfo {
+	info := ASTInfo{}
+	node, err := jsonnet.SnippetToAST("", *snippet)
+	if err != nil {
+		info.error_data = err.Error()
+		return info
+	}
+	nodeJson, err := json.Marshal(node)
+	if err != nil {
+		info.error_data = err.Error()
+		return info
+	}
+	info.ast_data = string(nodeJson)
+	return info
+}
+
+func (GoAst) evaluate_ast(astString *string, params *EvaluateParams) ASTInfo {
+	info := ASTInfo{}
 	node, err := Unmarshal_ast[ast.Node](*astString)
 	if err != nil {
-		fmt.Printf("### Unmarshal ERROR: %+v", err)
-		return ""
-	}
-	vm := jsonnet.MakeVM()
-	for _, val := range *ext_vars {
-		vm.ExtVar(val.name, val.value)
-	}
-	for _, val := range *ext_code {
-		vm.ExtCode(val.name, val.value)
+		info.error_data = err.Error()
+		return info
 	}
 
+	vm := get_vm(params)
 	res, err := vm.Evaluate(node)
 	if err != nil {
-		return fmt.Sprintf("%v", err)
+		info.error_data = err.Error()
+		return info
 	}
 
-	return res
+	info.ast_data = res
+	return info
+}
+
+func (GoAst) evaluate_snippet(filename *string, snippet *string, params *EvaluateParams) ASTInfo {
+	info := ASTInfo{}
+	vm := get_vm(params)
+	res, err := vm.EvaluateAnonymousSnippet(*filename, *snippet)
+	if err != nil {
+		info.error_data = err.Error()
+		return info
+	}
+
+	info.ast_data = res
+	return info
+
+}
+
+func get_vm(params *EvaluateParams) *jsonnet.VM {
+	vm := jsonnet.MakeVM()
+	for _, val := range params.ext_vars {
+		vm.ExtVar(val.name, val.value)
+	}
+	for _, val := range params.ext_code {
+		vm.ExtCode(val.name, val.value)
+	}
+	return vm
 }
 
 // Since Go is missing the ability to unmarshal interfaces (like the enum untagged in rust). We need to implement this manually...
@@ -72,6 +106,8 @@ func Unmarshal_ast[BASE any](astString string) (BASE, error) {
 		reflect.TypeFor[ast.CommaSeparatedExpr](),
 		reflect.TypeFor[ast.Array](),
 		reflect.TypeFor[ast.LiteralNumber](),
+		reflect.TypeFor[ast.Local](),
+		reflect.TypeFor[ast.Var](),
 	}
 	// WTF GO!!?
 	nodeType := reflect.TypeOf((*ast.Node)(nil)).Elem()
@@ -134,6 +170,10 @@ typeLoop:
 					set_value[bool](value, &fieldValue)
 				case reflect.TypeFor[ast.CommaSeparatedExpr]():
 					set_value[ast.CommaSeparatedExpr](value, &fieldValue)
+				case reflect.TypeFor[ast.Local]():
+					set_value[ast.Local](value, &fieldValue)
+				case reflect.TypeFor[ast.Var]():
+					set_value[ast.Var](value, &fieldValue)
 				case reflect.TypeFor[[]ast.CommaSeparatedExpr]():
 					// Get JSON array
 					result := []any{}
@@ -176,7 +216,7 @@ typeLoop:
 
 	err = json.Unmarshal([]byte(astString), &ret)
 	if err != nil {
-		return ret, fmt.Errorf("unmarshal unhandled to %T: %w", ret, err)
+		return ret, fmt.Errorf("unmarshal unhandled to %v %s: %w", reflect.TypeFor[BASE](), astString, err)
 	}
 	return ret, nil
 }
