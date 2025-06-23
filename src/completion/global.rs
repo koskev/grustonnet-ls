@@ -30,7 +30,7 @@ impl<'a> Completion for GlobalCompletion<'a> {
                 crate::node::NodeKind::LocalBind(bind) => {
                     eprintln!("Got bind!");
                     Some(CompletionItem {
-                        label: bind.variable.clone(),
+                        label: bind.variable.clone().0,
                         ..Default::default()
                     })
                 }
@@ -38,7 +38,7 @@ impl<'a> Completion for GlobalCompletion<'a> {
                     eprintln!("Got local!");
 
                     Some(CompletionItem {
-                        label: binds[0].variable.clone(),
+                        label: binds[0].variable.clone().0,
                         kind: Some(CompletionItemKind::VARIABLE),
                         detail: match body {
                             Some(body) => Some(body.node_kind.variant_name().to_string()),

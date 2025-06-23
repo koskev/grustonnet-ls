@@ -1,7 +1,4 @@
-use std::{
-    backtrace::Backtrace,
-    fmt::{Debug, Formatter},
-};
+use std::fmt::{Debug, Formatter};
 
 use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
@@ -19,8 +16,8 @@ pub mod stack;
 #[serde(rename_all = "PascalCase")]
 pub struct Node {
     pub fodder: Option<Fodder>,
-    pub ctx: String,
-    pub free_vars: Vec<String>,
+    pub ctx: Option<String>,
+    pub free_vars: Option<Vec<String>>,
     pub loc_range: LocationRange,
 
     #[serde(flatten)]
@@ -70,7 +67,7 @@ impl<'a> Iterator for NodeIter<'a> {
             NodeKind::LocalBind(local_bind) => {
                 if self.index == 0 {
                     self.index += 1;
-                    return Some(&local_bind.body);
+                    return local_bind.body.as_ref();
                 }
                 return None;
             }
@@ -81,7 +78,12 @@ impl<'a> Iterator for NodeIter<'a> {
                 }
                 return None;
             }
-            _ => (),
+            _ => {
+                eprintln!(
+                    "Unhandled type {} while searching for children",
+                    self.root_node.node_kind.variant_name()
+                )
+            }
         };
         return None;
     }
@@ -149,20 +151,13 @@ pub enum BinaryOp {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "PascalCase")]
-pub struct Function {
-    //TODO
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
 pub struct LocalBind {
-    pub var_fodder: Fodder,
-    pub body: Node,
-    pub eq_fodder: Fodder,
-    pub variable: String,
-    pub close_fodder: Fodder,
+    pub var_fodder: Option<Fodder>,
+    pub body: Option<Node>,
+    pub eq_fodder: Option<Fodder>,
+    pub variable: Identifier,
+    pub close_fodder: Option<Fodder>,
     pub fun: Option<Function>,
-    pub loc_range: LocationRange,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -189,8 +184,64 @@ pub struct LiteralString {
 #[serde(rename_all = "PascalCase")]
 pub struct Array {
     pub trailing_comma: bool,
-    pub close_fodder: Vec<String>,
+    pub close_fodder: Option<Fodder>,
     pub elements: Option<Vec<CommaSeparatedExpr>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct Arguments {
+    pub positional: Vec<CommaSeparatedExpr>,
+    pub named: Vec<NamedArgument>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct Identifier(pub String);
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct NamedArgument {
+    pub name_fodder: Option<Fodder>,
+    pub name: Identifier,
+    pub eq_fodder: Option<Fodder>,
+    pub arg: Node,
+    pub comma_fodder: Option<Fodder>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct Apply {
+    pub target: Node,
+    pub fodder_left: Option<Fodder>,
+    pub arguments: Arguments,
+    pub fodder_right: Option<Fodder>,
+    pub tail_strict_fodder: Option<Fodder>,
+    // Always false if there were no arguments.
+    pub trailing_comma: bool,
+    pub tail_strict: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct Parameter {
+    pub name_fodder: Option<Fodder>,
+    pub name: Identifier,
+    pub comma_fodder: Option<Fodder>,
+    pub eq_fodder: Option<Fodder>,
+    pub default_arg: Option<Node>,
+    pub loc_range: LocationRange,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct Function {
+    pub paren_left_fodder: Option<Fodder>,
+    pub paren_right_fodder: Option<Fodder>,
+    pub body: Node,
+    pub parameters: Option<Vec<Parameter>>,
+    //// Always false if there were no parameters.
+    pub trailing_comma: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]
@@ -200,7 +251,7 @@ pub enum NodeKind {
     Binary {
         left: Node,
         right: Node,
-        op_fodder: Fodder,
+        op_fodder: Option<Fodder>,
         op: i32,
     },
     Array(Array),
@@ -214,6 +265,8 @@ pub enum NodeKind {
         binds: Vec<LocalBind>,
         body: Option<Node>,
     },
+    Function(Function),
+    Apply(Apply),
     Other(serde_json::Value),
 }
 
@@ -258,7 +311,7 @@ mod tests {
         Node {
             node_kind: Box::new(NodeKind::Array(Array {
                 trailing_comma: false,
-                close_fodder: vec![],
+                close_fodder: None,
                 elements: None,
             })),
             ..Default::default()
@@ -299,7 +352,7 @@ mod tests {
             node_kind: Box::new(NodeKind::Binary {
                 left: get_array_node(),
                 right: get_array_node(),
-                op_fodder: Fodder::default(),
+                op_fodder: None,
                 op: 0,
             }),
             ..Default::default()
@@ -323,7 +376,7 @@ mod tests {
         let node = Node {
             node_kind: Box::new(NodeKind::Array(Array {
                 trailing_comma: false,
-                close_fodder: vec![],
+                close_fodder: None,
                 elements: None,
             })),
             ..Default::default()

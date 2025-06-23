@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "PascalCase")]
 pub struct LocationRange {
-    pub file: Source,
+    pub file: Option<Source>,
     pub file_name: String,
     pub begin: Location,
     pub end: Location,
