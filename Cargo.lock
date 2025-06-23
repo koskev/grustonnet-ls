@@ -296,6 +296,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
 
 [[package]]
+name = "grustonnet-ls"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "lazy_static",
+ "lsp-server",
+ "lsp-types",
+ "name-variant",
+ "paste",
+ "ropey",
+ "rust2go",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -352,23 +369,6 @@ name = "itoa"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
-
-[[package]]
-name = "jsonnet-ls-rs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "lazy_static",
- "lsp-server",
- "lsp-types",
- "name-variant",
- "paste",
- "ropey",
- "rust2go",
- "serde",
- "serde_json",
- "tokio",
-]
 
 [[package]]
 name = "lazy_static"

@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    ast::{GenerateAST, GenerateASTImpl},
+    ast::{ExtValue, GenerateAST, GenerateASTImpl},
     node::Node,
 };
 
@@ -20,11 +20,13 @@ pub struct Document {
 impl Document {
     pub fn update_ast(&mut self) {
         let json_data = GenerateASTImpl::get_ast_snippet(self.content.clone());
-        eprintln!("New ast: {:#?}", json_data);
         let node_data = serde_json::from_str::<Node>(&json_data);
 
         match node_data {
             Ok(node) => {
+                let data_string = serde_json::to_string(&node).unwrap();
+                let res = GenerateASTImpl::evaluate_ast(data_string, vec![], vec![]);
+                eprintln!("RESULT: {}", res);
                 self.ast = node;
                 self.is_dirty = false;
             }
