@@ -1,3 +1,4 @@
+use lsp_types::Position;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -28,6 +29,15 @@ impl From<lsp_types::Position> for Location {
         Self {
             line: value.line as i32 + 1,
             column: value.character as i32 + 1,
+        }
+    }
+}
+
+impl Into<lsp_types::Position> for Location {
+    fn into(self) -> lsp_types::Position {
+        Position {
+            line: (self.line - 1) as u32,
+            character: (self.column - 1) as u32,
         }
     }
 }

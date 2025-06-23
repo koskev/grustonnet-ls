@@ -3,8 +3,10 @@ use lsp_server::{ErrorCode, ResponseError};
 use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionList, CompletionOptions, CompletionParams,
     CompletionResponse, DidChangeConfigurationParams, DidChangeTextDocumentParams,
-    DidOpenTextDocumentParams, GotoDefinitionParams, InitializeParams, ServerCapabilities,
-    TextDocumentSyncKind, TextDocumentSyncOptions, notification::DidOpenTextDocument,
+    DidOpenTextDocumentParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
+    GotoDefinitionParams, InitializeParams, PublishDiagnosticsParams,
+    RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
+    TextDocumentSyncOptions, notification::DidOpenTextDocument, request::DocumentDiagnosticRequest,
 };
 use ropey::Rope;
 use serde::Serialize;
@@ -12,6 +14,7 @@ use serde::Serialize;
 use crate::{
     cache::Cache,
     completion::{Completion, global::GlobalCompletion, keyword::KeywordCompletion},
+    diagnostics::{Diagnostics, eval::EvalDiagnostics},
     node::{NodeKind, TypedDebug},
 };
 
@@ -63,12 +66,14 @@ pub trait LSPServer {
     fn get_capabilities(&self) -> ServerCapabilities;
 
     lsp_function_req!(completion, CompletionParams);
+    lsp_function_req!(document_diagnostics, DocumentDiagnosticParams);
 
     // Notifications
 
     lsp_function_not!(did_change_configuration, DidChangeConfigurationParams);
     lsp_function_not!(did_change_text, DidChangeTextDocumentParams);
     lsp_function_not!(did_open, DidOpenTextDocumentParams);
+    lsp_function_req!(publish_diagnostics, &str);
 }
 
 #[derive(Default, Debug)]
@@ -124,6 +129,25 @@ impl LSPServer for JsonnetServer {
                 .update_content(params.text_document.uri.as_str(), rope.to_string().as_str());
         }
         Ok(())
+    }
+
+    fn document_diagnostics(
+        &self,
+        params: DocumentDiagnosticParams,
+    ) -> Result<LSPResponse, ResponseError> {
+        Ok(
+            DocumentDiagnosticReportResult::Report(lsp_types::DocumentDiagnosticReport::Full(
+                RelatedFullDocumentDiagnosticReport {
+                    full_document_diagnostic_report: lsp_types::FullDocumentDiagnosticReport {
+                        items: EvalDiagnostics::new(&self.cache)
+                            .diagnostics(params.text_document.uri.as_str()),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+            ))
+            .into(),
+        )
     }
 
     fn did_open(&self, params: DidOpenTextDocumentParams) -> Result<()> {

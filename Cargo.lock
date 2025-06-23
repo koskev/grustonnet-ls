@@ -305,6 +305,7 @@ dependencies = [
  "lsp-types",
  "name-variant",
  "paste",
+ "regex",
  "ropey",
  "rust2go",
  "serde",

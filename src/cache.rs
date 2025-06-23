@@ -13,6 +13,8 @@ pub struct Document {
     pub content: String,
     pub ast: Node,
 
+    pub filename: String,
+
     // If false the ast and content match. Otherwise the ast may be old
     pub is_dirty: bool,
 }
@@ -56,6 +58,7 @@ impl Cache {
         let mut lock = self.documents.write().unwrap();
         let doc = lock.entry(name.into()).or_insert(Document::default());
 
+        doc.filename = name.to_string();
         doc.content = text.into();
         doc.update_ast();
     }
