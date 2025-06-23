@@ -74,19 +74,26 @@ impl From<String> for EvaluateError {
 impl From<&str> for EvaluateError {
     fn from(value: &str) -> Self {
         let regex = Regex::new(r"(?m)(?P<filename>.*):(?P<line_start>\d+):(?P<column_start>\d+)(?:-(?P<column_end>\d+))?(?P<message>.*)").unwrap();
-        let captures = regex.captures(value).unwrap();
+        let captures = regex.captures(value);
 
-        Self {
-            filename: captures["filename"].to_string(),
-            start: Location {
-                line: captures["line_start"].parse().unwrap(),
-                column: captures["column_start"].parse().unwrap(),
+        match captures {
+            Some(captures) => Self {
+                filename: captures["filename"].to_string(),
+                start: Location {
+                    line: captures["line_start"].parse().unwrap(),
+                    column: captures["column_start"].parse().unwrap(),
+                },
+                end: Location {
+                    line: captures["line_start"].parse().unwrap(),
+                    column: captures["column_start"].parse().unwrap(),
+                },
+                message: captures["message"].to_string(),
             },
-            end: Location {
-                line: captures["line_start"].parse().unwrap(),
-                column: captures["column_start"].parse().unwrap(),
+            None => Self {
+                filename: "unknown".to_string(),
+                message: format!("unknown error: {}", value),
+                ..Default::default()
             },
-            message: captures["message"].to_string(),
         }
     }
 }

@@ -18,6 +18,9 @@ name-variant = { path = "./crates/name-variant"}
 paste = "1.0.15"
 ropey = "1.6.1"
 regex = "1.11.1"
+tree-sitter = "0.22.6"
+tree-sitter-jsonnet = {git = "https://github.com/sourcegraph/tree-sitter-jsonnet"}
+pretty_assertions = "1.4.1"
 
 [build-dependencies]
 rust2go = { version = "0.4.0", features = ["build"] }

@@ -240,8 +240,26 @@ pub struct Function {
     pub paren_right_fodder: Option<Fodder>,
     pub body: Node,
     pub parameters: Option<Vec<Parameter>>,
-    //// Always false if there were no parameters.
+    // Always false if there were no parameters.
     pub trailing_comma: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct DesugaredObjectField {
+    name: Node,
+    body: Node,
+    loc_range: LocationRange,
+    hide: i32,
+    plus_super: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct DesugaredObject {
+    asserts: Vec<Node>,
+    fields: Vec<DesugaredObjectField>,
+    locals: Vec<LocalBind>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]
@@ -267,6 +285,7 @@ pub enum NodeKind {
     },
     Function(Function),
     Apply(Apply),
+    DesugaredObject(DesugaredObject),
     Other(serde_json::Value),
 }
 
