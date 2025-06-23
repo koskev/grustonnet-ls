@@ -1,4 +1,6 @@
-use lsp_types::{Diagnostic, Range};
+use std::str::FromStr;
+
+use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
 use crate::{
     bridge::ast::{GenerateAST, GoJsonnet},
@@ -28,6 +30,11 @@ impl<'a> Diagnostics for EvalDiagnostics<'a> {
                     start: diag_err.start.into(),
                     end: diag_err.end.into(),
                 },
+                message: diag_err.message,
+                code_description: Some(CodeDescription {
+                    href: Uri::from_str(filename).unwrap(),
+                }),
+                severity: Some(DiagnosticSeverity::ERROR),
                 ..Default::default()
             }];
         }

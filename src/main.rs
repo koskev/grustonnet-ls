@@ -1,4 +1,4 @@
-use crate::server::{JsonnetServer, LSPServerManager};
+use crate::server::{JsonnetServer, LSPConnection, LSPServerManager};
 
 mod bridge;
 mod cache;
@@ -16,7 +16,10 @@ pub mod binding {
 #[tokio::main]
 async fn main() {
     let server = LSPServerManager {
-        server: JsonnetServer::new(),
+        server: JsonnetServer {
+            connection: LSPConnection::new_network(4874),
+            ..Default::default()
+        },
     };
     server.run().unwrap();
     //main_loop(server).unwrap()

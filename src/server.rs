@@ -1,15 +1,20 @@
+use std::sync::{Arc, Mutex};
+
 use anyhow::{Result, anyhow};
 use lsp_server::{
-    Connection, ErrorCode, ExtractError, Message, Notification, Request, RequestId, Response,
-    ResponseError,
+    Connection, ErrorCode, ExtractError, IoThreads, Message, Notification, Request, RequestId,
+    Response, ResponseError,
 };
 use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse,
     DidChangeConfigurationParams, DidChangeTextDocumentParams, DidOpenTextDocumentParams,
     DocumentDiagnosticParams, DocumentDiagnosticReportResult, InitializeParams,
-    RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions,
-    notification::{DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument},
+    PublishDiagnosticsParams, RelatedFullDocumentDiagnosticReport, ServerCapabilities,
+    TextDocumentSyncKind, TextDocumentSyncOptions,
+    notification::{
+        DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument,
+        Notification as NotifictionTrait, PublishDiagnostics,
+    },
 };
 use ropey::Rope;
 use serde::Serialize;
@@ -65,7 +70,7 @@ macro_rules! lsp_handle_notification {
     };
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct LSPResponse(serde_json::Value);
 
 impl<S: Serialize> From<S> for LSPResponse {
@@ -97,20 +102,21 @@ pub struct LSPServerManager<S: LSPServer> {
 
 impl<S: LSPServer> LSPServerManager<S> {
     pub fn run(&self) -> Result<()> {
-        let (connection, io_threads) = Connection::listen("127.0.0.1:4874").unwrap();
-
         let server_capabilities = serde_json::to_value(self.server.get_capabilities()).unwrap();
-        let params = connection
+        let params = self
+            .server
+            .connection()
+            .connection
             .initialize(server_capabilities)
             .expect("init connection");
 
         let _params: InitializeParams = serde_json::from_value(params).unwrap();
         eprintln!("starting example main loop");
-        for msg in &connection.receiver {
+        for msg in &self.server.connection().connection.receiver {
             eprintln!("got msg: {msg:?}");
             match msg {
                 Message::Request(req) => {
-                    if connection.handle_shutdown(&req)? {
+                    if self.server.connection().connection.handle_shutdown(&req)? {
                         return Ok(());
                     }
                     eprintln!("got request: {req:?}");
@@ -122,7 +128,7 @@ impl<S: LSPServer> LSPServerManager<S> {
 
                     eprintln!("Sending response {:?}", result);
 
-                    connection.sender.send(Message::Response(Response {
+                    self.server.connection().send(Message::Response(Response {
                         id: req.id,
                         result: result.clone().ok(),
                         error: result.err(),
@@ -136,7 +142,9 @@ impl<S: LSPServer> LSPServerManager<S> {
                 }
             }
         }
-        io_threads.join().unwrap();
+        if let Some(threads) = self.server.connection().threads.lock().unwrap().take() {
+            threads.join().unwrap();
+        }
         Ok(())
     }
     fn handle_request(&self, req: Request) -> Result<LSPResponse, ResponseError> {
@@ -169,6 +177,36 @@ impl<S: LSPServer> LSPServerManager<S> {
     }
 }
 
+pub struct LSPConnection {
+    pub connection: Connection,
+    pub threads: Arc<Mutex<Option<IoThreads>>>,
+}
+
+impl Default for LSPConnection {
+    fn default() -> Self {
+        let (connection, threads) = Connection::stdio();
+        Self {
+            connection,
+            threads: Arc::new(Mutex::new(Some(threads))),
+        }
+    }
+}
+
+impl LSPConnection {
+    pub fn new_network(port: u16) -> Self {
+        let (connection, io_threads) = Connection::listen(format!("127.0.0.1:{}", port)).unwrap();
+        Self {
+            connection: connection,
+            threads: Arc::new(Mutex::new(Some(io_threads))),
+            ..Default::default()
+        }
+    }
+
+    fn send(&self, message: Message) -> Result<()> {
+        Ok(self.connection.sender.send(message)?)
+    }
+}
+
 fn cast_req<R>(req: Request) -> Result<(RequestId, R::Params), ExtractError<Request>>
 where
     R: lsp_types::request::Request,
@@ -188,6 +226,7 @@ where
 // TODO: Do Generic magic?
 #[allow(unused_variables)]
 pub trait LSPServer {
+    fn connection(&self) -> &LSPConnection;
     fn get_capabilities(&self) -> ServerCapabilities;
 
     lsp_function_req!(completion, CompletionParams);
@@ -201,9 +240,11 @@ pub trait LSPServer {
     lsp_function_req!(publish_diagnostics, &str);
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct JsonnetServer {
-    cache: Cache,
+    pub cache: Cache,
+
+    pub connection: LSPConnection,
 }
 
 impl JsonnetServer {
@@ -215,6 +256,9 @@ impl JsonnetServer {
 }
 
 impl LSPServer for JsonnetServer {
+    fn connection(&self) -> &LSPConnection {
+        &self.connection
+    }
     fn get_capabilities(&self) -> ServerCapabilities {
         ServerCapabilities {
             text_document_sync: Some(lsp_types::TextDocumentSyncCapability::Options(
@@ -253,6 +297,18 @@ impl LSPServer for JsonnetServer {
             self.cache
                 .update_content(params.text_document.uri.as_str(), rope.to_string().as_str());
         }
+        self.connection
+            .send(Message::Notification(Notification {
+                method: PublishDiagnostics::METHOD.to_string(),
+                params: serde_json::to_value(PublishDiagnosticsParams {
+                    uri: params.text_document.uri.clone(),
+                    diagnostics: EvalDiagnostics::new(&self.cache)
+                        .diagnostics(params.text_document.uri.clone().as_str()),
+                    version: None,
+                })
+                .unwrap(),
+            }))
+            .unwrap();
         Ok(())
     }
 
