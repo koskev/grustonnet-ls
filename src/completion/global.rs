@@ -1,11 +1,9 @@
-use std::sync::Arc;
-
 use lsp_types::{CompletionItem, CompletionItemKind};
 
 use crate::{
     cache::Cache,
     completion::Completion,
-    node::{NodeKind, location::Location},
+    node::{Identifier, LocalBind, NodeKind, location::Location},
 };
 
 pub struct GlobalCompletion<'a> {
@@ -23,34 +21,56 @@ impl<'a> Completion for GlobalCompletion<'a> {
         let doc = self.cache.get_document(filename).unwrap();
 
         let stack = doc.ast.get_stack_by_position(&pos);
-        let items: Vec<CompletionItem> = stack
+        eprintln!("STACK: {}", stack);
+        let binds: Vec<LocalBind> = stack
             .stack
             .iter()
-            .filter_map(|node| match &(*node.node_kind) {
-                crate::node::NodeKind::LocalBind(bind) => {
-                    eprintln!("Got bind!");
-                    Some(CompletionItem {
-                        label: bind.variable.clone().0,
-                        ..Default::default()
-                    })
-                }
-                NodeKind::Local { binds, body } => {
-                    eprintln!("Got local!");
-
-                    Some(CompletionItem {
-                        label: binds[0].variable.clone().0,
-                        kind: Some(CompletionItemKind::VARIABLE),
-                        detail: match body {
-                            Some(body) => Some(body.node_kind.variant_name().to_string()),
-                            None => None,
-                        },
-                        ..Default::default()
-                    })
+            .flat_map(|node| match &(*node.node_kind) {
+                NodeKind::LocalBind(bind) => vec![bind.clone()],
+                NodeKind::Local { binds, body: _ } => binds.clone(),
+                NodeKind::DesugaredObject(obj) => obj.locals.clone(),
+                NodeKind::Function(func) => {
+                    eprintln!("########## Got func");
+                    match &func.parameters {
+                        Some(params) => params
+                            .iter()
+                            .map(|param| LocalBind {
+                                variable: param.name.clone(),
+                                ..Default::default()
+                            })
+                            .collect(),
+                        None => vec![],
+                    }
                 }
                 _ => {
                     eprintln!("No bind {}", node.node_kind.variant_name());
-                    None
+                    vec![]
                 }
+            })
+            .collect();
+
+        let items = binds
+            .iter()
+            .filter_map(|bind| {
+                let kind = match &bind.body {
+                    Some(kind) => {
+                        if let NodeKind::Function(_) = *kind.node_kind {
+                            CompletionItemKind::FUNCTION
+                        } else {
+                            CompletionItemKind::VARIABLE
+                        }
+                    }
+                    None => CompletionItemKind::VARIABLE,
+                };
+                Some(CompletionItem {
+                    label: bind.variable.0.clone(),
+                    kind: Some(kind),
+                    detail: match &bind.body {
+                        Some(body) => Some(body.node_kind.variant_name().to_string()),
+                        None => None,
+                    },
+                    ..Default::default()
+                })
             })
             .collect();
         lsp_types::CompletionList {

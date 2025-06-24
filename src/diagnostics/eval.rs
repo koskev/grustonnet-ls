@@ -22,7 +22,6 @@ impl<'a> Diagnostics for EvalDiagnostics<'a> {
     fn diagnostics(&self, filename: &str) -> Vec<lsp_types::Diagnostic> {
         let doc = self.cache.get_document(filename).unwrap();
         let res = GoJsonnet::new().evaluate_snippet(&doc.filename, &doc.content);
-        eprintln!("Diagnostics: {:?}", res);
 
         if let Err(diag_err) = res {
             return vec![Diagnostic {

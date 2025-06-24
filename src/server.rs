@@ -113,20 +113,16 @@ impl<S: LSPServer> LSPServerManager<S> {
         let _params: InitializeParams = serde_json::from_value(params).unwrap();
         eprintln!("starting example main loop");
         for msg in &self.server.connection().connection.receiver {
-            eprintln!("got msg: {msg:?}");
             match msg {
                 Message::Request(req) => {
                     if self.server.connection().connection.handle_shutdown(&req)? {
                         return Ok(());
                     }
-                    eprintln!("got request: {req:?}");
                     let resp = self.handle_request(req.clone());
                     let result: Result<serde_json::Value, ResponseError> = match resp {
                         Ok(val) => Ok(val.into()),
                         Err(e) => Err(e),
                     };
-
-                    eprintln!("Sending response {:?}", result);
 
                     self.server.connection().send(Message::Response(Response {
                         id: req.id,

@@ -55,6 +55,7 @@ pub struct NodeIter<'a> {
 impl<'a> Iterator for NodeIter<'a> {
     type Item = &'a Node;
     fn next(&mut self) -> Option<Self::Item> {
+        eprintln!("Next: {}", self.root_node.node_kind.variant_name());
         match &(*self.root_node.node_kind) {
             NodeKind::Array(arr) => {
                 if let Some(elements) = &arr.elements {
@@ -75,6 +76,13 @@ impl<'a> Iterator for NodeIter<'a> {
                 if self.index == 0 {
                     self.index += 1;
                     return body.as_ref();
+                }
+                return None;
+            }
+            NodeKind::Function(func) => {
+                if self.index == 0 {
+                    self.index += 1;
+                    return Some(&func.body);
                 }
                 return None;
             }
@@ -172,7 +180,7 @@ pub enum LiteralStringKind {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct LiteralString {
     value: String,
     block_ident: String,
@@ -181,26 +189,26 @@ pub struct LiteralString {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct Array {
-    pub trailing_comma: bool,
-    pub close_fodder: Option<Fodder>,
     pub elements: Option<Vec<CommaSeparatedExpr>>,
+    pub close_fodder: Option<Fodder>,
+    pub trailing_comma: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct Arguments {
     pub positional: Vec<CommaSeparatedExpr>,
     pub named: Vec<NamedArgument>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct Identifier(pub String);
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct NamedArgument {
     pub name_fodder: Option<Fodder>,
     pub name: Identifier,
@@ -210,7 +218,7 @@ pub struct NamedArgument {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct Apply {
     pub target: Node,
     pub fodder_left: Option<Fodder>,
@@ -223,7 +231,7 @@ pub struct Apply {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct Parameter {
     pub name_fodder: Option<Fodder>,
     pub name: Identifier,
@@ -234,7 +242,7 @@ pub struct Parameter {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct Function {
     pub paren_left_fodder: Option<Fodder>,
     pub paren_right_fodder: Option<Fodder>,
@@ -245,7 +253,7 @@ pub struct Function {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct DesugaredObjectField {
     name: Node,
     body: Node,
@@ -255,11 +263,11 @@ pub struct DesugaredObjectField {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct DesugaredObject {
-    asserts: Vec<Node>,
-    fields: Vec<DesugaredObjectField>,
-    locals: Vec<LocalBind>,
+    pub asserts: Vec<Node>,
+    pub fields: Vec<DesugaredObjectField>,
+    pub locals: Vec<LocalBind>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::node::Node;
 
 #[derive(Debug, Clone)]
@@ -15,6 +17,17 @@ impl NodeStack {
     }
     pub fn push_front(&mut self, node: Node) {
         self.stack.insert(0, node);
+    }
+}
+
+impl Display for NodeStack {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let names: String = self
+            .stack
+            .iter()
+            .map(|node| format!("{}\n", node.node_kind.variant_name()))
+            .collect();
+        write!(f, "{}", names)
     }
 }
 
