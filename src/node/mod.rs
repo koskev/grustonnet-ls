@@ -55,7 +55,6 @@ pub struct NodeIter<'a> {
 impl<'a> Iterator for NodeIter<'a> {
     type Item = &'a Node;
     fn next(&mut self) -> Option<Self::Item> {
-        eprintln!("Next: {}", self.root_node.node_kind.variant_name());
         match &(*self.root_node.node_kind) {
             NodeKind::Array(arr) => {
                 if let Some(elements) = &arr.elements {
@@ -65,19 +64,18 @@ impl<'a> Iterator for NodeIter<'a> {
                     }
                 }
             }
-            NodeKind::LocalBind(local_bind) => {
-                if self.index == 0 {
-                    self.index += 1;
-                    return local_bind.body.as_ref();
-                }
-                return None;
-            }
             NodeKind::Local { binds, body } => {
                 if self.index == 0 {
                     self.index += 1;
                     return body.as_ref();
                 }
-                return None;
+                match binds.get(self.index - 1) {
+                    Some(bind) => {
+                        self.index += 1;
+                        return bind.body.as_ref();
+                    }
+                    None => return None,
+                }
             }
             NodeKind::Function(func) => {
                 if self.index == 0 {
@@ -285,7 +283,6 @@ pub enum NodeKind {
     LiteralNumber {
         original_string: String,
     },
-    LocalBind(LocalBind),
     #[serde(rename_all = "PascalCase")]
     Local {
         binds: Vec<LocalBind>,
