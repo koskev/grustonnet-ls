@@ -21,7 +21,9 @@ use serde::Serialize;
 
 use crate::{
     cache::Cache,
-    completion::{Completion, global::GlobalCompletion, keyword::KeywordCompletion},
+    completion::{
+        Completion, global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion,
+    },
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{Diagnostics, eval::EvalDiagnostics},
 };
@@ -352,13 +354,20 @@ impl LSPServer for JsonnetServer {
                 // Global completion
                 let global_completion = GlobalCompletion::new(&self.cache);
                 lists.push(global_completion.complete(
-                    params.text_document_position.position.into(),
+                    completion_info.pos.clone(),
                     params.text_document_position.text_document.uri.as_str(),
                 ));
                 // Keyword completion
                 let keyword_completion = KeywordCompletion::new(&self.cache);
                 lists.push(keyword_completion.complete(
-                    params.text_document_position.position.into(),
+                    completion_info.pos.clone(),
+                    params.text_document_position.text_document.uri.as_str(),
+                ));
+            }
+            CompletionType::Local => {
+                let local_completion = LocalCompletion::new(&self.cache);
+                lists.push(local_completion.complete(
+                    completion_info.pos.clone(),
                     params.text_document_position.text_document.uri.as_str(),
                 ));
             }

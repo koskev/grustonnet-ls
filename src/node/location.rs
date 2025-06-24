@@ -42,10 +42,19 @@ impl Into<lsp_types::Position> for Location {
     }
 }
 
+impl From<tree_sitter::Point> for Location {
+    fn from(value: tree_sitter::Point) -> Self {
+        Self {
+            line: value.row as i32 + 1,
+            column: value.column as i32 + 1,
+        }
+    }
+}
+
 impl LocationRange {
     pub fn in_range(&self, location: &Location) -> bool {
         // Same line but before range
-        if self.end.line == location.line && self.begin.column > location.column {
+        if self.begin.line == location.line && self.begin.column > location.column {
             return false;
         }
 
@@ -55,7 +64,11 @@ impl LocationRange {
         }
 
         // In between
-        return self.begin.line < location.line && self.end.line > location.line;
+        if self.begin.line != location.line || self.end.line != location.line {
+            return self.begin.line <= location.line && self.end.line >= location.line;
+        }
+
+        return true;
     }
 }
 
@@ -64,7 +77,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_range() {
+    fn test_range_multi_line() {
         let range = LocationRange {
             begin: Location { line: 1, column: 3 },
             end: Location { line: 4, column: 4 },
@@ -74,6 +87,43 @@ mod tests {
         assert!(range.in_range(&Location {
             line: 2,
             column: 14
+        }));
+
+        assert!(range.in_range(&Location { line: 1, column: 3 }));
+        assert!(range.in_range(&Location {
+            line: 1,
+            column: 30
+        }));
+        assert!(range.in_range(&Location { line: 4, column: 4 }));
+
+        assert!(!range.in_range(&Location { line: 1, column: 2 }));
+
+        assert!(!range.in_range(&Location { line: 4, column: 5 }));
+        assert!(!range.in_range(&Location { line: 5, column: 2 }));
+    }
+    #[test]
+    fn test_range_single_line() {
+        let range = LocationRange {
+            begin: Location { line: 1, column: 1 },
+            end: Location {
+                line: 1,
+                column: 10,
+            },
+            ..Default::default()
+        };
+
+        assert!(range.in_range(&Location { line: 1, column: 1 }));
+        assert!(range.in_range(&Location { line: 1, column: 5 }));
+        assert!(range.in_range(&Location {
+            line: 1,
+            column: 10,
+        }));
+
+        assert!(!range.in_range(&Location { line: 1, column: 0 }));
+        assert!(!range.in_range(&Location { line: 2, column: 0 }));
+        assert!(!range.in_range(&Location {
+            line: 1,
+            column: 11,
         }));
     }
 }

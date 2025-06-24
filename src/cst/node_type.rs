@@ -1,3 +1,6 @@
+use tree_sitter::Node;
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum NodeType {
     NodeSelf,
     NodeDollar,
@@ -23,6 +26,9 @@ pub enum NodeType {
     NodeString,
     NodeArgs,
     NodeNumber,
+    NodePlus,
+    NodeComma,
+    NodeEqual,
 
     NodeUnknown,
 }
@@ -33,6 +39,9 @@ impl From<&str> for NodeType {
             "self" => Self::NodeSelf,
             "dollar" => Self::NodeDollar,
             "." => Self::NodeDot,
+            "+" => Self::NodePlus,
+            "," => Self::NodeComma,
+            "=" => Self::NodeEqual,
             ":" => Self::NodeColon,
             ";" => Self::NodeSemicolon,
             "(" => Self::NodeOpeningBracket,
@@ -60,7 +69,26 @@ impl From<&str> for NodeType {
     }
 }
 
+impl<'a> From<Node<'a>> for NodeType {
+    fn from(value: Node) -> Self {
+        Self::from(value.grammar_name())
+    }
+}
+
 impl NodeType {
+    pub fn is_statement_ending(&self) -> bool {
+        match *self {
+            Self::NodeColon
+            | Self::NodeComma
+            | Self::NodeSemicolon
+            | Self::NodeOpeningBracket
+            | Self::NodeOpeningSquareBracket
+            | Self::NodeEqual
+            | Self::NodePlus => true,
+            _ => false,
+        }
+    }
+
     pub fn is_symbol(&self) -> bool {
         match *self {
             Self::NodeSemicolon

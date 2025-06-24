@@ -181,8 +181,8 @@ pub enum LiteralStringKind {
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct LiteralString {
     value: String,
-    block_ident: String,
-    block_term_ident: String,
+    block_indent: String,
+    block_term_indent: String,
     kind: i32,
 }
 
@@ -268,6 +268,22 @@ pub struct DesugaredObject {
     pub locals: Vec<LocalBind>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+pub struct Index {
+    pub target: Node,
+    pub index: Node,
+    pub right_bracket_fodder: Option<Fodder>,
+    pub left_bracket_fodder: Option<Fodder>,
+    pub id: Option<Identifier>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+pub struct Var {
+    pub id: Option<Identifier>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]
 #[serde(rename_all = "PascalCase", untagged)]
 pub enum NodeKind {
@@ -283,6 +299,7 @@ pub enum NodeKind {
     LiteralNumber {
         original_string: String,
     },
+    LiteralString(LiteralString),
     #[serde(rename_all = "PascalCase")]
     Local {
         binds: Vec<LocalBind>,
@@ -291,6 +308,8 @@ pub enum NodeKind {
     Function(Function),
     Apply(Apply),
     DesugaredObject(DesugaredObject),
+    Index(Index),
+    Var(Var),
     Other(serde_json::Value),
 }
 

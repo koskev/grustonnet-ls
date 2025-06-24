@@ -61,15 +61,19 @@ impl<'a> Completion for GlobalCompletion<'a> {
                     }
                     None => CompletionItemKind::VARIABLE,
                 };
-                Some(CompletionItem {
-                    label: bind.variable.0.clone(),
-                    kind: Some(kind),
-                    detail: match &bind.body {
-                        Some(body) => Some(body.node_kind.variant_name().to_string()),
-                        None => None,
-                    },
-                    ..Default::default()
-                })
+                match bind.variable.0.as_str() {
+                    // Filter out weird "$" in ast
+                    "$" => None,
+                    _ => Some(CompletionItem {
+                        label: bind.variable.0.clone(),
+                        kind: Some(kind),
+                        detail: match &bind.body {
+                            Some(body) => Some(body.node_kind.variant_name().to_string()),
+                            None => None,
+                        },
+                        ..Default::default()
+                    }),
+                }
             })
             .collect();
         lsp_types::CompletionList {
