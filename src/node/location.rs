@@ -10,7 +10,7 @@ pub struct LocationRange {
     pub end: Location,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Location {
     pub line: i32,

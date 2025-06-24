@@ -3,8 +3,7 @@ use lsp_types::{CompletionItem, CompletionList};
 use crate::{
     cache::Cache,
     completion::Completion,
-    cst::node_type::NodeType,
-    node::{DesugaredObject, Node, NodeKind, location::Location, stack::NodeStack},
+    node::{Node, NodeKind, location::Location, stack::NodeStack},
 };
 
 pub struct LocalCompletion<'a> {
@@ -34,7 +33,7 @@ impl Iterator for CompletionIterator {
                 }
                 NodeKind::Var(var) => {
                     if let Some(resolved) = var.resolve(&self.document_stack) {
-                        log::warn!("Resolved to {:?}", resolved);
+                        log::warn!("Resolved to {:?}", resolved.node_kind.variant_name());
                         self.search_stack.push(resolved);
                     }
                 }
@@ -57,7 +56,7 @@ impl Iterator for CompletionIterator {
 impl CompletionIterator {
     fn from_node(node: Node, document_stack: NodeStack) -> Self {
         Self {
-            search_stack: node.get_call_stack(),
+            search_stack: NodeStack { stack: vec![node] },
             document_stack,
         }
     }
@@ -104,3 +103,6 @@ impl<'a> Completion for LocalCompletion<'a> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {}

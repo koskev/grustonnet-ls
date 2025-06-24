@@ -9,4 +9,4 @@ pub trait Completion {
 }
 
 #[cfg(test)]
-mod global_test;
+mod test;

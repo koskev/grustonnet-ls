@@ -423,7 +423,7 @@ mod tests {
         let data = include_str!("./test_local.json");
         let node_data = serde_json::from_str::<Node>(data).unwrap();
         match *node_data.node_kind {
-            NodeKind::Local { binds: _, body: _ } => (),
+            NodeKind::Local(_) => (),
             _ => assert!(
                 false,
                 "Node is of kind {}",
