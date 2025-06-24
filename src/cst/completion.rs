@@ -1,5 +1,5 @@
 use ropey::Rope;
-use tree_sitter::{Node, Point};
+use tree_sitter::{Node, Point, Tree};
 
 use crate::{
     cst::{new_tree, node::JsonnetNode, node_type::NodeType, point},
@@ -57,15 +57,28 @@ impl<'a> CompletionInfo<'a> {
         // TODO: Do we need to check the whole stack? Or is it enough to check if the next node is a dot?
         let mut current_node = node_at.clone();
         let mut nodes = vec![];
-        while !current_node.is_ending_node() && current_node.prev_sibling().is_some() {
+        while !current_node.is_ending_node() {
             nodes.push(current_node);
-            current_node = current_node.prev_sibling().unwrap();
+            if let Some(prev_sibling) = current_node.prev_sibling() {
+                current_node = prev_sibling;
+            } else {
+                break;
+            }
         }
-        if nodes
+        if let Some(dot_node) = nodes
             .iter()
-            .any(|node| NodeType::from(*node) == NodeType::NodeDot)
+            .find(|node| NodeType::from(**node) == NodeType::NodeDot)
         {
             info.completion_type = CompletionType::Local;
+            if let Some(prev_node) = dot_node.get_prev_node() {
+                let prev_node = match NodeType::from(prev_node) {
+                    NodeType::NodeError => prev_node.get_prev_node().unwrap_or(prev_node),
+                    _ => prev_node,
+                };
+                log::error!("Prev node {:?}", prev_node.start_position());
+                info.pos = prev_node.start_position().into();
+                info.pos.column += 1;
+            }
         }
 
         info

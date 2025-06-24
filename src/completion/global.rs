@@ -26,7 +26,7 @@ impl<'a> Completion for GlobalCompletion<'a> {
             .stack
             .iter()
             .flat_map(|node| match &(*node.node_kind) {
-                NodeKind::Local { binds, body: _ } => binds.clone(),
+                NodeKind::Local(local) => local.binds.clone(),
                 NodeKind::DesugaredObject(obj) => obj.locals.clone(),
                 NodeKind::Function(func) => {
                     eprintln!("########## Got func");

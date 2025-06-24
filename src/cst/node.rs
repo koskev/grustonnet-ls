@@ -24,7 +24,7 @@ impl<'a> JsonnetNode for Node<'a> {
         match self.prev_sibling() {
             Some(sibling) => {
                 let mut cursor = sibling.walk();
-                cursor.goto_last_child();
+                while cursor.goto_last_child() {}
                 Some(cursor.node())
             }
             None => self.parent(),

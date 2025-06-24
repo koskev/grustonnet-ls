@@ -16,6 +16,7 @@ pub mod binding {
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
     let server = LSPServerManager {
         server: JsonnetServer {
             connection: LSPConnection::new_network(4874),

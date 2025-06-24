@@ -1,12 +1,16 @@
 use std::fmt::{Debug, Formatter};
 
+use log::*;
 use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::node::{
-    location::{Location, LocationRange},
-    stack::NodeStack,
+use crate::{
+    cst::node_type::NodeType,
+    node::{
+        location::{Location, LocationRange},
+        stack::NodeStack,
+    },
 };
 
 pub mod location;
@@ -25,6 +29,28 @@ pub struct Node {
 }
 
 impl Node {
+    pub fn get_call_stack(&self) -> NodeStack {
+        let mut call_stack = NodeStack::new();
+        let mut search_stack = NodeStack::new();
+
+        search_stack.push(self.clone());
+
+        while let Some(current_node) = search_stack.stack.pop() {
+            match &(*current_node.node_kind) {
+                NodeKind::Index(idx) => {
+                    search_stack.push(idx.target.clone());
+                    call_stack.push(current_node);
+                }
+                NodeKind::Var(_var) => {
+                    call_stack.push(current_node);
+                }
+                _ => call_stack.push(current_node),
+            }
+        }
+
+        call_stack
+    }
+
     pub fn get_stack_by_position(&self, pos: &Location) -> NodeStack {
         let mut stack: NodeStack = self
             .iter()
@@ -64,12 +90,12 @@ impl<'a> Iterator for NodeIter<'a> {
                     }
                 }
             }
-            NodeKind::Local { binds, body } => {
+            NodeKind::Local(loc) => {
                 if self.index == 0 {
                     self.index += 1;
-                    return body.as_ref();
+                    return loc.body.as_ref();
                 }
-                match binds.get(self.index - 1) {
+                match loc.binds.get(self.index - 1) {
                     Some(bind) => {
                         self.index += 1;
                         return bind.body.as_ref();
@@ -84,8 +110,16 @@ impl<'a> Iterator for NodeIter<'a> {
                 }
                 return None;
             }
+            NodeKind::DesugaredObject(obj) => {
+                if let Some(field) = obj.fields.get(self.index) {
+                    self.index += 1;
+                    return Some(&field.body);
+                }
+            }
+            // Var has no children
+            NodeKind::Var(_) => (),
             _ => {
-                eprintln!(
+                error!(
                     "Unhandled type {} while searching for children",
                     self.root_node.node_kind.variant_name()
                 )
@@ -180,10 +214,10 @@ pub enum LiteralStringKind {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct LiteralString {
-    value: String,
-    block_indent: String,
-    block_term_indent: String,
-    kind: i32,
+    pub value: String,
+    pub block_indent: String,
+    pub block_term_indent: String,
+    pub kind: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -253,11 +287,11 @@ pub struct Function {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct DesugaredObjectField {
-    name: Node,
-    body: Node,
-    loc_range: LocationRange,
-    hide: i32,
-    plus_super: bool,
+    pub name: Node,
+    pub body: Node,
+    pub loc_range: LocationRange,
+    pub hide: i32,
+    pub plus_super: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -284,6 +318,13 @@ pub struct Var {
     pub id: Option<Identifier>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+pub struct Local {
+    pub binds: Vec<LocalBind>,
+    pub body: Option<Node>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]
 #[serde(rename_all = "PascalCase", untagged)]
 pub enum NodeKind {
@@ -300,11 +341,7 @@ pub enum NodeKind {
         original_string: String,
     },
     LiteralString(LiteralString),
-    #[serde(rename_all = "PascalCase")]
-    Local {
-        binds: Vec<LocalBind>,
-        body: Option<Node>,
-    },
+    Local(Local),
     Function(Function),
     Apply(Apply),
     DesugaredObject(DesugaredObject),
@@ -316,6 +353,26 @@ pub enum NodeKind {
 impl Default for NodeKind {
     fn default() -> Self {
         return Self::Other(json!(null));
+    }
+}
+
+impl Var {
+    pub fn resolve(&self, document_stack: &NodeStack) -> Option<Node> {
+        let Some(id) = &self.id else {
+            return None;
+        };
+        let get_node_with_id = |binds: &Vec<LocalBind>| -> Option<Node> {
+            let bind = binds.iter().find(|local| local.variable.0 == id.0);
+            bind.unwrap().body.clone()
+        };
+        document_stack
+            .stack
+            .iter()
+            .find_map(|node| match &(*node.node_kind) {
+                NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
+                NodeKind::Local(local) => get_node_with_id(&local.binds),
+                _ => None,
+            })
     }
 }
 

@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::node::Node;
+use crate::node::{Identifier, Node};
 
 #[derive(Debug, Clone)]
 pub struct NodeStack {
@@ -17,6 +17,10 @@ impl NodeStack {
     }
     pub fn push_front(&mut self, node: Node) {
         self.stack.insert(0, node);
+    }
+
+    pub fn peek(&self) -> Option<Node> {
+        self.stack.last().cloned()
     }
 }
 
