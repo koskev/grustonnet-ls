@@ -3,6 +3,7 @@ use crate::server::{JsonnetServer, LSPConnection, LSPServerManager};
 mod bridge;
 mod cache;
 mod completion;
+mod cst;
 mod diagnostics;
 mod node;
 mod server;

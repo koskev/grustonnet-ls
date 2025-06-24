@@ -22,6 +22,7 @@ use serde::Serialize;
 use crate::{
     cache::Cache,
     completion::{Completion, global::GlobalCompletion, keyword::KeywordCompletion},
+    cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{Diagnostics, eval::EvalDiagnostics},
 };
 
@@ -337,19 +338,32 @@ impl LSPServer for JsonnetServer {
     }
 
     fn completion(&self, params: CompletionParams) -> Result<LSPResponse, ResponseError> {
-        // Global completion
-        let global_completion = GlobalCompletion::new(&self.cache);
+        let doc = self
+            .cache
+            .get_document(params.text_document_position.text_document.uri.as_str())
+            .unwrap();
+        let completion_info =
+            CompletionInfo::new(&doc.content, params.text_document_position.position.into());
+
         let mut lists = vec![];
-        lists.push(global_completion.complete(
-            params.text_document_position.position.into(),
-            params.text_document_position.text_document.uri.as_str(),
-        ));
-        // Keyword completion
-        let keyword_completion = KeywordCompletion::new(&self.cache);
-        lists.push(keyword_completion.complete(
-            params.text_document_position.position.into(),
-            params.text_document_position.text_document.uri.as_str(),
-        ));
+
+        match completion_info.completion_type {
+            CompletionType::Global => {
+                // Global completion
+                let global_completion = GlobalCompletion::new(&self.cache);
+                lists.push(global_completion.complete(
+                    params.text_document_position.position.into(),
+                    params.text_document_position.text_document.uri.as_str(),
+                ));
+                // Keyword completion
+                let keyword_completion = KeywordCompletion::new(&self.cache);
+                lists.push(keyword_completion.complete(
+                    params.text_document_position.position.into(),
+                    params.text_document_position.text_document.uri.as_str(),
+                ));
+            }
+            _ => (),
+        }
 
         let is_incomplete = lists.iter().any(|list| list.is_incomplete);
         let completion_list = CompletionList {
