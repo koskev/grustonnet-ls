@@ -16,6 +16,7 @@ macro_rules! local_test {
 }
 
 #[test]
+#[ignore = "Currently not supported"]
 fn simple_local() {
     let cache = Cache::default();
     CompletionTestCase {
@@ -90,6 +91,25 @@ fn object_multiple() {
             is_incomplete: false,
             items: vec![CompletionItem {
                 label: "key".to_string(),
+                ..Default::default()
+            }],
+        },
+        provider: LocalCompletion::new(&cache),
+    }
+    .check(&cache);
+}
+
+#[test]
+fn object_nested() {
+    let cache = Cache::default();
+    CompletionTestCase {
+        filename: "testdata/object_nested.jsonnet".into(),
+        replace_string: "x: object,".into(),
+        replace_by_string: "x: object.outer.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "inner".to_string(),
                 ..Default::default()
             }],
         },

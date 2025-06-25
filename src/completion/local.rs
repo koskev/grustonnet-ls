@@ -16,50 +16,66 @@ impl<'a> LocalCompletion<'a> {
     }
 }
 
-pub struct CompletionIterator {
-    search_stack: NodeStack,
-    document_stack: NodeStack,
-}
+// TODO: make a completion iterator
 
-impl Iterator for CompletionIterator {
-    type Item = Node;
-    fn next(&mut self) -> Option<Self::Item> {
-        while let Some(current_node) = self.search_stack.stack.pop() {
-            match &(*current_node.node_kind) {
-                NodeKind::Index(idx) => self.search_stack.push(idx.target.clone()),
-                NodeKind::DesugaredObject(_obj) => {
-                    log::error!("Found desugared!");
-                    return Some(current_node);
-                }
-                NodeKind::Var(var) => {
-                    if let Some(resolved) = var.resolve(&self.document_stack) {
-                        log::warn!("Resolved to {:?}", resolved.node_kind.variant_name());
-                        self.search_stack.push(resolved);
+fn build_node(document_stack: NodeStack) -> Option<Node> {
+    let mut call_stack = document_stack.peek()?.get_call_stack();
+
+    let mut base_object = get_desugared_object(call_stack.stack.pop()?, document_stack.clone())?;
+
+    while let Some(call_node) = call_stack.stack.pop() {
+        match *call_node.node_kind {
+            NodeKind::Index(idx) => {
+                let index_name = idx.get_name()?;
+                match &(*base_object.node_kind) {
+                    NodeKind::DesugaredObject(obj) => {
+                        let found_field = obj.fields.iter().find(|field| {
+                            if let Some(field_name) = field.get_name() {
+                                field_name == index_name
+                            } else {
+                                false
+                            }
+                        })?;
+                        base_object =
+                            get_desugared_object(found_field.body.clone(), document_stack.clone())?;
                     }
+                    _ => (),
                 }
-                NodeKind::Local(local) => {
-                    if let Some(body) = &local.body {
-                        self.search_stack.push(body.clone());
-                    }
-                }
-                _ => log::warn!(
-                    "Unhandled node in completion iterator: {}",
-                    current_node.node_kind.variant_name()
-                ),
             }
+            _ => (),
         }
-
-        None
     }
+
+    Some(base_object)
 }
-
-impl CompletionIterator {
-    fn from_node(node: Node, document_stack: NodeStack) -> Self {
-        Self {
-            search_stack: NodeStack { stack: vec![node] },
-            document_stack,
+fn get_desugared_object(node: Node, document_stack: NodeStack) -> Option<Node> {
+    let mut search_stack = NodeStack::new();
+    search_stack.push(node);
+    while let Some(current_node) = search_stack.stack.pop() {
+        match &(*current_node.node_kind) {
+            NodeKind::Index(idx) => search_stack.push(idx.target.clone()),
+            NodeKind::DesugaredObject(_obj) => {
+                log::error!("Found desugared!");
+                return Some(current_node);
+            }
+            NodeKind::Var(var) => {
+                if let Some(resolved) = var.resolve(&document_stack) {
+                    log::warn!("Resolved to {:?}", resolved.node_kind.variant_name());
+                    search_stack.push(resolved);
+                }
+            }
+            NodeKind::Local(local) => {
+                if let Some(body) = &local.body {
+                    search_stack.push(body.clone());
+                }
+            }
+            _ => log::warn!(
+                "Unhandled node in completion iterator: {}",
+                current_node.node_kind.variant_name()
+            ),
         }
     }
+    None
 }
 
 impl<'a> Completion for LocalCompletion<'a> {
@@ -73,29 +89,33 @@ impl<'a> Completion for LocalCompletion<'a> {
             top_node.node_kind.variant_name(),
             location
         );
-        let iter = CompletionIterator::from_node(top_node, stack);
-        let items = iter
-            .flat_map(|node| match *node.node_kind {
-                NodeKind::DesugaredObject(obj) => obj
-                    .fields
-                    .iter()
-                    .filter_map(|field| match &(*field.name.node_kind) {
-                        NodeKind::LiteralString(name) => Some(CompletionItem {
-                            label: name.value.clone(),
-                            ..Default::default()
-                        }),
-                        _ => None,
-                    })
-                    .collect(),
-                _ => {
-                    log::warn!(
-                        "Unhandled local completion: {}",
-                        node.node_kind.variant_name()
-                    );
-                    vec![]
-                }
-            })
-            .collect();
+        // TODO: get the current index and use it as the filter for the rest of the completion
+        // TODO: Create call stack and get every stage for the completion. Get the first object and
+        // use the second one as a filter
+        // TODO: Resolve the complete call stack
+        let Some(node) = build_node(stack) else {
+            return CompletionList::default();
+        };
+        let items = match node.node_kind.as_ref() {
+            NodeKind::DesugaredObject(obj) => obj
+                .fields
+                .iter()
+                .filter_map(|field| match &(*field.name.node_kind) {
+                    NodeKind::LiteralString(name) => Some(CompletionItem {
+                        label: name.value.clone(),
+                        ..Default::default()
+                    }),
+                    _ => None,
+                })
+                .collect(),
+            _ => {
+                log::warn!(
+                    "Unhandled local completion: {}",
+                    node.node_kind.variant_name()
+                );
+                vec![]
+            }
+        };
 
         CompletionList {
             items,

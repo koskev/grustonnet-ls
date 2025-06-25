@@ -5,12 +5,9 @@ use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::{
-    cst::node_type::NodeType,
-    node::{
-        location::{Location, LocationRange},
-        stack::NodeStack,
-    },
+use crate::node::{
+    location::{Location, LocationRange},
+    stack::NodeStack,
 };
 
 pub mod location;
@@ -373,6 +370,24 @@ impl Var {
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
                 _ => None,
             })
+    }
+}
+
+impl Index {
+    pub fn get_name(&self) -> Option<String> {
+        match &(*self.index.node_kind) {
+            NodeKind::LiteralString(name) => Some(name.value.clone()),
+            _ => None,
+        }
+    }
+}
+
+impl DesugaredObjectField {
+    pub fn get_name(&self) -> Option<String> {
+        match self.name.node_kind.as_ref() {
+            NodeKind::LiteralString(name) => Some(name.value.clone()),
+            _ => None,
+        }
     }
 }
 
