@@ -3,6 +3,9 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace]
-members = ["crates/grustonnet-bin", "crates/grustonnet-ls-lib"]
+members = [
+"crates/grustonnet-bin",
+"crates/grustonnet-ls-lib",
+]
 resolver = "3"
 

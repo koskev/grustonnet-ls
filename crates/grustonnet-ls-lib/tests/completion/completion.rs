@@ -1,0 +1,116 @@
+use std::{
+    fs::read_to_string,
+    str::FromStr,
+    sync::{Arc, Once, RwLock},
+};
+
+use grustonnet_ls_lib::{
+    server::{config::Configuration, jsonnet::JsonnetServer, server::LSPServer},
+    utils::rope::RopeHelper,
+};
+use lsp_types::{
+    CompletionList, PartialResultParams, Range, TextDocumentContentChangeEvent,
+    TextDocumentIdentifier, TextDocumentPositionParams, Uri, WorkDoneProgressParams,
+};
+use pretty_assertions::assert_eq;
+use ropey::Rope;
+
+static INIT: Once = Once::new();
+
+fn setup() {
+    INIT.call_once(|| {
+        env_logger::init();
+    });
+}
+
+pub(crate) struct CompletionTestCase {
+    pub(crate) filename: String,
+    pub(crate) replace_string: String,
+    pub(crate) replace_by_string: String,
+    pub(crate) expected: CompletionList,
+
+    pub(crate) config: Configuration,
+}
+
+impl CompletionTestCase {
+    fn create_server(&self) -> JsonnetServer {
+        JsonnetServer {
+            configuration: Arc::new(RwLock::new(self.config.clone())),
+            ..Default::default()
+        }
+    }
+    pub(crate) fn check(&self) {
+        setup();
+        let server = self.create_server();
+        let file_content = read_to_string(&self.filename).unwrap();
+        let file_uri = Uri::from_str(&self.filename).unwrap();
+        server
+            .did_open(lsp_types::DidOpenTextDocumentParams {
+                text_document: lsp_types::TextDocumentItem {
+                    uri: file_uri.clone(),
+                    language_id: "jsonnet".into(),
+                    version: 1,
+                    text: file_content.clone(),
+                },
+            })
+            .unwrap();
+
+        let string_begin = file_content
+            .clone()
+            .find(&self.replace_string)
+            .expect("Unable to find string");
+        let string_end = string_begin + self.replace_string.len();
+        let mut rope = Rope::from_str(&file_content);
+
+        server
+            .did_change_text(lsp_types::DidChangeTextDocumentParams {
+                text_document: lsp_types::VersionedTextDocumentIdentifier {
+                    uri: file_uri.clone(),
+                    version: 2,
+                },
+                content_changes: vec![TextDocumentContentChangeEvent {
+                    text: self.replace_by_string.clone(),
+                    range: Some(Range {
+                        start: rope.get_location(string_begin).unwrap().into(),
+                        end: rope.get_location(string_end).unwrap().into(),
+                    }),
+                    range_length: None,
+                }],
+            })
+            .unwrap();
+        let completion_location = rope
+            .replace_get_end(&self.replace_string, &self.replace_by_string)
+            .unwrap();
+
+        let completion_list = server
+            .completion(lsp_types::CompletionParams {
+                text_document_position: TextDocumentPositionParams {
+                    text_document: TextDocumentIdentifier { uri: file_uri },
+                    position: completion_location.clone().into(),
+                },
+                work_done_progress_params: WorkDoneProgressParams::default(),
+                context: None,
+                partial_result_params: PartialResultParams::default(),
+            })
+            .unwrap();
+        let mut completion_list: CompletionList =
+            serde_json::from_value(completion_list.0).unwrap();
+
+        for item in completion_list.items.iter_mut() {
+            item.detail = None;
+        }
+
+        assert_eq!(
+            self.expected,
+            completion_list,
+            "At {:?} with \n{}",
+            completion_location,
+            rope.lines()
+                .enumerate()
+                .map(|(line_num, line)| {
+                    format!("{}({}):{}", line_num + 1, line.len_chars(), line)
+                })
+                .collect::<String>()
+        )
+    }
+}

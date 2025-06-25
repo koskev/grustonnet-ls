@@ -339,7 +339,6 @@ version = "0.1.0"
 dependencies = [
  "env_logger",
  "grustonnet-ls-lib",
- "rust2go",
  "tokio",
 ]
 

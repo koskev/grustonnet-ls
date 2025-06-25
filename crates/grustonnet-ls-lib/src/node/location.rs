@@ -10,11 +10,17 @@ pub struct LocationRange {
     pub end: Location,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Location {
     pub line: i32,
     pub column: i32,
+}
+
+impl Default for Location {
+    fn default() -> Self {
+        Self { line: 1, column: 1 }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

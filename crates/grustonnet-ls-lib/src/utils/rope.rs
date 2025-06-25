@@ -4,9 +4,19 @@ use crate::node::location::Location;
 
 pub trait RopeHelper {
     fn replace_get_end(&mut self, old: &str, new: &str) -> Option<Location>;
+    fn get_location(&self, character: usize) -> Option<Location>;
 }
 
 impl RopeHelper for Rope {
+    fn get_location(&self, character: usize) -> Option<Location> {
+        let line = self.char_to_line(character);
+        let char = character - self.line_to_char(line);
+
+        Some(Location {
+            line: line as i32 + 1,
+            column: char as i32 + 1,
+        })
+    }
     fn replace_get_end(&mut self, old: &str, new: &str) -> Option<Location> {
         let string_begin = self.to_string().find(&old)?;
         let string_end = string_begin + old.len();
@@ -17,8 +27,7 @@ impl RopeHelper for Rope {
 
         Some(Location {
             line: line as i32 + 1,
-            // Don't add +1 to be on the actual char and not behind it
-            column: char as i32,
+            column: char as i32 + 1,
         })
     }
 }
@@ -31,6 +40,16 @@ mod tests {
     use crate::{node::location::Location, utils::rope::RopeHelper};
 
     #[test]
+    fn test_rope_location() {
+        let rope = Rope::from_str("01234\n6789");
+
+        let loc = rope.get_location(4).unwrap();
+        assert_eq!(loc, Location { line: 1, column: 5 });
+        let loc = rope.get_location(7).unwrap();
+        assert_eq!(loc, Location { line: 2, column: 2 });
+    }
+
+    #[test]
     fn test_rope_replace() {
         let mut rope = Rope::from_str("this is a test\nwith a second line");
 
@@ -40,7 +59,7 @@ mod tests {
             new_location,
             Location {
                 line: 1,
-                column: 14,
+                column: 15,
             }
         );
     }

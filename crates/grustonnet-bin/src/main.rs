@@ -1,4 +1,7 @@
-use grustonnet_ls_lib::server::{JsonnetServer, LSPConnection, LSPServerManager};
+use grustonnet_ls_lib::server::{
+    jsonnet::JsonnetServer,
+    server::{LSPConnection, LSPServerManager},
+};
 
 #[tokio::main]
 async fn main() {
