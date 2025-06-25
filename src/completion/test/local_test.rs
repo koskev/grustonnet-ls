@@ -15,16 +15,85 @@ macro_rules! local_test {
     };
 }
 
-local_test!(
-    simple_local,
-    "testdata/simple_object.jsonnet",
-    "x: object,",
-    "x: object.k",
-    CompletionList {
-        is_incomplete: false,
-        items: vec![CompletionItem {
-            label: "key".to_string(),
-            ..Default::default()
-        }],
+#[test]
+fn simple_local() {
+    let cache = Cache::default();
+    CompletionTestCase {
+        filename: "testdata/simple_object.jsonnet".into(),
+        replace_string: "x: object,".into(),
+        replace_by_string: "x: object.k".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "key".to_string(),
+                ..Default::default()
+            }],
+        },
+        provider: LocalCompletion::new(&cache),
     }
-);
+    .check(&cache);
+}
+
+#[test]
+fn simple_local_no_text() {
+    let cache = Cache::default();
+    CompletionTestCase {
+        filename: "testdata/simple_object.jsonnet".into(),
+        replace_string: "x: object,".into(),
+        replace_by_string: "x: object.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "key".to_string(),
+                ..Default::default()
+            }],
+        },
+        provider: LocalCompletion::new(&cache),
+    }
+    .check(&cache);
+}
+
+#[test]
+fn object_multiple_no_text() {
+    let cache = Cache::default();
+    CompletionTestCase {
+        filename: "testdata/simple_object_multiple_fields.jsonnet".into(),
+        replace_string: "x: object,".into(),
+        replace_by_string: "x: object.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "key".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "second".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        provider: LocalCompletion::new(&cache),
+    }
+    .check(&cache);
+}
+
+#[test]
+#[ignore = "Currently not supported"]
+fn object_multiple() {
+    let cache = Cache::default();
+    CompletionTestCase {
+        filename: "testdata/simple_object_multiple_fields.jsonnet".into(),
+        replace_string: "x: object,".into(),
+        replace_by_string: "x: object.k".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "key".to_string(),
+                ..Default::default()
+            }],
+        },
+        provider: LocalCompletion::new(&cache),
+    }
+    .check(&cache);
+}

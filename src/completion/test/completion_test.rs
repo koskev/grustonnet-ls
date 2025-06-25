@@ -35,7 +35,18 @@ impl<T: Completion> CompletionTestCase<T> {
             item.detail = None;
         }
 
-        assert_eq!(self.expected, completion_list, "At {:?}", location)
+        assert_eq!(
+            self.expected,
+            completion_list,
+            "At {:?} with \n{}",
+            location,
+            rope.lines()
+                .enumerate()
+                .map(|(line_num, line)| {
+                    format!("{}({}):{}", line_num + 1, line.len_chars(), line)
+                })
+                .collect::<String>()
+        )
     }
 }
 
@@ -58,4 +69,5 @@ macro_rules! completion_test {
         }
     };
 }
+
 pub(crate) use completion_test;

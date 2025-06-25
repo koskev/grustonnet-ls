@@ -17,7 +17,8 @@ impl RopeHelper for Rope {
 
         Some(Location {
             line: line as i32 + 1,
-            column: char as i32 + 1,
+            // Don't add +1 to be on the actual char and not behind it
+            column: char as i32,
         })
     }
 }
@@ -39,7 +40,7 @@ mod tests {
             new_location,
             Location {
                 line: 1,
-                column: 15,
+                column: 14,
             }
         );
     }

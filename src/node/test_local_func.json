@@ -1,0 +1,20 @@
+		{
+			"VarFodder": null,
+			"Body": null,
+			"EqFodder": null,
+			"Variable": "myFunc",
+			"CloseFodder": null,
+			"Fun": null,
+			"LocRange": {
+				"File": null,
+				"FileName": "",
+				"Begin": {
+					"Line": 0,
+					"Column": 0
+				},
+				"End": {
+					"Line": 0,
+					"Column": 0
+				}
+			}
+		}
