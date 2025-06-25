@@ -3,7 +3,7 @@ use lsp_types::{CompletionItem, CompletionItemKind};
 use crate::{
     cache::Cache,
     completion::Completion,
-    node::{Identifier, LocalBind, NodeKind, location::Location},
+    node::{LocalBind, NodeKind, location::Location},
 };
 
 pub struct GlobalCompletion<'a> {

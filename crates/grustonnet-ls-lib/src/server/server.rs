@@ -6,27 +6,11 @@ use lsp_server::{
     Response, ResponseError,
 };
 use lsp_types::{
-    CompletionList, CompletionOptions, CompletionParams, CompletionResponse,
-    DidChangeConfigurationParams, DidChangeTextDocumentParams, DidOpenTextDocumentParams,
-    DocumentDiagnosticParams, DocumentDiagnosticReportResult, InitializeParams,
-    PublishDiagnosticsParams, RelatedFullDocumentDiagnosticReport, ServerCapabilities,
-    TextDocumentSyncKind, TextDocumentSyncOptions,
-    notification::{
-        DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument,
-        Notification as NotifictionTrait, PublishDiagnostics,
-    },
+    CompletionParams, DidChangeConfigurationParams, DidChangeTextDocumentParams,
+    DidOpenTextDocumentParams, DocumentDiagnosticParams, InitializeParams, ServerCapabilities,
+    notification::{DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument},
 };
-use ropey::Rope;
 use serde::Serialize;
-
-use crate::{
-    cache::Cache,
-    completion::{
-        Completion, global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion,
-    },
-    cst::completion::{CompletionInfo, CompletionType},
-    diagnostics::{Diagnostics, eval::EvalDiagnostics},
-};
 
 macro_rules! lsp_function_req {
     ($name:ident, $param:ty) => {

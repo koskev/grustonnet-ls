@@ -6,8 +6,12 @@ use name_variant::NamedVariant;
 enum TestEnum {
     A,
     B(),
+    #[allow(dead_code)]
     C(i32, i32),
-    D { _name: String, _age: i32 },
+    D {
+        _name: String,
+        _age: i32,
+    },
     VariantTest,
 }
 

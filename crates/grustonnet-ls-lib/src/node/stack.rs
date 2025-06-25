@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::node::{Identifier, Node};
+use crate::node::Node;
 
 #[derive(Debug, Clone)]
 pub struct NodeStack {

@@ -1,8 +1,8 @@
 use ropey::Rope;
-use tree_sitter::{Node, Point, Tree};
+use tree_sitter::{Node, Point};
 
 use crate::{
-    cst::{new_tree, node::JsonnetNode, node_type::NodeType, point},
+    cst::{new_tree, node::JsonnetNode, node_type::NodeType},
     node::location::Location,
 };
 

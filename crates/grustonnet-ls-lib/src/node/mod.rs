@@ -322,16 +322,19 @@ pub struct Local {
     pub body: Option<Node>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+pub struct Binary {
+    pub left: Node,
+    pub right: Node,
+    pub op_fodder: Option<Fodder>,
+    pub op: i32,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]
 #[serde(rename_all = "PascalCase", untagged)]
 pub enum NodeKind {
-    #[serde(rename_all = "PascalCase")]
-    Binary {
-        left: Node,
-        right: Node,
-        op_fodder: Option<Fodder>,
-        op: i32,
-    },
+    Binary(Binary),
     Array(Array),
     #[serde(rename_all = "PascalCase")]
     LiteralNumber {
@@ -452,36 +455,26 @@ mod tests {
         let data = include_str!("./test_binary.json");
         let node_data = serde_json::from_str::<Node>(data).unwrap();
         match *node_data.node_kind {
-            NodeKind::Binary {
-                left,
-                right,
-                op_fodder,
-                op,
-            } => (),
+            NodeKind::Binary(_) => (),
             _ => assert!(false),
         }
     }
     #[test]
     fn test_binary() {
         let node = Node {
-            node_kind: Box::new(NodeKind::Binary {
+            node_kind: Box::new(NodeKind::Binary(Binary {
                 left: get_array_node(),
                 right: get_array_node(),
                 op_fodder: None,
                 op: 0,
-            }),
+            })),
             ..Default::default()
         };
 
         let json_str = serde_json::to_string(&node).unwrap();
         let json_val: Node = serde_json::from_str(&json_str).unwrap();
         match *json_val.node_kind {
-            NodeKind::Binary {
-                left,
-                right,
-                op_fodder,
-                op,
-            } => (),
+            NodeKind::Binary(_) => (),
             _ => assert!(false),
         }
     }

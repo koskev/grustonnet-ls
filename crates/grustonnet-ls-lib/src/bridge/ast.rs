@@ -4,13 +4,9 @@ use std::{
 };
 
 use anyhow::anyhow;
-use lsp_types::{Position, Range};
 use regex::Regex;
 
-use crate::{
-    binding,
-    node::location::{Location, LocationRange},
-};
+use crate::{binding, node::location::Location};
 
 #[derive(rust2go::R2G)]
 pub struct ExtValue {
