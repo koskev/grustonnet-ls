@@ -21,6 +21,8 @@ tree-sitter-jsonnet = {git = "https://github.com/sourcegraph/tree-sitter-jsonnet
 pretty_assertions = "1.4.1"
 env_logger = "0.11.8"
 log = "0.4.27"
+smart-default = "0.7.1"
+schemars = "1.0.1"
 
 [build-dependencies]
 rust2go = { version = "0.4.0", features = ["build"] }

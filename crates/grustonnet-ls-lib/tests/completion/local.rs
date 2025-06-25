@@ -3,13 +3,16 @@ use lsp_types::{CompletionItem, CompletionList};
 
 use crate::completion::completion::CompletionTestCase;
 
-const LOCAL_CONFIG: Configuration = Configuration {
-    completion: CompletionConfig {
-        enable_keywords: false,
-        enable_global: false,
-        enable_local: true,
-    },
-};
+fn local_config() -> Configuration {
+    Configuration {
+        completion: CompletionConfig {
+            enable_keywords: false,
+            enable_global: false,
+            enable_local: true,
+        },
+        ..Default::default()
+    }
+}
 
 #[test]
 #[ignore = "Currently not supported"]
@@ -25,7 +28,7 @@ fn simple_local() {
                 ..Default::default()
             }],
         },
-        config: LOCAL_CONFIG.clone(),
+        config: local_config(),
     }
     .check();
 }
@@ -43,7 +46,7 @@ fn simple_local_no_text() {
                 ..Default::default()
             }],
         },
-        config: LOCAL_CONFIG.clone(),
+        config: local_config(),
     }
     .check();
 }
@@ -67,7 +70,7 @@ fn object_multiple_no_text() {
                 },
             ],
         },
-        config: LOCAL_CONFIG.clone(),
+        config: local_config(),
     }
     .check();
 }
@@ -86,7 +89,7 @@ fn object_multiple() {
                 ..Default::default()
             }],
         },
-        config: LOCAL_CONFIG.clone(),
+        config: local_config(),
     }
     .check();
 }
@@ -105,7 +108,7 @@ fn object_nested() {
                 ..Default::default()
             }],
         },
-        config: LOCAL_CONFIG.clone(),
+        config: local_config(),
     }
     .check();
 }

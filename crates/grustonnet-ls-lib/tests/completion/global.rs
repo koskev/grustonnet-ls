@@ -3,13 +3,16 @@ use lsp_types::{CompletionItem, CompletionItemKind, CompletionList};
 
 use crate::completion::completion::CompletionTestCase;
 
-const GLOBAL_CONFIG: Configuration = Configuration {
-    completion: CompletionConfig {
-        enable_keywords: false,
-        enable_global: true,
-        enable_local: false,
-    },
-};
+fn global_config() -> Configuration {
+    Configuration {
+        completion: CompletionConfig {
+            enable_keywords: false,
+            enable_global: true,
+            enable_local: false,
+        },
+        ..Default::default()
+    }
+}
 
 #[test]
 fn simple_local() {
@@ -25,7 +28,7 @@ fn simple_local() {
                 ..Default::default()
             }],
         },
-        config: GLOBAL_CONFIG.clone(),
+        config: global_config(),
     }
     .check();
 }
@@ -44,7 +47,7 @@ fn simple_local_func() {
                 ..Default::default()
             }],
         },
-        config: GLOBAL_CONFIG.clone(),
+        config: global_config(),
     }
     .check();
 }

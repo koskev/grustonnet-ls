@@ -108,12 +108,17 @@ impl LSPServer for JsonnetServer {
         &self,
         params: DocumentDiagnosticParams,
     ) -> Result<LSPResponse, ResponseError> {
+        let mut items = vec![];
+        if self.configuration.read().unwrap().diagnostics.enable_eval {
+            let diags =
+                EvalDiagnostics::new(&self.cache).diagnostics(params.text_document.uri.as_str());
+            items.extend(diags);
+        }
         Ok(
             DocumentDiagnosticReportResult::Report(lsp_types::DocumentDiagnosticReport::Full(
                 RelatedFullDocumentDiagnosticReport {
                     full_document_diagnostic_report: lsp_types::FullDocumentDiagnosticReport {
-                        items: EvalDiagnostics::new(&self.cache)
-                            .diagnostics(params.text_document.uri.as_str()),
+                        items,
                         ..Default::default()
                     },
                     ..Default::default()
