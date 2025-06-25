@@ -1,18 +1,4 @@
-use crate::server::{JsonnetServer, LSPConnection, LSPServerManager};
-
-mod bridge;
-mod cache;
-mod completion;
-mod cst;
-mod diagnostics;
-mod node;
-mod server;
-mod utils;
-
-pub mod binding {
-    #![allow(warnings)]
-    rust2go::r2g_include_binding!();
-}
+use grustonnet_ls_lib::server::{JsonnetServer, LSPConnection, LSPServerManager};
 
 #[tokio::main]
 async fn main() {
