@@ -1,13 +1,10 @@
-
-
 use anyhow::{Result, anyhow};
-use language_server::cache::ASTGenerator;
+use language_server::{cache::ASTGenerator, utils::rope::RopeHelper};
 use ropey::Rope;
 
 use crate::{
     bridge::{EvaluateErrorType, GenerateAST, GoJsonnet},
     node::Node,
-    utils::rope::RopeHelper,
 };
 
 #[derive(Default, Debug, Clone)]
@@ -36,12 +33,12 @@ impl ASTGenerator for JsonnetASTGenerator {
                         EvaluateErrorType::ExpectedComma => {
                             // Insert comma before the given node after the first non whitespace
                             // character
-                            let index = current_content.get_index(e.start);
+                            let index = current_content.get_index(e.start.into());
                             let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
                             current_content.insert(non_whitespace_idx + 1, ",");
                         }
                         EvaluateErrorType::ExpectedToken => {
-                            let index = current_content.get_index(e.start);
+                            let index = current_content.get_index(e.start.into());
                             let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
                             current_content.remove(non_whitespace_idx..non_whitespace_idx + 1);
                         }

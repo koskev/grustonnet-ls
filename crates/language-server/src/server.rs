@@ -9,7 +9,7 @@ use lsp_types::{
     CompletionParams, Diagnostic, DidChangeConfigurationParams, DidChangeTextDocumentParams,
     DidOpenTextDocumentParams, DocumentDiagnosticParams, InitializeParams,
     PublishDiagnosticsParams, ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
-    TextDocumentSyncOptions, Uri,
+    Uri,
     notification::{
         DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument,
         Notification as NotificationTrait, PublishDiagnostics,
@@ -266,7 +266,6 @@ pub trait LSPServer {
                 Some(r) => r,
                 None => return Err(anyhow!("Got change params without range")),
             };
-            // TODO: handle non incremental case
             let mut rope = Rope::from_str(&current_text.content);
             if self.is_incremental() {
                 let idx_start =

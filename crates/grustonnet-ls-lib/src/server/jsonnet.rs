@@ -92,16 +92,6 @@ impl LSPServer for JsonnetServer {
         )
     }
 
-    fn did_open(&self, params: DidOpenTextDocumentParams) -> Result<()> {
-        self.cache.update_content(
-            params.text_document.uri.as_str(),
-            &params.text_document.text,
-        );
-        self.publish_diagnostics(params.text_document.uri.clone());
-
-        Ok(())
-    }
-
     fn completion(&self, params: CompletionParams) -> Result<LSPResponse, ResponseError> {
         let doc = self
             .cache

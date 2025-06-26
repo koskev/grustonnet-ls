@@ -4,11 +4,8 @@ use std::{
     sync::{Arc, Once, RwLock},
 };
 
-use grustonnet_ls_lib::{
-    server::{config::Configuration, jsonnet::JsonnetServer},
-    utils::rope::RopeHelper,
-};
-use language_server::server::LSPServer;
+use grustonnet_ls_lib::server::{config::Configuration, jsonnet::JsonnetServer};
+use language_server::{server::LSPServer, utils::rope::RopeHelper};
 use lsp_types::{
     CompletionList, PartialResultParams, Range, TextDocumentContentChangeEvent,
     TextDocumentIdentifier, TextDocumentPositionParams, Uri, WorkDoneProgressParams,

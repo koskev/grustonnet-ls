@@ -1,13 +1,12 @@
+use lsp_types::Position;
 use ropey::Rope;
 
-use crate::node::location::Location;
-
 pub trait RopeHelper {
-    fn replace_get_end(&mut self, old: &str, new: &str) -> Option<Location>;
-    fn get_location(&self, character: usize) -> Option<Location>;
+    fn replace_get_end(&mut self, old: &str, new: &str) -> Option<Position>;
+    fn get_location(&self, character: usize) -> Option<Position>;
     // Gets the next non whitspace character before index
     fn get_prev_non_whitespace(&self, index: usize) -> usize;
-    fn get_index(&self, loc: Location) -> usize;
+    fn get_index(&self, loc: Position) -> usize;
 }
 
 impl RopeHelper for Rope {
@@ -22,20 +21,20 @@ impl RopeHelper for Rope {
         non_whitespace_idx
     }
 
-    fn get_index(&self, loc: Location) -> usize {
-        self.line_to_char(loc.line as usize - 1) + loc.column as usize - 1
+    fn get_index(&self, loc: Position) -> usize {
+        self.line_to_char(loc.line as usize) + loc.character as usize
     }
 
-    fn get_location(&self, character: usize) -> Option<Location> {
+    fn get_location(&self, character: usize) -> Option<Position> {
         let line = self.char_to_line(character);
         let char = character - self.line_to_char(line);
 
-        Some(Location {
-            line: line as i32 + 1,
-            column: char as i32 + 1,
+        Some(Position {
+            line: line as u32,
+            character: char as u32,
         })
     }
-    fn replace_get_end(&mut self, old: &str, new: &str) -> Option<Location> {
+    fn replace_get_end(&mut self, old: &str, new: &str) -> Option<Position> {
         let string_begin = self.to_string().find(&old)?;
         let string_end = string_begin + old.len();
         self.remove(string_begin..string_end);
@@ -43,19 +42,20 @@ impl RopeHelper for Rope {
         let line = self.char_to_line(string_begin);
         let char = string_begin - self.line_to_char(line) + new.len();
 
-        Some(Location {
-            line: line as i32 + 1,
-            column: char as i32 + 1,
+        Some(Position {
+            line: line as u32,
+            character: char as u32,
         })
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use lsp_types::Position;
     use pretty_assertions::assert_eq;
     use ropey::Rope;
 
-    use crate::{node::location::Location, utils::rope::RopeHelper};
+    use crate::utils::rope::RopeHelper;
 
     #[test]
     fn test_rope_whitespace() {
@@ -75,9 +75,21 @@ mod tests {
         let rope = Rope::from_str("01234\n6789");
 
         let loc = rope.get_location(4).unwrap();
-        assert_eq!(loc, Location { line: 1, column: 5 });
+        assert_eq!(
+            loc,
+            Position {
+                line: 0,
+                character: 4
+            }
+        );
         let loc = rope.get_location(7).unwrap();
-        assert_eq!(loc, Location { line: 2, column: 2 });
+        assert_eq!(
+            loc,
+            Position {
+                line: 1,
+                character: 1
+            }
+        );
     }
 
     #[test]
@@ -88,9 +100,9 @@ mod tests {
 
         assert_eq!(
             new_location,
-            Location {
-                line: 1,
-                column: 15,
+            Position {
+                line: 0,
+                character: 14,
             }
         );
     }
