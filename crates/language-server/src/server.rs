@@ -18,7 +18,7 @@ use lsp_types::{
 use ropey::Rope;
 use serde::Serialize;
 
-use crate::cache::{ASTGenerator, Cache};
+use crate::cache::{ASTGenerator, ASTNode, Cache};
 
 macro_rules! lsp_function_req {
     ($name:ident, $param:ty) => {
@@ -216,11 +216,15 @@ where
 
 // TODO: Do Generic magic?
 #[allow(unused_variables)]
-pub trait LSPServer {
-    type AstGenerator: ASTGenerator;
+pub trait LSPServer
+where
+    Self::AstNode: ASTNode,
+{
+    type AstNode;
+    type AstGenerator: ASTGenerator<Node = Self::AstNode>;
 
     fn connection(&self) -> &LSPConnection;
-    fn cache(&self) -> &Cache<Self::AstGenerator>;
+    fn cache(&self) -> &Cache<Self::AstGenerator, Self::AstNode>;
     fn get_capabilities(&self) -> ServerCapabilities;
 
     lsp_function_req!(completion, CompletionParams);

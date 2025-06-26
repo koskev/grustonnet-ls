@@ -8,11 +8,11 @@ use crate::{
 };
 
 pub struct LocalCompletion<'a> {
-    cache: &'a Cache<JsonnetASTGenerator>,
+    cache: &'a Cache<JsonnetASTGenerator, Node>,
 }
 
 impl<'a> LocalCompletion<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator, Node>) -> Self {
         Self { cache }
     }
 }
@@ -93,7 +93,7 @@ impl<'a> Completion for LocalCompletion<'a> {
     fn complete(&self, location: Location, filename: &str) -> CompletionList {
         let doc = self.cache.get_document(filename).unwrap();
 
-        let stack = doc.ast_generator.ast.get_stack_by_position(&location);
+        let stack = doc.ast.unwrap().get_stack_by_position(&location);
         let top_node = stack.peek().unwrap();
         log::debug!(
             "Completing {} at {:?}",

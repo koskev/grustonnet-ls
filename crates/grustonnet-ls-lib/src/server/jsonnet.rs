@@ -9,9 +9,9 @@ use language_server::{
 use lsp_server::ResponseError;
 use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
-    DidChangeConfigurationParams, DidOpenTextDocumentParams, DocumentDiagnosticParams,
-    DocumentDiagnosticReportResult, RelatedFullDocumentDiagnosticReport, ServerCapabilities,
-    TextDocumentSyncKind, TextDocumentSyncOptions,
+    DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
+    RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
+    TextDocumentSyncOptions,
 };
 
 use crate::{
@@ -21,12 +21,13 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
+    node::Node,
     server::config::Configuration,
 };
 
 #[derive(Default)]
 pub struct JsonnetServer {
-    pub cache: Cache<JsonnetASTGenerator>,
+    pub cache: Cache<JsonnetASTGenerator, Node>,
 
     pub connection: LSPConnection,
 
@@ -42,12 +43,13 @@ impl JsonnetServer {
 }
 
 impl LSPServer for JsonnetServer {
+    type AstNode = Node;
     type AstGenerator = JsonnetASTGenerator;
     fn connection(&self) -> &LSPConnection {
         &self.connection
     }
 
-    fn cache(&self) -> &Cache<Self::AstGenerator> {
+    fn cache(&self) -> &Cache<Self::AstGenerator, Self::AstNode> {
         &self.cache
     }
 

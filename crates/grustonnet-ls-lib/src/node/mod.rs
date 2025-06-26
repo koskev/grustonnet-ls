@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Formatter};
 
+use language_server::cache::ASTNode;
 use log::*;
 use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
@@ -12,6 +13,8 @@ use crate::node::{
 
 pub mod location;
 pub mod stack;
+
+impl ASTNode for Node {}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "PascalCase")]
