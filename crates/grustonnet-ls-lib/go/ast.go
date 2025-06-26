@@ -36,6 +36,7 @@ func (GoAst) get_ast_snippet(snippet *string) ASTInfo {
 	info := ASTInfo{}
 	node, err := jsonnet.SnippetToAST("", *snippet)
 	if err != nil {
+		// Since go is stupid we are not able to get the underlying error type and thus are forced to just use the string
 		info.error_data = err.Error()
 		return info
 	}

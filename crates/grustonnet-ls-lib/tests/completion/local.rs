@@ -95,7 +95,7 @@ fn object_multiple() {
 }
 
 #[test]
-#[ignore = "Broken since fixing ast is not supported"]
+//#[ignore = "Broken since fixing ast is not supported"]
 fn object_nested() {
     CompletionTestCase {
         filename: "testdata/object_nested.jsonnet".into(),
