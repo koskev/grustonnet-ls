@@ -27,3 +27,4 @@ schemars = "1.0.1"
 
 [build-dependencies]
 reqwest = { version = "0.12.20", features = ["blocking"] }
+jsonnet-bridge = { path = "../jsonnet-bridge"}

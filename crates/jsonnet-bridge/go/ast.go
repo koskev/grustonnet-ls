@@ -110,6 +110,8 @@ func get_vm(params *EvaluateParams) *jsonnet.VM {
 	for _, val := range params.ext_code {
 		vm.ExtCode(val.name, val.value)
 	}
+	importer := &jsonnet.FileImporter{JPaths: params.jpaths}
+	vm.Importer(importer)
 	return vm
 }
 

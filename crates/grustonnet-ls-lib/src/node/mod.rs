@@ -357,14 +357,16 @@ impl Default for NodeKind {
 }
 
 impl Var {
+    pub fn is_std(&self) -> bool {
+        if let Some(id) = &self.id {
+            return id.0 == "std";
+        }
+        return false;
+    }
     pub fn resolve(&self, document_stack: &NodeStack) -> Option<Node> {
         let Some(id) = &self.id else {
             return None;
         };
-        // Check for std
-        if id.0 == "std" {
-            log::error!("STD!!");
-        }
         let get_node_with_id = |binds: &Vec<LocalBind>| -> Option<Node> {
             let bind = binds.iter().find(|local| local.variable.0 == id.0);
             bind?.body.clone()

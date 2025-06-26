@@ -17,6 +17,7 @@ pub struct ASTInfo {
 pub struct EvaluateParams {
     pub ext_vars: Vec<ExtValue>,
     pub ext_code: Vec<ExtValue>,
+    pub jpaths: Vec<String>,
 }
 
 #[rust2go::r2g]

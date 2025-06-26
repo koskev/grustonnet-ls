@@ -2,7 +2,7 @@ use lsp_types::{CompletionItem, CompletionList};
 
 use crate::{
     cache::Cache,
-    completion::Completion,
+    completion::{Completion, std::StdCompletion},
     node::{Node, NodeKind, location::Location, stack::NodeStack},
 };
 
@@ -59,6 +59,10 @@ fn get_desugared_object(node: Node, document_stack: NodeStack) -> Option<Node> {
                 return Some(current_node);
             }
             NodeKind::Var(var) => {
+                // TODO: For now we'll just return. In the future we need to evaluate the call
+                if var.is_std() {
+                    return Some(current_node);
+                }
                 if let Some(resolved) = var.resolve(&document_stack) {
                     log::warn!("Resolved to {:?}", resolved.node_kind.variant_name());
                     search_stack.push(resolved);
@@ -108,6 +112,13 @@ impl<'a> Completion for LocalCompletion<'a> {
                     _ => None,
                 })
                 .collect(),
+            NodeKind::Var(var) => {
+                if var.is_std() {
+                    StdCompletion::new().complete(location, filename).items
+                } else {
+                    vec![]
+                }
+            }
             _ => {
                 log::warn!(
                     "Unhandled local completion: {}",
