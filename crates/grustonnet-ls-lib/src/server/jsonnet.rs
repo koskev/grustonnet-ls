@@ -2,6 +2,7 @@ use std::sync::{Arc, RwLock};
 
 use anyhow::{Result, anyhow};
 use language_server::{
+    cache::Cache,
     diagnostics::Diagnostics,
     server::{LSPConnection, LSPResponse, LSPServer},
 };
@@ -17,7 +18,7 @@ use lsp_types::{
 use ropey::Rope;
 
 use crate::{
-    cache::Cache,
+    cache::JsonnetASTGenerator,
     completion::{
         Completion, global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion,
     },
@@ -28,7 +29,7 @@ use crate::{
 
 #[derive(Default)]
 pub struct JsonnetServer {
-    pub cache: Cache,
+    pub cache: Cache<JsonnetASTGenerator>,
 
     pub connection: LSPConnection,
 

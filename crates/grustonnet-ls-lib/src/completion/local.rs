@@ -1,17 +1,18 @@
+use language_server::cache::Cache;
 use lsp_types::{CompletionItem, CompletionList};
 
 use crate::{
-    cache::Cache,
+    cache::JsonnetASTGenerator,
     completion::{Completion, std::StdCompletion},
     node::{Node, NodeKind, location::Location, stack::NodeStack},
 };
 
 pub struct LocalCompletion<'a> {
-    cache: &'a Cache,
+    cache: &'a Cache<JsonnetASTGenerator>,
 }
 
 impl<'a> LocalCompletion<'a> {
-    pub fn new(cache: &'a Cache) -> Self {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 }
@@ -86,7 +87,7 @@ impl<'a> Completion for LocalCompletion<'a> {
     fn complete(&self, location: Location, filename: &str) -> CompletionList {
         let doc = self.cache.get_document(filename).unwrap();
 
-        let stack = doc.ast.get_stack_by_position(&location);
+        let stack = doc.ast_generator.ast.get_stack_by_position(&location);
         let top_node = stack.peek().unwrap();
         log::debug!(
             "Completing {} at {:?}",

@@ -903,9 +903,9 @@ dependencies = [
  "lsp-server",
  "lsp-types",
  "pretty_assertions",
+ "ropey",
  "serde",
  "serde_json",
- "tokio",
 ]
 
 [[package]]

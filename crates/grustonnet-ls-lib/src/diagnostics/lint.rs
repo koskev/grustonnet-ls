@@ -1,19 +1,19 @@
 use std::str::FromStr;
 
-use language_server::diagnostics::Diagnostics;
+use language_server::{cache::Cache, diagnostics::Diagnostics};
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
 use crate::{
     bridge::{GenerateAST, GoJsonnet},
-    cache::Cache,
+    cache::JsonnetASTGenerator,
 };
 
 pub struct LintDiagnostics<'a> {
-    cache: &'a Cache,
+    cache: &'a Cache<JsonnetASTGenerator>,
 }
 
 impl<'a> LintDiagnostics<'a> {
-    pub fn new(cache: &'a Cache) -> Self {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 }

@@ -1,17 +1,18 @@
+use language_server::cache::Cache;
 use lsp_types::{CompletionItem, CompletionItemKind};
 
 use crate::{
-    cache::Cache,
+    cache::JsonnetASTGenerator,
     completion::Completion,
     node::{LocalBind, NodeKind, location::Location},
 };
 
 pub struct GlobalCompletion<'a> {
-    cache: &'a Cache,
+    cache: &'a Cache<JsonnetASTGenerator>,
 }
 
 impl<'a> GlobalCompletion<'a> {
-    pub fn new(cache: &'a Cache) -> Self {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 }
@@ -20,7 +21,7 @@ impl<'a> Completion for GlobalCompletion<'a> {
     fn complete(&self, pos: Location, filename: &str) -> lsp_types::CompletionList {
         let doc = self.cache.get_document(filename).unwrap();
 
-        let stack = doc.ast.get_stack_by_position(&pos);
+        let stack = doc.ast_generator.ast.get_stack_by_position(&pos);
         eprintln!("STACK: {}", stack);
         let binds: Vec<LocalBind> = stack
             .stack
