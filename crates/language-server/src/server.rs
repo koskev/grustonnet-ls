@@ -8,7 +8,8 @@ use lsp_server::{
 use lsp_types::{
     CompletionParams, Diagnostic, DidChangeConfigurationParams, DidChangeTextDocumentParams,
     DidOpenTextDocumentParams, DocumentDiagnosticParams, InitializeParams,
-    PublishDiagnosticsParams, ServerCapabilities, Uri,
+    PublishDiagnosticsParams, ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
+    TextDocumentSyncOptions, Uri,
     notification::{
         DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument,
         Notification as NotificationTrait, PublishDiagnostics,
@@ -241,6 +242,19 @@ pub trait LSPServer {
         Ok(())
     }
 
+    fn is_incremental(&self) -> bool {
+        match self.get_capabilities().text_document_sync {
+            Some(cap) => match cap {
+                TextDocumentSyncCapability::Kind(kind) => kind == TextDocumentSyncKind::INCREMENTAL,
+                TextDocumentSyncCapability::Options(options) => {
+                    options.change.unwrap_or(TextDocumentSyncKind::NONE)
+                        == TextDocumentSyncKind::INCREMENTAL
+                }
+            },
+            None => false,
+        }
+    }
+
     fn did_change_text(&self, params: DidChangeTextDocumentParams) -> Result<()> {
         for change in params.content_changes {
             let current_text = match self.cache().get_document(params.text_document.uri.as_str()) {
@@ -252,12 +266,18 @@ pub trait LSPServer {
                 Some(r) => r,
                 None => return Err(anyhow!("Got change params without range")),
             };
+            // TODO: handle non incremental case
             let mut rope = Rope::from_str(&current_text.content);
-            let idx_start =
-                rope.line_to_char(range.start.line as usize) + range.start.character as usize;
-            let idx_end = rope.line_to_char(range.end.line as usize) + range.end.character as usize;
-            rope.remove(idx_start..idx_end);
-            rope.insert(idx_start, &change.text);
+            if self.is_incremental() {
+                let idx_start =
+                    rope.line_to_char(range.start.line as usize) + range.start.character as usize;
+                let idx_end =
+                    rope.line_to_char(range.end.line as usize) + range.end.character as usize;
+                rope.remove(idx_start..idx_end);
+                rope.insert(idx_start, &change.text);
+            } else {
+                rope = Rope::from_str(&current_text.content);
+            }
             self.cache()
                 .update_content(params.text_document.uri.as_str(), rope.to_string().as_str());
             self.publish_diagnostics(params.text_document.uri.clone());
