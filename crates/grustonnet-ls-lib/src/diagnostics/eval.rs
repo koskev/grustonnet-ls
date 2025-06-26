@@ -3,7 +3,7 @@ use std::str::FromStr;
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
 use crate::{
-    bridge::ast::{GenerateAST, GoJsonnet},
+    bridge::{GenerateAST, GoJsonnet},
     cache::Cache,
     diagnostics::Diagnostics,
 };

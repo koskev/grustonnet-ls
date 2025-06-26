@@ -6,6 +6,7 @@ edition = "2024"
 members = [
 "crates/grustonnet-bin",
 "crates/grustonnet-ls-lib",
+"crates/jsonnet-bridge",
 ]
 resolver = "3"
 

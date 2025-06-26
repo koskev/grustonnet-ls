@@ -7,7 +7,7 @@ use anyhow::{Result, anyhow};
 use ropey::Rope;
 
 use crate::{
-    bridge::ast::{EvaluateErrorType, GenerateAST, GoJsonnet},
+    bridge::{EvaluateErrorType, GenerateAST, GoJsonnet},
     node::Node,
     utils::rope::RopeHelper,
 };

@@ -361,9 +361,13 @@ impl Var {
         let Some(id) = &self.id else {
             return None;
         };
+        // Check for std
+        if id.0 == "std" {
+            log::error!("STD!!");
+        }
         let get_node_with_id = |binds: &Vec<LocalBind>| -> Option<Node> {
             let bind = binds.iter().find(|local| local.variable.0 == id.0);
-            bind.unwrap().body.clone()
+            bind?.body.clone()
         };
         document_stack
             .stack

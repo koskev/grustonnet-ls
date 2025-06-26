@@ -16,6 +16,9 @@ type GoAst struct{}
 func init() {
 	ASTBridgeImpl = GoAst{}
 }
+func (GoAst) version() string {
+	return jsonnet.Version()
+}
 
 func (GoAst) get_ast(filename *string) ASTInfo {
 	info := ASTInfo{}

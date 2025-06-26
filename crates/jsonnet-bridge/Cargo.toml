@@ -1,0 +1,13 @@
+[package]
+name = "jsonnet-bridge"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.98"
+lsp-server = "0.7.8"
+lsp-types = { version = "0.97.0", features = ["proposed"] }
+rust2go = { version = "0.4.0" }
+
+[build-dependencies]
+rust2go = { version = "0.4.0", features = ["build"] }
