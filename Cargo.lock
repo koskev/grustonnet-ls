@@ -497,6 +497,7 @@ dependencies = [
  "clap",
  "env_logger",
  "grustonnet-ls-lib",
+ "language-server",
  "schemars",
  "serde_json",
  "tokio",
@@ -509,6 +510,7 @@ dependencies = [
  "anyhow",
  "env_logger",
  "jsonnet-bridge",
+ "language-server",
  "lazy_static",
  "log",
  "lsp-server",
@@ -889,6 +891,21 @@ dependencies = [
  "lsp-server",
  "lsp-types",
  "rust2go",
+]
+
+[[package]]
+name = "language-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "env_logger",
+ "log",
+ "lsp-server",
+ "lsp-types",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

@@ -1,9 +1,6 @@
 use clap::Parser;
-use grustonnet_ls_lib::server::{
-    config::Configuration,
-    jsonnet::JsonnetServer,
-    server::{LSPConnection, LSPServerManager},
-};
+use grustonnet_ls_lib::server::{config::Configuration, jsonnet::JsonnetServer};
+use language_server::server::{LSPConnection, LSPServerManager};
 use schemars::schema_for;
 
 #[derive(Parser, Debug)]
@@ -32,5 +29,4 @@ async fn main() {
         },
     };
     server.run().unwrap();
-    //main_loop(server).unwrap()
 }

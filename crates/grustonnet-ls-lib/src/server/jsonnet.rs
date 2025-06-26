@@ -1,6 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use anyhow::{Result, anyhow};
+use language_server::server::{LSPConnection, LSPResponse, LSPServer};
 use lsp_server::{Message, Notification, ResponseError};
 use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
@@ -19,10 +20,7 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{Diagnostics, eval::EvalDiagnostics, lint::LintDiagnostics},
-    server::{
-        config::Configuration,
-        server::{LSPConnection, LSPResponse, LSPServer},
-    },
+    server::config::Configuration,
 };
 
 #[derive(Default)]
