@@ -19,6 +19,8 @@ pub struct CompletionConfig {
 pub struct DiagnosticConfig {
     #[default = true]
     pub enable_eval: bool,
+    #[default = true]
+    pub enable_lint: bool,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]

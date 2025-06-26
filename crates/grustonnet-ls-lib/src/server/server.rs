@@ -214,7 +214,6 @@ pub trait LSPServer {
 
     lsp_function_req!(completion, CompletionParams);
     lsp_function_req!(document_diagnostics, DocumentDiagnosticParams);
-    lsp_function_req!(publish_diagnostics, &str);
 
     // Notifications
 

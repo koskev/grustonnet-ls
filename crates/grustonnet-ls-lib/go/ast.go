@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
 
 	"github.com/google/go-jsonnet"
 	"github.com/google/go-jsonnet/ast"
+	"github.com/google/go-jsonnet/linter"
 )
 
 type GoAst struct{}
@@ -80,6 +82,21 @@ func (GoAst) evaluate_snippet(filename *string, snippet *string, params *Evaluat
 	info.ast_data = res
 	return info
 
+}
+
+func (GoAst) lint_snippet(filename *string, snippet *string, params *EvaluateParams) ASTInfo {
+	info := ASTInfo{}
+	vm := get_vm(params)
+	buf := &bytes.Buffer{}
+	hasErr := linter.LintSnippet(vm, buf, []linter.Snippet{
+		{FileName: *filename, Code: *snippet},
+	})
+	if hasErr {
+		info.error_data = buf.String()
+	} else {
+		info.ast_data = buf.String()
+	}
+	return info
 }
 
 func get_vm(params *EvaluateParams) *jsonnet.VM {

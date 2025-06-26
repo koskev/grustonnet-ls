@@ -3,44 +3,20 @@ use std::{
     fmt::{Debug, Display},
 };
 
-use anyhow::anyhow;
 use name_variant::NamedVariant;
 use regex::Regex;
 
-use crate::{binding, node::location::Location};
-
-#[derive(rust2go::R2G)]
-pub struct ExtValue {
-    pub name: String,
-    pub value: String,
-}
-
-#[derive(rust2go::R2G)]
-pub struct ASTInfo {
-    pub ast_data: String,
-    // If there is an error error_data contains the error information
-    pub error_data: String,
-}
-
-#[derive(rust2go::R2G, Default)]
-pub struct EvaluateParams {
-    pub ext_vars: Vec<ExtValue>,
-    pub ext_code: Vec<ExtValue>,
-}
-
-#[rust2go::r2g]
-trait ASTBridge {
-    fn get_ast(filename: String) -> ASTInfo;
-    fn get_ast_snippet(snippet: String) -> ASTInfo;
-    fn evaluate_ast(ast_string: String, params: EvaluateParams) -> ASTInfo;
-    fn evaluate_snippet(filename: String, snippet: String, params: EvaluateParams) -> ASTInfo;
-}
+use crate::{
+    bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams},
+    node::location::Location,
+};
 
 pub trait GenerateAST {
     fn get_ast(&self, filename: &str) -> Result<String, EvaluateError>;
     fn get_ast_snippet(&self, snippet: &str) -> Result<String, EvaluateError>;
     fn evaluate_ast(&self, ast_string: &str) -> Result<String, EvaluateError>;
     fn evaluate_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
+    fn lint_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
 }
 
 #[derive(Debug, Default, NamedVariant)]
@@ -156,6 +132,18 @@ impl GenerateAST for GoJsonnet {
 
     fn evaluate_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError> {
         let res = ASTBridgeImpl::evaluate_snippet(
+            filename.to_string(),
+            snippet.to_string(),
+            EvaluateParams::default(),
+        );
+        if res.error_data.len() > 0 {
+            return Err(EvaluateError::from(res.error_data));
+        }
+        Ok(res.ast_data)
+    }
+
+    fn lint_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError> {
+        let res = ASTBridgeImpl::lint_snippet(
             filename.to_string(),
             snippet.to_string(),
             EvaluateParams::default(),

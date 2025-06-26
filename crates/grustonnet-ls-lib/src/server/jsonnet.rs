@@ -3,11 +3,11 @@ use std::sync::{Arc, RwLock};
 use anyhow::{Result, anyhow};
 use lsp_server::{Message, Notification, ResponseError};
 use lsp_types::{
-    CompletionList, CompletionOptions, CompletionParams, CompletionResponse,
+    CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DidChangeTextDocumentParams, DidOpenTextDocumentParams,
     DocumentDiagnosticParams, DocumentDiagnosticReportResult, PublishDiagnosticsParams,
     RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions,
+    TextDocumentSyncOptions, Uri,
     notification::{Notification as NotifictionTrait, PublishDiagnostics},
 };
 use ropey::Rope;
@@ -18,7 +18,7 @@ use crate::{
         Completion, global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion,
     },
     cst::completion::{CompletionInfo, CompletionType},
-    diagnostics::{Diagnostics, eval::EvalDiagnostics},
+    diagnostics::{Diagnostics, eval::EvalDiagnostics, lint::LintDiagnostics},
     server::{
         config::Configuration,
         server::{LSPConnection, LSPResponse, LSPServer},
@@ -39,6 +39,34 @@ impl JsonnetServer {
         Self {
             ..Default::default()
         }
+    }
+
+    fn get_diagnostics(&self, filename: &str) -> Vec<Diagnostic> {
+        let mut items = vec![];
+        let config = self.configuration.read().unwrap().clone();
+        if config.diagnostics.enable_eval {
+            let diags = EvalDiagnostics::new(&self.cache).diagnostics(filename);
+            items.extend(diags);
+        }
+        if config.diagnostics.enable_lint {
+            let diags = LintDiagnostics::new(&self.cache).diagnostics(filename);
+            items.extend(diags);
+        }
+        return items;
+    }
+
+    fn publish_diagnostics(&self, uri: Uri) {
+        self.connection
+            .send(Message::Notification(Notification {
+                method: PublishDiagnostics::METHOD.to_string(),
+                params: serde_json::to_value(PublishDiagnosticsParams {
+                    uri: uri.clone(),
+                    diagnostics: self.get_diagnostics(uri.as_str()),
+                    version: None,
+                })
+                .unwrap(),
+            }))
+            .unwrap();
     }
 }
 
@@ -88,19 +116,8 @@ impl LSPServer for JsonnetServer {
             rope.insert(idx_start, &change.text);
             self.cache
                 .update_content(params.text_document.uri.as_str(), rope.to_string().as_str());
+            self.publish_diagnostics(params.text_document.uri.clone());
         }
-        self.connection
-            .send(Message::Notification(Notification {
-                method: PublishDiagnostics::METHOD.to_string(),
-                params: serde_json::to_value(PublishDiagnosticsParams {
-                    uri: params.text_document.uri.clone(),
-                    diagnostics: EvalDiagnostics::new(&self.cache)
-                        .diagnostics(params.text_document.uri.clone().as_str()),
-                    version: None,
-                })
-                .unwrap(),
-            }))
-            .unwrap();
         Ok(())
     }
 
@@ -108,17 +125,11 @@ impl LSPServer for JsonnetServer {
         &self,
         params: DocumentDiagnosticParams,
     ) -> Result<LSPResponse, ResponseError> {
-        let mut items = vec![];
-        if self.configuration.read().unwrap().diagnostics.enable_eval {
-            let diags =
-                EvalDiagnostics::new(&self.cache).diagnostics(params.text_document.uri.as_str());
-            items.extend(diags);
-        }
         Ok(
             DocumentDiagnosticReportResult::Report(lsp_types::DocumentDiagnosticReport::Full(
                 RelatedFullDocumentDiagnosticReport {
                     full_document_diagnostic_report: lsp_types::FullDocumentDiagnosticReport {
-                        items,
+                        items: self.get_diagnostics(params.text_document.uri.as_str()),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -133,6 +144,7 @@ impl LSPServer for JsonnetServer {
             params.text_document.uri.as_str(),
             &params.text_document.text,
         );
+        self.publish_diagnostics(params.text_document.uri.clone());
 
         Ok(())
     }
