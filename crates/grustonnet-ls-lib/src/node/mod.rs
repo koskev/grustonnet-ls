@@ -331,6 +331,12 @@ pub struct Binary {
     pub op: i32,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+pub struct Import {
+    pub file: LiteralString,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]
 #[serde(rename_all = "PascalCase", untagged)]
 pub enum NodeKind {
@@ -347,6 +353,7 @@ pub enum NodeKind {
     DesugaredObject(DesugaredObject),
     Index(Index),
     Var(Var),
+    Import(Import),
     Other(serde_json::Value),
 }
 

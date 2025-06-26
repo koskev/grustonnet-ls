@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use lsp_types::DidChangeConfigurationParams;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -23,11 +25,20 @@ pub struct DiagnosticConfig {
     pub enable_lint: bool,
 }
 
+#[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(default)]
+pub struct JsonnetConfig {
+    pub ext_code: HashMap<String, String>,
+    pub ext_vars: HashMap<String, String>,
+    pub jpaths: Vec<String>,
+}
+
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
 pub struct Configuration {
     pub completion: CompletionConfig,
     pub diagnostics: DiagnosticConfig,
+    pub jsonnet: JsonnetConfig,
 }
 
 impl TryFrom<DidChangeConfigurationParams> for Configuration {
