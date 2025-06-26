@@ -6,11 +6,18 @@ use lsp_server::{
     Response, ResponseError,
 };
 use lsp_types::{
-    CompletionParams, DidChangeConfigurationParams, DidChangeTextDocumentParams,
-    DidOpenTextDocumentParams, DocumentDiagnosticParams, InitializeParams, ServerCapabilities,
-    notification::{DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument},
+    CompletionParams, Diagnostic, DidChangeConfigurationParams, DidChangeTextDocumentParams,
+    DidOpenTextDocumentParams, DocumentDiagnosticParams, InitializeParams,
+    PublishDiagnosticsParams, ServerCapabilities, Uri,
+    notification::{
+        DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument,
+        Notification as NotificationTrait, PublishDiagnostics,
+    },
 };
+use ropey::Rope;
 use serde::Serialize;
+
+use crate::cache::{ASTGenerator, Cache};
 
 macro_rules! lsp_function_req {
     ($name:ident, $param:ty) => {
@@ -209,7 +216,10 @@ where
 // TODO: Do Generic magic?
 #[allow(unused_variables)]
 pub trait LSPServer {
+    type AstGenerator: ASTGenerator;
+
     fn connection(&self) -> &LSPConnection;
+    fn cache(&self) -> &Cache<Self::AstGenerator>;
     fn get_capabilities(&self) -> ServerCapabilities;
 
     lsp_function_req!(completion, CompletionParams);
@@ -218,6 +228,54 @@ pub trait LSPServer {
     // Notifications
 
     lsp_function_not!(did_change_configuration, DidChangeConfigurationParams);
-    lsp_function_not!(did_change_text, DidChangeTextDocumentParams);
-    lsp_function_not!(did_open, DidOpenTextDocumentParams);
+
+    fn get_diagnostics(&self, filename: &str) -> Vec<Diagnostic>;
+
+    fn did_open(&self, params: DidOpenTextDocumentParams) -> Result<()> {
+        self.cache().update_content(
+            params.text_document.uri.as_str(),
+            &params.text_document.text,
+        );
+        self.publish_diagnostics(params.text_document.uri.clone());
+
+        Ok(())
+    }
+
+    fn did_change_text(&self, params: DidChangeTextDocumentParams) -> Result<()> {
+        for change in params.content_changes {
+            let current_text = match self.cache().get_document(params.text_document.uri.as_str()) {
+                Some(doc) => doc,
+                None => return Err(anyhow!("Unable to find document in cache!")),
+            };
+
+            let range = match change.range {
+                Some(r) => r,
+                None => return Err(anyhow!("Got change params without range")),
+            };
+            let mut rope = Rope::from_str(&current_text.content);
+            let idx_start =
+                rope.line_to_char(range.start.line as usize) + range.start.character as usize;
+            let idx_end = rope.line_to_char(range.end.line as usize) + range.end.character as usize;
+            rope.remove(idx_start..idx_end);
+            rope.insert(idx_start, &change.text);
+            self.cache()
+                .update_content(params.text_document.uri.as_str(), rope.to_string().as_str());
+            self.publish_diagnostics(params.text_document.uri.clone());
+        }
+        Ok(())
+    }
+
+    fn publish_diagnostics(&self, uri: Uri) {
+        self.connection()
+            .send(Message::Notification(Notification {
+                method: PublishDiagnostics::METHOD.to_string(),
+                params: serde_json::to_value(PublishDiagnosticsParams {
+                    uri: uri.clone(),
+                    diagnostics: self.get_diagnostics(uri.as_str()),
+                    version: None,
+                })
+                .unwrap(),
+            }))
+            .unwrap();
+    }
 }

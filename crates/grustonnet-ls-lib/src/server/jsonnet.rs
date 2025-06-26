@@ -1,21 +1,18 @@
 use std::sync::{Arc, RwLock};
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use language_server::{
     cache::Cache,
     diagnostics::Diagnostics,
     server::{LSPConnection, LSPResponse, LSPServer},
 };
-use lsp_server::{Message, Notification, ResponseError};
+use lsp_server::ResponseError;
 use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
-    DidChangeConfigurationParams, DidChangeTextDocumentParams, DidOpenTextDocumentParams,
-    DocumentDiagnosticParams, DocumentDiagnosticReportResult, PublishDiagnosticsParams,
-    RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions, Uri,
-    notification::{Notification as NotifictionTrait, PublishDiagnostics},
+    DidChangeConfigurationParams, DidOpenTextDocumentParams, DocumentDiagnosticParams,
+    DocumentDiagnosticReportResult, RelatedFullDocumentDiagnosticReport, ServerCapabilities,
+    TextDocumentSyncKind, TextDocumentSyncOptions,
 };
-use ropey::Rope;
 
 use crate::{
     cache::JsonnetASTGenerator,
@@ -42,40 +39,18 @@ impl JsonnetServer {
             ..Default::default()
         }
     }
-
-    fn get_diagnostics(&self, filename: &str) -> Vec<Diagnostic> {
-        let mut items = vec![];
-        let config = self.configuration.read().unwrap().clone();
-        if config.diagnostics.enable_eval {
-            let diags = EvalDiagnostics::new(&self.cache).diagnostics(filename);
-            items.extend(diags);
-        }
-        if config.diagnostics.enable_lint {
-            let diags = LintDiagnostics::new(&self.cache).diagnostics(filename);
-            items.extend(diags);
-        }
-        return items;
-    }
-
-    fn publish_diagnostics(&self, uri: Uri) {
-        self.connection
-            .send(Message::Notification(Notification {
-                method: PublishDiagnostics::METHOD.to_string(),
-                params: serde_json::to_value(PublishDiagnosticsParams {
-                    uri: uri.clone(),
-                    diagnostics: self.get_diagnostics(uri.as_str()),
-                    version: None,
-                })
-                .unwrap(),
-            }))
-            .unwrap();
-    }
 }
 
 impl LSPServer for JsonnetServer {
+    type AstGenerator = JsonnetASTGenerator;
     fn connection(&self) -> &LSPConnection {
         &self.connection
     }
+
+    fn cache(&self) -> &Cache<Self::AstGenerator> {
+        &self.cache
+    }
+
     fn get_capabilities(&self) -> ServerCapabilities {
         ServerCapabilities {
             text_document_sync: Some(lsp_types::TextDocumentSyncCapability::Options(
@@ -96,30 +71,6 @@ impl LSPServer for JsonnetServer {
 
     fn did_change_configuration(&self, params: DidChangeConfigurationParams) -> Result<()> {
         *self.configuration.write().unwrap() = Configuration::try_from(params)?;
-        Ok(())
-    }
-
-    fn did_change_text(&self, params: DidChangeTextDocumentParams) -> Result<()> {
-        for change in params.content_changes {
-            let current_text = match self.cache.get_document(params.text_document.uri.as_str()) {
-                Some(doc) => doc,
-                None => return Err(anyhow!("Unable to find document in cache!")),
-            };
-
-            let range = match change.range {
-                Some(r) => r,
-                None => return Err(anyhow!("Got change params without range")),
-            };
-            let mut rope = Rope::from_str(&current_text.content);
-            let idx_start =
-                rope.line_to_char(range.start.line as usize) + range.start.character as usize;
-            let idx_end = rope.line_to_char(range.end.line as usize) + range.end.character as usize;
-            rope.remove(idx_start..idx_end);
-            rope.insert(idx_start, &change.text);
-            self.cache
-                .update_content(params.text_document.uri.as_str(), rope.to_string().as_str());
-            self.publish_diagnostics(params.text_document.uri.clone());
-        }
         Ok(())
     }
 
@@ -199,5 +150,19 @@ impl LSPServer for JsonnetServer {
             is_incomplete,
         };
         Ok(CompletionResponse::List(completion_list).into())
+    }
+
+    fn get_diagnostics(&self, filename: &str) -> Vec<Diagnostic> {
+        let mut items = vec![];
+        let config = self.configuration.read().unwrap().clone();
+        if config.diagnostics.enable_eval {
+            let diags = EvalDiagnostics::new(&self.cache).diagnostics(filename);
+            items.extend(diags);
+        }
+        if config.diagnostics.enable_lint {
+            let diags = LintDiagnostics::new(&self.cache).diagnostics(filename);
+            items.extend(diags);
+        }
+        return items;
     }
 }
