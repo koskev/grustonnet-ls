@@ -1,11 +1,11 @@
 use std::str::FromStr;
 
+use language_server::diagnostics::Diagnostics;
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
 use crate::{
     bridge::{GenerateAST, GoJsonnet},
     cache::Cache,
-    diagnostics::Diagnostics,
 };
 
 pub struct LintDiagnostics<'a> {
