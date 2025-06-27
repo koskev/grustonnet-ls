@@ -54,6 +54,24 @@ func (GoAst) get_ast_snippet(snippet *string) ASTInfo {
 	return info
 }
 
+func (GoAst) import_ast(source_file *string, filename *string, params *EvaluateParams) ASTInfo {
+	info := ASTInfo{}
+	vm := get_vm(params)
+	node, _, err := vm.ImportAST(*source_file, *filename)
+	if err != nil {
+		// Since go is stupid we are not able to get the underlying error type and thus are forced to just use the string
+		info.error_data = err.Error()
+		return info
+	}
+	nodeJson, err := json.Marshal(node)
+	if err != nil {
+		info.error_data = err.Error()
+		return info
+	}
+	info.ast_data = string(nodeJson)
+	return info
+}
+
 func (GoAst) evaluate_ast(astString *string, params *EvaluateParams) ASTInfo {
 	info := ASTInfo{}
 	node, err := Unmarshal_ast[ast.Node](*astString)

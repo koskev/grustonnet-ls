@@ -337,7 +337,7 @@ pub struct Binary {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct Import {
-    pub file: LiteralString,
+    pub file: Node,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]

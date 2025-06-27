@@ -12,6 +12,7 @@ use crate::node::location::Location;
 pub trait GenerateAST {
     fn get_ast(&self, filename: &str) -> Result<String, EvaluateError>;
     fn get_ast_snippet(&self, snippet: &str) -> Result<String, EvaluateError>;
+    fn import_ast(&self, source_file: &str, filename: &str) -> Result<String, EvaluateError>;
     fn evaluate_ast(&self, ast_string: &str) -> Result<String, EvaluateError>;
     fn evaluate_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
     fn lint_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
@@ -95,6 +96,7 @@ impl From<&str> for EvaluateError {
 
 impl Error for EvaluateError {}
 
+#[derive(Default, Debug, Clone)]
 pub struct GoJsonnet {}
 
 impl GoJsonnet {
@@ -104,6 +106,17 @@ impl GoJsonnet {
 }
 
 impl GenerateAST for GoJsonnet {
+    fn import_ast(&self, source_file: &str, filename: &str) -> Result<String, EvaluateError> {
+        let res = ASTBridgeImpl::import_ast(
+            source_file.to_string(),
+            filename.to_string(),
+            EvaluateParams::default(),
+        );
+        if res.error_data.len() > 0 {
+            return Err(EvaluateError::from(res.error_data));
+        }
+        Ok(res.ast_data)
+    }
     fn get_ast(&self, filename: &str) -> Result<String, EvaluateError> {
         let res = ASTBridgeImpl::get_ast(filename.to_string());
         if res.error_data.len() > 0 {

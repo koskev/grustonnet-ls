@@ -24,6 +24,7 @@ pub struct EvaluateParams {
 pub trait ASTBridge {
     fn get_ast(filename: String) -> ASTInfo;
     fn get_ast_snippet(snippet: String) -> ASTInfo;
+    fn import_ast(source_file: String, filename: String, params: EvaluateParams) -> ASTInfo;
     fn evaluate_ast(ast_string: String, params: EvaluateParams) -> ASTInfo;
     fn evaluate_snippet(filename: String, snippet: String, params: EvaluateParams) -> ASTInfo;
     fn lint_snippet(filename: String, snippet: String, params: EvaluateParams) -> ASTInfo;

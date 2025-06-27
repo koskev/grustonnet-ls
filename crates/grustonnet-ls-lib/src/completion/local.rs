@@ -22,7 +22,11 @@ impl<'a> LocalCompletion<'a> {
         let mut search_stack = NodeStack::new();
         search_stack.push(node);
         while let Some(current_node) = search_stack.stack.pop() {
+            log::debug!("Looking at {}", current_node.node_kind.variant_name());
             match &(*current_node.node_kind) {
+                NodeKind::Other(other) => {
+                    log::error!("Got invalid node {:#?}", other);
+                }
                 NodeKind::Index(idx) => search_stack.push(idx.target.clone()),
                 NodeKind::DesugaredObject(_obj) => {
                     log::error!("Found desugared!");
@@ -43,7 +47,18 @@ impl<'a> LocalCompletion<'a> {
                         search_stack.push(body.clone());
                     }
                 }
-                NodeKind::Import(import) => {}
+                NodeKind::Import(import) => {
+                    if let NodeKind::LiteralString(file) = import.file.node_kind.as_ref() {
+                        let imported = self
+                            .cache
+                            .ast_generator
+                            .import_ast(&current_node.loc_range.file_name, &file.value);
+                        match imported {
+                            Ok(imported_node) => search_stack.push(imported_node),
+                            Err(e) => log::error!("Failed to import node: {}", e),
+                        };
+                    }
+                }
                 _ => log::warn!(
                     "Unhandled node in completion iterator: {}",
                     current_node.node_kind.variant_name()

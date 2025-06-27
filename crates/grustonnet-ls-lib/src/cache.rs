@@ -10,10 +10,14 @@ use crate::{
 #[derive(Default, Debug, Clone)]
 pub struct JsonnetASTGenerator {
     pub ast: Node,
+    pub jsonnet: GoJsonnet,
 }
 
 impl JsonnetASTGenerator {
-    fn import_ast() {}
+    pub fn import_ast(&self, source_file: &str, filename: &str) -> Result<Node> {
+        let node_data = self.jsonnet.import_ast(source_file, filename)?;
+        Ok(serde_json::from_str(&node_data)?)
+    }
 }
 
 impl ASTGenerator for JsonnetASTGenerator {
@@ -29,6 +33,7 @@ impl ASTGenerator for JsonnetASTGenerator {
                 Ok(json_data) => {
                     log::debug!("Got valid ast!");
                     let node_data = serde_json::from_str::<Node>(&json_data)?;
+                    log::error!("{:#?}", node_data);
                     return Ok(node_data);
                 }
                 Err(e) => {
