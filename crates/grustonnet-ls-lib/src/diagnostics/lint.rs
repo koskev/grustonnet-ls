@@ -6,15 +6,14 @@ use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 use crate::{
     bridge::{GenerateAST, GoJsonnet},
     cache::JsonnetASTGenerator,
-    node::Node,
 };
 
 pub struct LintDiagnostics<'a> {
-    cache: &'a Cache<JsonnetASTGenerator, Node>,
+    cache: &'a Cache<JsonnetASTGenerator>,
 }
 
 impl<'a> LintDiagnostics<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator, Node>) -> Self {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 }

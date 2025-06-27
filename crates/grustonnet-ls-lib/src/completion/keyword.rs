@@ -1,18 +1,14 @@
 use language_server::cache::Cache;
 use lsp_types::{CompletionItem, CompletionItemKind, CompletionList};
 
-use crate::{
-    cache::JsonnetASTGenerator,
-    completion::Completion,
-    node::{Node, NodeKind},
-};
+use crate::{cache::JsonnetASTGenerator, completion::Completion, node::NodeKind};
 
 pub struct KeywordCompletion<'a> {
-    cache: &'a Cache<JsonnetASTGenerator, Node>,
+    cache: &'a Cache<JsonnetASTGenerator>,
 }
 
 impl<'a> KeywordCompletion<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator, Node>) -> Self {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 }

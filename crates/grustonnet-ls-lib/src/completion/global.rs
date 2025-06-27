@@ -4,15 +4,15 @@ use lsp_types::{CompletionItem, CompletionItemKind};
 use crate::{
     cache::JsonnetASTGenerator,
     completion::Completion,
-    node::{LocalBind, Node, NodeKind, location::Location},
+    node::{LocalBind, NodeKind, location::Location},
 };
 
 pub struct GlobalCompletion<'a> {
-    cache: &'a Cache<JsonnetASTGenerator, Node>,
+    cache: &'a Cache<JsonnetASTGenerator>,
 }
 
 impl<'a> GlobalCompletion<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator, Node>) -> Self {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 }

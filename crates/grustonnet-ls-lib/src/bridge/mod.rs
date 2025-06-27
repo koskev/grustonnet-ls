@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     error::Error,
     fmt::{Debug, Display},
     sync::{Arc, RwLock},

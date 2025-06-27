@@ -8,11 +8,11 @@ use crate::{
 };
 
 pub struct LocalCompletion<'a> {
-    cache: &'a Cache<JsonnetASTGenerator, Node>,
+    cache: &'a Cache<JsonnetASTGenerator>,
 }
 
 impl<'a> LocalCompletion<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator, Node>) -> Self {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 }

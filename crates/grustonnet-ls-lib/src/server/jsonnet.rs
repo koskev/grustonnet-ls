@@ -21,13 +21,12 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
-    node::Node,
     server::config::Configuration,
 };
 
 #[derive(Default)]
 pub struct JsonnetServer {
-    pub cache: Cache<JsonnetASTGenerator, Node>,
+    pub cache: Cache<JsonnetASTGenerator>,
 
     pub connection: LSPConnection,
 
@@ -43,13 +42,12 @@ impl JsonnetServer {
 }
 
 impl LSPServer for JsonnetServer {
-    type AstNode = Node;
     type AstGenerator = JsonnetASTGenerator;
     fn connection(&self) -> &LSPConnection {
         &self.connection
     }
 
-    fn cache(&self) -> &Cache<Self::AstGenerator, Self::AstNode> {
+    fn cache(&self) -> &Cache<Self::AstGenerator> {
         &self.cache
     }
 

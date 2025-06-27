@@ -26,16 +26,15 @@ pub struct Document<N: ASTNode> {
 }
 
 #[derive(Default, Debug)]
-pub struct Cache<G, N>
+pub struct Cache<G>
 where
     G: ASTGenerator,
-    N: ASTNode,
 {
-    documents: Arc<RwLock<HashMap<String, Document<N>>>>,
+    documents: Arc<RwLock<HashMap<String, Document<G::Node>>>>,
     pub ast_generator: G,
 }
 
-impl<G: ASTGenerator<Node = N>, N: ASTNode> Cache<G, N> {
+impl<G: ASTGenerator> Cache<G> {
     pub fn new(ast_generator: G) -> Self {
         Self {
             ast_generator,
@@ -43,7 +42,7 @@ impl<G: ASTGenerator<Node = N>, N: ASTNode> Cache<G, N> {
         }
     }
 
-    pub fn set_document(&self, name: &str, doc: Document<N>) {
+    pub fn set_document(&self, name: &str, doc: Document<G::Node>) {
         self.documents.write().unwrap().insert(name.into(), doc);
     }
 
@@ -65,7 +64,7 @@ impl<G: ASTGenerator<Node = N>, N: ASTNode> Cache<G, N> {
         }
     }
 
-    pub fn get_document(&self, name: &str) -> Option<Document<N>> {
+    pub fn get_document(&self, name: &str) -> Option<Document<G::Node>> {
         match self.documents.read().unwrap().get(name) {
             Some(val) => Some(val.clone()),
             None => None,
