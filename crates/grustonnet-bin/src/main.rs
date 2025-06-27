@@ -1,4 +1,5 @@
 use clap::Parser;
+use env_logger::Env;
 use grustonnet_ls_lib::server::{config::Configuration, jsonnet::JsonnetServer};
 use language_server::server::{LSPConnection, LSPServerManager};
 use schemars::schema_for;
@@ -21,7 +22,7 @@ async fn main() {
         );
         return;
     }
-    env_logger::init();
+    env_logger::Builder::from_env(Env::default().default_filter_or("warn")).init();
     let server = LSPServerManager {
         server: JsonnetServer {
             connection: LSPConnection::new_network(4874),

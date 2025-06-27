@@ -437,6 +437,17 @@ impl DesugaredObjectField {
     }
 }
 
+impl DesugaredObject {
+    pub fn merge(&self, other: DesugaredObject) -> DesugaredObject {
+        let mut new_object = self.clone();
+        new_object.asserts.extend(other.asserts);
+        new_object.fields.extend(other.fields);
+        new_object.locals.extend(other.locals);
+
+        new_object
+    }
+}
+
 impl Function {
     pub fn get_bind_for_arguments(&self, arguments: &Arguments) -> Option<Vec<Node>> {
         let mut bindings = vec![];

@@ -21,7 +21,7 @@ impl<'a> LocalCompletion<'a> {
 impl<'a> LocalCompletion<'a> {
     fn get_desugared_object(&self, node: Node, document_stack: &mut NodeStack) -> Option<Node> {
         let mut search_stack = NodeStack::new();
-        //let mut document_stack = document_stack;
+        let mut objects = vec![];
         search_stack.push(node);
         while let Some(current_node) = search_stack.stack.pop() {
             log::debug!("Looking at {}", current_node.node_kind.variant_name());
@@ -33,7 +33,7 @@ impl<'a> LocalCompletion<'a> {
                 NodeKind::Index(idx) => search_stack.push(idx.target.clone()),
                 NodeKind::DesugaredObject(_obj) => {
                     log::error!("Found desugared!");
-                    return Some(current_node);
+                    objects.push(current_node);
                 }
                 NodeKind::Var(var) => {
                     // TODO: For now we'll just return. In the future we need to evaluate the call
@@ -100,13 +100,29 @@ impl<'a> LocalCompletion<'a> {
                     log::debug!("Got function");
                     // TODO: search the stack for the corresponding apply node
                 }
+                NodeKind::Binary(binary) => {
+                    search_stack.push(binary.left.clone());
+                    search_stack.push(binary.right.clone());
+                }
                 _ => log::warn!(
                     "Unhandled node in completion iterator: {}",
                     current_node.node_kind.variant_name()
                 ),
             }
         }
-        None
+        objects.into_iter().reduce(|a, b| {
+            let NodeKind::DesugaredObject(a_desugared) = a.node_kind.as_ref() else {
+                // Just hope the other one is valid :)
+                return b.clone();
+            };
+            let NodeKind::DesugaredObject(b_desugared) = b.node_kind.as_ref() else {
+                return a.clone();
+            };
+            let merged = a_desugared.merge(b_desugared.clone());
+            let mut merged_node = a.clone();
+            *merged_node.node_kind = NodeKind::DesugaredObject(merged);
+            merged_node
+        })
     }
 
     // TODO: make a completion iterator
