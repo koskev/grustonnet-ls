@@ -1,10 +1,13 @@
 use std::{
     error::Error,
     fmt::{Debug, Display},
+    path::Path,
+    str::FromStr,
     sync::{Arc, RwLock},
 };
 
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue};
+use lsp_types::Uri;
 use name_variant::NamedVariant;
 use regex::Regex;
 
@@ -12,9 +15,9 @@ use crate::{node::location::Location, server::config::JsonnetConfig};
 
 pub trait GenerateAST {
     fn get_ast(&self, filename: &str) -> Result<String, EvaluateError>;
-    fn get_ast_snippet(&self, snippet: &str) -> Result<String, EvaluateError>;
+    fn get_ast_snippet(&self, source_file: &str, snippet: &str) -> Result<String, EvaluateError>;
     fn import_ast(&self, source_file: &str, filename: &str) -> Result<String, EvaluateError>;
-    fn evaluate_ast(&self, ast_string: &str) -> Result<String, EvaluateError>;
+    fn evaluate_ast(&self, ast_string: &str, source_file: &str) -> Result<String, EvaluateError>;
     fn evaluate_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
     fn lint_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
 }
@@ -110,7 +113,15 @@ impl GoJsonnet {
     }
 
     // TODO: this is a performance nightmare
-    fn get_evaluate_params(&self) -> EvaluateParams {
+    fn get_evaluate_params(&self, filepath: &str) -> EvaluateParams {
+        // TODO: the uri part is a mess. Just use uri everywhere?
+        let uri = Uri::from_str(filepath).unwrap();
+        let mut p = Path::new(uri.path().as_str());
+        if p.is_file() {
+            p = p.parent().unwrap()
+        }
+        let mut jpaths = vec![p.to_str().unwrap().to_string()];
+        jpaths.extend(self.config.read().unwrap().jpaths.clone());
         EvaluateParams {
             ext_code: self
                 .config
@@ -134,7 +145,7 @@ impl GoJsonnet {
                     value: val.to_string(),
                 })
                 .collect(),
-            jpaths: self.config.read().unwrap().jpaths.clone(),
+            jpaths,
         }
     }
 }
@@ -144,7 +155,7 @@ impl GenerateAST for GoJsonnet {
         let res = ASTBridgeImpl::import_ast(
             source_file.to_string(),
             filename.to_string(),
-            self.get_evaluate_params(),
+            self.get_evaluate_params(source_file),
         );
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));
@@ -159,16 +170,19 @@ impl GenerateAST for GoJsonnet {
         Ok(res.ast_data)
     }
 
-    fn get_ast_snippet(&self, snippet: &str) -> Result<String, EvaluateError> {
-        let res = ASTBridgeImpl::get_ast_snippet(snippet.to_string());
+    fn get_ast_snippet(&self, source_file: &str, snippet: &str) -> Result<String, EvaluateError> {
+        let res = ASTBridgeImpl::get_ast_snippet(source_file.to_string(), snippet.to_string());
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));
         }
         Ok(res.ast_data)
     }
 
-    fn evaluate_ast(&self, ast_string: &str) -> Result<String, EvaluateError> {
-        let res = ASTBridgeImpl::evaluate_ast(ast_string.to_string(), self.get_evaluate_params());
+    fn evaluate_ast(&self, ast_string: &str, source_file: &str) -> Result<String, EvaluateError> {
+        let res = ASTBridgeImpl::evaluate_ast(
+            ast_string.to_string(),
+            self.get_evaluate_params(source_file),
+        );
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));
         }
@@ -179,7 +193,7 @@ impl GenerateAST for GoJsonnet {
         let res = ASTBridgeImpl::evaluate_snippet(
             filename.to_string(),
             snippet.to_string(),
-            self.get_evaluate_params(),
+            self.get_evaluate_params(filename),
         );
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));
@@ -191,7 +205,7 @@ impl GenerateAST for GoJsonnet {
         let res = ASTBridgeImpl::lint_snippet(
             filename.to_string(),
             snippet.to_string(),
-            self.get_evaluate_params(),
+            self.get_evaluate_params(filename),
         );
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));

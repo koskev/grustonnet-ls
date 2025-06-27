@@ -10,7 +10,7 @@ where
     Self::Node: ASTNode,
 {
     type Node;
-    fn update_ast(&self, new_content: &str) -> Result<Self::Node>;
+    fn update_ast(&self, source_file: &str, new_content: &str) -> Result<Self::Node>;
 }
 
 pub trait ASTNode: Clone + Default {}
@@ -54,7 +54,7 @@ impl<G: ASTGenerator> Cache<G> {
 
         doc.content = text.into();
 
-        let new_ast = self.ast_generator.update_ast(&doc.content);
+        let new_ast = self.ast_generator.update_ast(name, &doc.content);
         match new_ast {
             Ok(ast) => {
                 doc.ast = Some(ast);

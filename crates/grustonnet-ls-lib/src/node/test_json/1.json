@@ -1,0 +1,339 @@
+{
+	"Binds": [
+		{
+			"Body": {
+				"File": {
+					"BlockIndent": "",
+					"BlockTermIndent": "",
+					"Kind": 1,
+					"NodeBase": {
+						"Ctx": null,
+						"Fodder": [],
+						"FreeVars": [],
+						"LocRange": {
+							"Begin": {
+								"Column": 20,
+								"Line": 1,
+								"Type": "Location"
+							},
+							"End": {
+								"Column": 40,
+								"Line": 1,
+								"Type": "Location"
+							},
+							"File": {
+								"DiagnosticFileName": "",
+								"Lines": [
+									"local imp = import \"test_lib.libsonnet\";\n",
+									"\n",
+									"{\n",
+									"\tx: imp\n",
+									"}\n",
+									"\n"
+								],
+								"Type": "Source"
+							},
+							"FileName": "",
+							"Type": "LocationRange"
+						},
+						"Type": "NodeBase"
+					},
+					"Type": "LiteralString",
+					"Value": "test_lib.libsonnet"
+				},
+				"NodeBase": {
+					"Ctx": "thunk \u003cimp\u003e from \u003c$\u003e",
+					"Fodder": [],
+					"FreeVars": [],
+					"LocRange": {
+						"Begin": {
+							"Column": 13,
+							"Line": 1,
+							"Type": "Location"
+						},
+						"End": {
+							"Column": 40,
+							"Line": 1,
+							"Type": "Location"
+						},
+						"File": {
+							"DiagnosticFileName": "",
+							"Lines": [
+								"local imp = import \"test_lib.libsonnet\";\n",
+								"\n",
+								"{\n",
+								"\tx: imp\n",
+								"}\n",
+								"\n"
+							],
+							"Type": "Source"
+						},
+						"FileName": "",
+						"Type": "LocationRange"
+					},
+					"Type": "NodeBase"
+				},
+				"Type": "Import"
+			},
+			"CloseFodder": [],
+			"EqFodder": [],
+			"Fun": null,
+			"LocRange": {
+				"Begin": {
+					"Column": 7,
+					"Line": 1,
+					"Type": "Location"
+				},
+				"End": {
+					"Column": 40,
+					"Line": 1,
+					"Type": "Location"
+				},
+				"File": {
+					"DiagnosticFileName": "",
+					"Lines": [
+						"local imp = import \"test_lib.libsonnet\";\n",
+						"\n",
+						"{\n",
+						"\tx: imp\n",
+						"}\n",
+						"\n"
+					],
+					"Type": "Source"
+				},
+				"FileName": "",
+				"Type": "LocationRange"
+			},
+			"Type": "LocalBind",
+			"VarFodder": [],
+			"Variable": "imp"
+		}
+	],
+	"Body": {
+		"Asserts": [],
+		"Fields": [
+			{
+				"Body": {
+					"Id": "imp",
+					"NodeBase": {
+						"Ctx": "object \u003canonymous\u003e",
+						"Fodder": [],
+						"FreeVars": [
+							"imp"
+						],
+						"LocRange": {
+							"Begin": {
+								"Column": 5,
+								"Line": 4,
+								"Type": "Location"
+							},
+							"End": {
+								"Column": 8,
+								"Line": 4,
+								"Type": "Location"
+							},
+							"File": {
+								"DiagnosticFileName": "",
+								"Lines": [
+									"local imp = import \"test_lib.libsonnet\";\n",
+									"\n",
+									"{\n",
+									"\tx: imp\n",
+									"}\n",
+									"\n"
+								],
+								"Type": "Source"
+							},
+							"FileName": "",
+							"Type": "LocationRange"
+						},
+						"Type": "NodeBase"
+					},
+					"Type": "Var"
+				},
+				"Hide": 1,
+				"LocRange": {
+					"Begin": {
+						"Column": 2,
+						"Line": 4,
+						"Type": "Location"
+					},
+					"End": {
+						"Column": 8,
+						"Line": 4,
+						"Type": "Location"
+					},
+					"File": {
+						"DiagnosticFileName": "",
+						"Lines": [
+							"local imp = import \"test_lib.libsonnet\";\n",
+							"\n",
+							"{\n",
+							"\tx: imp\n",
+							"}\n",
+							"\n"
+						],
+						"Type": "Source"
+					},
+					"FileName": "",
+					"Type": "LocationRange"
+				},
+				"Name": {
+					"BlockIndent": "",
+					"BlockTermIndent": "",
+					"Kind": 1,
+					"NodeBase": {
+						"Ctx": null,
+						"Fodder": [],
+						"FreeVars": [],
+						"LocRange": {
+							"Begin": {
+								"Column": 0,
+								"Line": 0,
+								"Type": "Location"
+							},
+							"End": {
+								"Column": 0,
+								"Line": 0,
+								"Type": "Location"
+							},
+							"File": null,
+							"FileName": "",
+							"Type": "LocationRange"
+						},
+						"Type": "NodeBase"
+					},
+					"Type": "LiteralString",
+					"Value": "x"
+				},
+				"PlusSuper": false,
+				"Type": "DesugaredObjectField"
+			}
+		],
+		"Locals": [
+			{
+				"Body": {
+					"NodeBase": {
+						"Ctx": null,
+						"Fodder": [],
+						"FreeVars": [],
+						"LocRange": {
+							"Begin": {
+								"Column": 0,
+								"Line": 0,
+								"Type": "Location"
+							},
+							"End": {
+								"Column": 0,
+								"Line": 0,
+								"Type": "Location"
+							},
+							"File": null,
+							"FileName": "",
+							"Type": "LocationRange"
+						},
+						"Type": "NodeBase"
+					},
+					"Type": "Self"
+				},
+				"CloseFodder": [],
+				"EqFodder": [],
+				"Fun": null,
+				"LocRange": {
+					"Begin": {
+						"Column": 0,
+						"Line": 0,
+						"Type": "Location"
+					},
+					"End": {
+						"Column": 0,
+						"Line": 0,
+						"Type": "Location"
+					},
+					"File": null,
+					"FileName": "",
+					"Type": "LocationRange"
+				},
+				"Type": "LocalBind",
+				"VarFodder": [],
+				"Variable": "$"
+			}
+		],
+		"NodeBase": {
+			"Ctx": "$",
+			"Fodder": [
+				{
+					"Blanks": 1,
+					"Comment": [],
+					"Indent": 0,
+					"Kind": 0,
+					"Type": "FodderElement"
+				}
+			],
+			"FreeVars": [
+				"imp"
+			],
+			"LocRange": {
+				"Begin": {
+					"Column": 1,
+					"Line": 3,
+					"Type": "Location"
+				},
+				"End": {
+					"Column": 2,
+					"Line": 5,
+					"Type": "Location"
+				},
+				"File": {
+					"DiagnosticFileName": "",
+					"Lines": [
+						"local imp = import \"test_lib.libsonnet\";\n",
+						"\n",
+						"{\n",
+						"\tx: imp\n",
+						"}\n",
+						"\n"
+					],
+					"Type": "Source"
+				},
+				"FileName": "",
+				"Type": "LocationRange"
+			},
+			"Type": "NodeBase"
+		},
+		"Type": "DesugaredObject"
+	},
+	"NodeBase": {
+		"Ctx": "$",
+		"Fodder": [],
+		"FreeVars": [],
+		"LocRange": {
+			"Begin": {
+				"Column": 1,
+				"Line": 1,
+				"Type": "Location"
+			},
+			"End": {
+				"Column": 2,
+				"Line": 5,
+				"Type": "Location"
+			},
+			"File": {
+				"DiagnosticFileName": "",
+				"Lines": [
+					"local imp = import \"test_lib.libsonnet\";\n",
+					"\n",
+					"{\n",
+					"\tx: imp\n",
+					"}\n",
+					"\n"
+				],
+				"Type": "Source"
+			},
+			"FileName": "",
+			"Type": "LocationRange"
+		},
+		"Type": "NodeBase"
+	},
+	"Type": "Local"
+}

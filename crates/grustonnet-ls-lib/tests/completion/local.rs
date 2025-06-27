@@ -95,7 +95,6 @@ fn object_multiple() {
 }
 
 #[test]
-//#[ignore = "Broken since fixing ast is not supported"]
 fn object_nested() {
     CompletionTestCase {
         filename: "testdata/object_nested.jsonnet".into(),
@@ -105,6 +104,48 @@ fn object_nested() {
             is_incomplete: false,
             items: vec![CompletionItem {
                 label: "inner".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+    }
+    .check();
+}
+
+#[test]
+fn simple_import() {
+    CompletionTestCase {
+        filename: "testdata/import/simple_import.jsonnet".into(),
+        replace_string: "x: imp".into(),
+        replace_by_string: "x: imp.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "importedkey".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "imported_object".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+    }
+    .check();
+}
+
+#[test]
+fn simple_import_object() {
+    CompletionTestCase {
+        filename: "testdata/import/simple_import.jsonnet".into(),
+        replace_string: "x: imp".into(),
+        replace_by_string: "x: imp.imported_object.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "inner_obj".to_string(),
                 ..Default::default()
             }],
         },

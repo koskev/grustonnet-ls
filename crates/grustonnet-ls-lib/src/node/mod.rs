@@ -17,7 +17,7 @@ pub mod stack;
 impl ASTNode for Node {}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", default)]
 pub struct NodeBase {
     pub fodder: Option<Fodder>,
     pub ctx: Option<String>,
@@ -26,7 +26,7 @@ pub struct NodeBase {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", default)]
 pub struct Node {
     pub node_base: NodeBase,
 
@@ -448,3 +448,25 @@ pub trait TypedDebug: Debug {
 }
 
 impl<T: ?Sized + Debug> TypedDebug for T {}
+
+#[cfg(test)]
+mod tests {
+    use std::{fs, path::Path};
+
+    use crate::node::Node;
+
+    #[test]
+    fn test_ast_parsing() {
+        let dir = fs::read_dir("src/node/test_json/").unwrap();
+
+        for test_file in dir {
+            let file_path = test_file.unwrap().path();
+            let content = fs::read_to_string(&file_path).expect("File not found!");
+
+            let _node: Node = serde_json::from_str(&content).expect(&format!(
+                "{} should parse to an ast",
+                file_path.to_str().unwrap()
+            ));
+        }
+    }
+}

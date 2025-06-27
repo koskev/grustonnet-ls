@@ -51,16 +51,15 @@ func (GoAst) get_ast(filename *string) ASTInfo {
 	return info
 }
 
-func (GoAst) get_ast_snippet(snippet *string) ASTInfo {
+func (GoAst) get_ast_snippet(source_file *string, snippet *string) ASTInfo {
 	info := ASTInfo{}
-	node, err := jsonnet.SnippetToAST("", *snippet)
+	node, err := jsonnet.SnippetToAST(*source_file, *snippet)
 	if err != nil {
 		// Since go is stupid we are not able to get the underlying error type and thus are forced to just use the string
 		info.error_data = err.Error()
 		return info
 	}
 	nodeJson, err := json.Marshal(tagged_marshal(node))
-	fmt.Printf("%s", nodeJson)
 	if err != nil {
 		info.error_data = err.Error()
 		return info
@@ -78,7 +77,8 @@ func (GoAst) import_ast(source_file *string, filename *string, params *EvaluateP
 		info.error_data = err.Error()
 		return info
 	}
-	nodeJson, err := json.Marshal(node)
+	//fmt.Printf("PATHS: %+v", params.jpaths)
+	nodeJson, err := json.Marshal(tagged_marshal(node))
 	if err != nil {
 		info.error_data = err.Error()
 		return info
@@ -145,7 +145,6 @@ func ignore_error(val any, err error) any {
 
 func to_json_map(val any) map[string]any {
 	data, _ := json.Marshal(val)
-	fmt.Printf("### %s", data)
 	var m map[string]any
 	_ = json.Unmarshal(data, &m)
 	return m
@@ -190,6 +189,12 @@ func tagged_marshal(val any) map[string]any {
 
 		case reflect.Struct, reflect.Interface:
 			data[field_type.Name] = tagged_marshal(field_val.Interface())
+		case reflect.Pointer:
+			if field_val.Elem().Kind() == reflect.Struct {
+				data[field_type.Name] = tagged_marshal(field_val.Elem().Interface())
+				break
+			}
+			fallthrough
 		default:
 			data[field_type.Name] = field_val.Interface()
 		}

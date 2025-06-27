@@ -23,12 +23,14 @@ impl JsonnetASTGenerator {
 impl ASTGenerator for JsonnetASTGenerator {
     type Node = Node;
     // BIG TODO: How to handle the modifications? AST and Editor will be out of sync
-    fn update_ast(&self, new_content: &str) -> Result<Self::Node> {
+    fn update_ast(&self, source_file: &str, new_content: &str) -> Result<Self::Node> {
         let mut current_content = Rope::from_str(new_content);
         // Give up after 100 tries
         for _ in 0..100 {
             log::trace!("Document content: {}", new_content);
-            let json_data = self.jsonnet.get_ast_snippet(&current_content.to_string());
+            let json_data = self
+                .jsonnet
+                .get_ast_snippet(source_file, &current_content.to_string());
             match json_data {
                 Ok(json_data) => {
                     log::debug!("Got valid ast!");
