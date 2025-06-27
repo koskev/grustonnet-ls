@@ -1,13 +1,15 @@
 use std::{
+    collections::HashMap,
     error::Error,
     fmt::{Debug, Display},
+    sync::{Arc, RwLock},
 };
 
-use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams};
+use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue};
 use name_variant::NamedVariant;
 use regex::Regex;
 
-use crate::node::location::Location;
+use crate::{node::location::Location, server::config::JsonnetConfig};
 
 pub trait GenerateAST {
     fn get_ast(&self, filename: &str) -> Result<String, EvaluateError>;
@@ -97,11 +99,44 @@ impl From<&str> for EvaluateError {
 impl Error for EvaluateError {}
 
 #[derive(Default, Debug, Clone)]
-pub struct GoJsonnet {}
+pub struct GoJsonnet {
+    pub config: Arc<RwLock<JsonnetConfig>>,
+}
 
 impl GoJsonnet {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            ..Default::default()
+        }
+    }
+
+    // TODO: this is a performance nightmare
+    fn get_evaluate_params(&self) -> EvaluateParams {
+        EvaluateParams {
+            ext_code: self
+                .config
+                .read()
+                .unwrap()
+                .ext_code
+                .iter()
+                .map(|(key, val)| ExtValue {
+                    name: key.to_string(),
+                    value: val.to_string(),
+                })
+                .collect(),
+            ext_vars: self
+                .config
+                .read()
+                .unwrap()
+                .ext_vars
+                .iter()
+                .map(|(key, val)| ExtValue {
+                    name: key.to_string(),
+                    value: val.to_string(),
+                })
+                .collect(),
+            jpaths: self.config.read().unwrap().jpaths.clone(),
+        }
     }
 }
 
@@ -110,7 +145,7 @@ impl GenerateAST for GoJsonnet {
         let res = ASTBridgeImpl::import_ast(
             source_file.to_string(),
             filename.to_string(),
-            EvaluateParams::default(),
+            self.get_evaluate_params(),
         );
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));
@@ -134,7 +169,7 @@ impl GenerateAST for GoJsonnet {
     }
 
     fn evaluate_ast(&self, ast_string: &str) -> Result<String, EvaluateError> {
-        let res = ASTBridgeImpl::evaluate_ast(ast_string.to_string(), EvaluateParams::default());
+        let res = ASTBridgeImpl::evaluate_ast(ast_string.to_string(), self.get_evaluate_params());
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));
         }
@@ -145,7 +180,7 @@ impl GenerateAST for GoJsonnet {
         let res = ASTBridgeImpl::evaluate_snippet(
             filename.to_string(),
             snippet.to_string(),
-            EvaluateParams::default(),
+            self.get_evaluate_params(),
         );
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));
@@ -157,7 +192,7 @@ impl GenerateAST for GoJsonnet {
         let res = ASTBridgeImpl::lint_snippet(
             filename.to_string(),
             snippet.to_string(),
-            EvaluateParams::default(),
+            self.get_evaluate_params(),
         );
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));

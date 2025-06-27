@@ -72,7 +72,12 @@ impl LSPServer for JsonnetServer {
     }
 
     fn did_change_configuration(&self, params: DidChangeConfigurationParams) -> Result<()> {
-        *self.configuration.write().unwrap() = Configuration::try_from(params)?;
+        let new_config = Configuration::try_from(params)?;
+
+        // TODO: revisit config architecture
+        *self.cache.ast_generator.jsonnet.config.write().unwrap() = new_config.jsonnet.clone();
+
+        *self.configuration.write().unwrap() = new_config;
         Ok(())
     }
 

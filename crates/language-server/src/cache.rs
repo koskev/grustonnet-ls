@@ -36,6 +36,13 @@ where
 }
 
 impl<G: ASTGenerator<Node = N>, N: ASTNode> Cache<G, N> {
+    pub fn new(ast_generator: G) -> Self {
+        Self {
+            ast_generator,
+            ..Default::default()
+        }
+    }
+
     pub fn set_document(&self, name: &str, doc: Document<N>) {
         self.documents.write().unwrap().insert(name.into(), doc);
     }

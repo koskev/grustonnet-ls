@@ -37,6 +37,7 @@ impl<'a> LocalCompletion<'a> {
                     if var.is_std() {
                         return Some(current_node);
                     }
+
                     if let Some(resolved) = var.resolve(&document_stack) {
                         log::warn!("Resolved to {:?}", resolved.node_kind.variant_name());
                         search_stack.push(resolved);
