@@ -53,7 +53,7 @@ impl<'a> LocalCompletion<'a> {
                         let imported = self
                             .cache
                             .ast_generator
-                            .import_ast(&current_node.loc_range.file_name, &file.value);
+                            .import_ast(&current_node.node_base.loc_range.file_name, &file.value);
                         match imported {
                             Ok(imported_node) => search_stack.push(imported_node),
                             Err(e) => log::error!("Failed to import node: {}", e),

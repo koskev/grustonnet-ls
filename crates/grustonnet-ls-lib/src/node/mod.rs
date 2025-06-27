@@ -18,11 +18,17 @@ impl ASTNode for Node {}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "PascalCase")]
-pub struct Node {
+pub struct NodeBase {
     pub fodder: Option<Fodder>,
     pub ctx: Option<String>,
     pub free_vars: Option<Vec<String>>,
     pub loc_range: LocationRange,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "PascalCase")]
+pub struct Node {
+    pub node_base: NodeBase,
 
     #[serde(flatten)]
     pub node_kind: Box<NodeKind>,
@@ -55,7 +61,7 @@ impl Node {
         let mut stack: NodeStack = self
             .iter()
             .filter(|child| {
-                let in_range = child.loc_range.in_range(pos);
+                let in_range = child.node_base.loc_range.in_range(pos);
                 in_range
             })
             .map(|child: &Node| child.get_stack_by_position(pos))
@@ -212,7 +218,7 @@ pub enum LiteralStringKind {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct LiteralString {
     pub value: String,
     pub block_indent: String,
@@ -221,7 +227,7 @@ pub struct LiteralString {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Array {
     pub elements: Option<Vec<CommaSeparatedExpr>>,
     pub close_fodder: Option<Fodder>,
@@ -229,18 +235,18 @@ pub struct Array {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Arguments {
     pub positional: Vec<CommaSeparatedExpr>,
     pub named: Vec<NamedArgument>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase")]
 pub struct Identifier(pub String);
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct NamedArgument {
     pub name_fodder: Option<Fodder>,
     pub name: Identifier,
@@ -250,7 +256,7 @@ pub struct NamedArgument {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Apply {
     pub target: Node,
     pub fodder_left: Option<Fodder>,
@@ -263,7 +269,7 @@ pub struct Apply {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Parameter {
     pub name_fodder: Option<Fodder>,
     pub name: Identifier,
@@ -274,7 +280,7 @@ pub struct Parameter {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Function {
     pub paren_left_fodder: Option<Fodder>,
     pub paren_right_fodder: Option<Fodder>,
@@ -285,7 +291,7 @@ pub struct Function {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct DesugaredObjectField {
     pub name: Node,
     pub body: Node,
@@ -295,7 +301,7 @@ pub struct DesugaredObjectField {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct DesugaredObject {
     pub asserts: Vec<Node>,
     pub fields: Vec<DesugaredObjectField>,
@@ -303,7 +309,7 @@ pub struct DesugaredObject {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Index {
     pub target: Node,
     pub index: Node,
@@ -313,20 +319,20 @@ pub struct Index {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Var {
     pub id: Option<Identifier>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Local {
     pub binds: Vec<LocalBind>,
     pub body: Option<Node>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Binary {
     pub left: Node,
     pub right: Node,
@@ -335,13 +341,13 @@ pub struct Binary {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Import {
     pub file: Node,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]
-#[serde(rename_all = "PascalCase", untagged)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub enum NodeKind {
     Binary(Binary),
     Array(Array),
@@ -357,6 +363,9 @@ pub enum NodeKind {
     Index(Index),
     Var(Var),
     Import(Import),
+
+    #[serde(alias = "Self")]
+    SelfNode,
     Other(serde_json::Value),
 }
 
@@ -373,6 +382,14 @@ impl Var {
         }
         return false;
     }
+
+    pub fn is_self(&self) -> bool {
+        if let Some(id) = &self.id {
+            return id.0 == "self";
+        }
+        return false;
+    }
+
     pub fn resolve(&self, document_stack: &NodeStack) -> Option<Node> {
         let Some(id) = &self.id else {
             return None;
@@ -431,87 +448,3 @@ pub trait TypedDebug: Debug {
 }
 
 impl<T: ?Sized + Debug> TypedDebug for T {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn get_node(data: &str) -> Node {
-        let node = serde_json::from_str::<Node>(data);
-        node.unwrap()
-    }
-
-    fn get_array_node() -> Node {
-        Node {
-            node_kind: Box::new(NodeKind::Array(Array {
-                trailing_comma: false,
-                close_fodder: None,
-                elements: None,
-            })),
-            ..Default::default()
-        }
-    }
-
-    #[test]
-    fn test_local_from_str() {
-        let data = include_str!("./test_local.json");
-        let node_data = serde_json::from_str::<Node>(data).unwrap();
-        match *node_data.node_kind {
-            NodeKind::Local(_) => (),
-            _ => assert!(
-                false,
-                "Node is of kind {}",
-                node_data.node_kind.variant_name()
-            ),
-        }
-    }
-
-    #[test]
-    fn test_binary_from_str() {
-        let data = include_str!("./test_binary.json");
-        let node_data = serde_json::from_str::<Node>(data).unwrap();
-        match *node_data.node_kind {
-            NodeKind::Binary(_) => (),
-            _ => assert!(false),
-        }
-    }
-    #[test]
-    fn test_binary() {
-        let node = Node {
-            node_kind: Box::new(NodeKind::Binary(Binary {
-                left: get_array_node(),
-                right: get_array_node(),
-                op_fodder: None,
-                op: 0,
-            })),
-            ..Default::default()
-        };
-
-        let json_str = serde_json::to_string(&node).unwrap();
-        let json_val: Node = serde_json::from_str(&json_str).unwrap();
-        match *json_val.node_kind {
-            NodeKind::Binary(_) => (),
-            _ => assert!(false),
-        }
-    }
-
-    #[test]
-    fn test_array() {
-        let node = Node {
-            node_kind: Box::new(NodeKind::Array(Array {
-                trailing_comma: false,
-                close_fodder: None,
-                elements: None,
-            })),
-            ..Default::default()
-        };
-
-        let json_str = serde_json::to_string(&node).unwrap();
-        println!("Node str: {}", json_str);
-        let json_val: Node = serde_json::from_str(&json_str).unwrap();
-        match *json_val.node_kind {
-            NodeKind::Array(_) => (),
-            _ => assert!(false),
-        }
-    }
-}

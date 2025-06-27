@@ -60,7 +60,10 @@ impl<G: ASTGenerator> Cache<G> {
                 doc.ast = Some(ast);
                 doc.is_dirty = false;
             }
-            Err(_e) => doc.is_dirty = true,
+            Err(e) => {
+                log::error!("Failed to parse ast: {e}");
+                doc.is_dirty = true;
+            }
         }
     }
 

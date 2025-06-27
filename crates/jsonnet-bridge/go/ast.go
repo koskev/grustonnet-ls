@@ -11,13 +11,27 @@ import (
 	"github.com/google/go-jsonnet/linter"
 )
 
-type GoAst struct{}
+type GoAst struct {
+}
 
 func init() {
 	ASTBridgeImpl = GoAst{}
 }
 func (GoAst) version() string {
 	return jsonnet.Version()
+}
+
+func get_vm(params *EvaluateParams) *jsonnet.VM {
+	vm := jsonnet.MakeVM()
+	for _, val := range params.ext_vars {
+		vm.ExtVar(val.name, val.value)
+	}
+	for _, val := range params.ext_code {
+		vm.ExtCode(val.name, val.value)
+	}
+	importer := &jsonnet.FileImporter{JPaths: params.jpaths}
+	vm.Importer(importer)
+	return vm
 }
 
 func (GoAst) get_ast(filename *string) ASTInfo {
@@ -45,7 +59,8 @@ func (GoAst) get_ast_snippet(snippet *string) ASTInfo {
 		info.error_data = err.Error()
 		return info
 	}
-	nodeJson, err := json.Marshal(node)
+	nodeJson, err := json.Marshal(tagged_marshal(node))
+	fmt.Printf("%s", nodeJson)
 	if err != nil {
 		info.error_data = err.Error()
 		return info
@@ -120,17 +135,104 @@ func (GoAst) lint_snippet(filename *string, snippet *string, params *EvaluatePar
 	return info
 }
 
-func get_vm(params *EvaluateParams) *jsonnet.VM {
-	vm := jsonnet.MakeVM()
-	for _, val := range params.ext_vars {
-		vm.ExtVar(val.name, val.value)
+func get_type(node ast.Node) string {
+	return fmt.Sprintf("%T", node)
+}
+
+func ignore_error(val any, err error) any {
+	return val
+}
+
+func to_json_map(val any) map[string]any {
+	data, _ := json.Marshal(val)
+	fmt.Printf("### %s", data)
+	var m map[string]any
+	_ = json.Unmarshal(data, &m)
+	return m
+}
+
+func to_json_map_arr[T any](vals []T) []map[string]any {
+	var retval []map[string]any
+	for _, val := range vals {
+		data, _ := json.Marshal(val)
+		var m map[string]any
+		_ = json.Unmarshal(data, &m)
+		retval = append(retval, m)
 	}
-	for _, val := range params.ext_code {
-		vm.ExtCode(val.name, val.value)
+	return retval
+}
+
+func tagged_marshal(val any) map[string]any {
+	data := map[string]any{}
+	reflect_val := reflect.ValueOf(val)
+	if reflect_val.Kind() == reflect.Pointer {
+		reflect_val = reflect_val.Elem()
 	}
-	importer := &jsonnet.FileImporter{JPaths: params.jpaths}
-	vm.Importer(importer)
-	return vm
+	reflect_type := reflect.TypeOf(val)
+	if reflect_type.Kind() == reflect.Pointer {
+		reflect_type = reflect_type.Elem()
+	}
+	data["Type"] = reflect_type.Name()
+	for i := range reflect_type.NumField() {
+		field_type := reflect_type.Field(i)
+		field_val := reflect_val.FieldByName(field_type.Name)
+		switch field_val.Kind() {
+		case reflect.Slice:
+			slice_data := []any{}
+			for j := range field_val.Len() {
+				if field_val.Index(j).Kind() == reflect.Struct {
+					slice_data = append(slice_data, tagged_marshal(field_val.Index(j).Interface()))
+				} else {
+					slice_data = append(slice_data, field_val.Index(j).Interface())
+				}
+			}
+			data[field_type.Name] = slice_data
+
+		case reflect.Struct, reflect.Interface:
+			data[field_type.Name] = tagged_marshal(field_val.Interface())
+		default:
+			data[field_type.Name] = field_val.Interface()
+		}
+	}
+	return data
+
+}
+
+func Marshal_ast(root_node ast.Node) map[string]any {
+	node_map := map[string]any{}
+	node_map["Type"] = get_type(root_node)
+	node_map["Fodder"] = to_json_map(root_node.OpenFodder())
+	node_map["Ctx"] = to_json_map(root_node.Context())
+	node_map["FreeVars"] = to_json_map(root_node.FreeVariables())
+	node_map["LocRange"] = to_json_map(root_node.Loc())
+	// TODO: use reflect magic
+	switch current_node := root_node.(type) {
+	case *ast.Binary:
+		node_map["Left"] = Marshal_ast(current_node.Left)
+		node_map["Right"] = Marshal_ast(current_node.Right)
+		node_map["OpFodder"] = to_json_map(current_node.Fodder)
+	case *ast.Local:
+		node_map["Type"] = get_type(current_node)
+		node_map["Binds"] = to_json_map_arr(current_node.Binds)
+		node_map["Body"] = Marshal_ast(current_node.Body)
+	case *ast.Self:
+		node_map[get_type(current_node)] = map[string]any{}
+	case *ast.Import:
+		node_map["File"] = Marshal_ast(current_node.File)
+	case *ast.LiteralString:
+		node_map["Value"] = current_node.Value
+		node_map["BlockIndent"] = current_node.BlockIndent
+		node_map["BlockTermIndent"] = current_node.BlockTermIndent
+		node_map["Kind"] = current_node.Kind
+	case *ast.DesugaredObject:
+		asserts := []map[string]any{}
+		for _, assert_node := range current_node.Asserts {
+			asserts = append(asserts, Marshal_ast(assert_node))
+		}
+		node_map["Asserts"] = asserts
+	}
+
+	return node_map
 }
 
 // Since Go is missing the ability to unmarshal interfaces (like the enum untagged in rust). We need to implement this manually...
