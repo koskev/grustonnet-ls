@@ -241,7 +241,7 @@ pub struct Arguments {
     pub named: Vec<NamedArgument>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Identifier(pub String);
 
@@ -404,6 +404,13 @@ impl Var {
             .find_map(|node| match &(*node.node_kind) {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
+                NodeKind::Function(func) => func.parameters.as_ref()?.iter().find_map(|p| {
+                    if p.name == *id {
+                        p.default_arg.clone()
+                    } else {
+                        None
+                    }
+                }),
                 _ => None,
             })
     }

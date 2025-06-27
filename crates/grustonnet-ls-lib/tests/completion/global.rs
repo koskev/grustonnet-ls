@@ -51,3 +51,34 @@ fn simple_local_func() {
     }
     .check();
 }
+
+#[test]
+fn function_args() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults.jsonnet".into(),
+        replace_string: "x: argone,".into(),
+        replace_by_string: "x: ".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "myFunc".to_string(),
+                    kind: Some(CompletionItemKind::FUNCTION),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "argone".to_string(),
+                    kind: Some(CompletionItemKind::VARIABLE),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "argtwo".to_string(),
+                    kind: Some(CompletionItemKind::VARIABLE),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: global_config(),
+    }
+    .check();
+}

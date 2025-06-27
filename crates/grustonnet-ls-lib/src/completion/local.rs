@@ -20,9 +20,11 @@ impl<'a> LocalCompletion<'a> {
 impl<'a> LocalCompletion<'a> {
     fn get_desugared_object(&self, node: Node, document_stack: NodeStack) -> Option<Node> {
         let mut search_stack = NodeStack::new();
+        let mut document_stack = document_stack;
         search_stack.push(node);
         while let Some(current_node) = search_stack.stack.pop() {
             log::debug!("Looking at {}", current_node.node_kind.variant_name());
+            document_stack.push(current_node.clone());
             match &(*current_node.node_kind) {
                 NodeKind::Other(other) => {
                     log::error!("Got invalid node {:#?}", other);
@@ -41,6 +43,11 @@ impl<'a> LocalCompletion<'a> {
                     if let Some(resolved) = var.resolve(&document_stack) {
                         log::warn!("Resolved to {:?}", resolved.node_kind.variant_name());
                         search_stack.push(resolved);
+                    } else {
+                        log::warn!(
+                            "Unable to resolve var {}",
+                            var.id.clone().unwrap_or_default().0
+                        );
                     }
                 }
                 NodeKind::Local(local) => {

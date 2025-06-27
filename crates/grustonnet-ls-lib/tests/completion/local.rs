@@ -153,3 +153,21 @@ fn simple_import_object() {
     }
     .check();
 }
+
+#[test]
+fn default_function_arg() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults.jsonnet".into(),
+        replace_string: "y: argtwo,".into(),
+        replace_by_string: "y: argtwo.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "argkey".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+    }
+    .check();
+}
