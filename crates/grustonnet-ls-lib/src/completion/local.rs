@@ -18,9 +18,9 @@ impl<'a> LocalCompletion<'a> {
 }
 
 impl<'a> LocalCompletion<'a> {
-    fn get_desugared_object(&self, node: Node, document_stack: NodeStack) -> Option<Node> {
+    fn get_desugared_object(&self, node: Node, document_stack: &mut NodeStack) -> Option<Node> {
         let mut search_stack = NodeStack::new();
-        let mut document_stack = document_stack;
+        //let mut document_stack = document_stack;
         search_stack.push(node);
         while let Some(current_node) = search_stack.stack.pop() {
             log::debug!("Looking at {}", current_node.node_kind.variant_name());
@@ -74,15 +74,25 @@ impl<'a> LocalCompletion<'a> {
                     // get names of positional arguments and push them to the document stack
                 }
                 NodeKind::Function(func) => {
-                    if let Some(apply_node) = document_stack.stack.iter().find(|n| {
-                        if let NodeKind::Apply(_) = *n.node_kind {
-                            true
+                    if let Some(apply_node) = document_stack.stack.iter().find_map(|n| {
+                        if let NodeKind::Apply(apply) = n.node_kind.as_ref() {
+                            Some(apply)
                         } else {
-                            false
+                            None
                         }
                     }) {
                         // Match arguments from apply to function and push them to the search and
                         // document stack
+                        if let Some(bindings) = func.get_bind_for_arguments(&apply_node.arguments) {
+                            log::debug!("Found correct bindings");
+                            for binding in bindings {
+                                log::error!("Pushing to document stack {:?}", binding);
+                                document_stack.push(binding);
+                            }
+                            //document_stack.stack.extend(bindings);
+                        } else {
+                            log::debug!("Failed to find bindings");
+                        }
                         // Push the function body to the stack
                         search_stack.push(func.body.clone());
                     }
@@ -101,9 +111,10 @@ impl<'a> LocalCompletion<'a> {
     // TODO: make a completion iterator
     fn build_node(&self, document_stack: NodeStack) -> Option<Node> {
         let mut call_stack = document_stack.peek()?.get_call_stack();
+        let mut document_stack = document_stack;
 
         let mut base_object =
-            self.get_desugared_object(call_stack.stack.pop()?, document_stack.clone())?;
+            self.get_desugared_object(call_stack.stack.pop()?, &mut document_stack)?;
 
         while let Some(call_node) = call_stack.stack.pop() {
             match *call_node.node_kind {
@@ -120,7 +131,7 @@ impl<'a> LocalCompletion<'a> {
                             })?;
                             base_object = self.get_desugared_object(
                                 found_field.body.clone(),
-                                document_stack.clone(),
+                                &mut document_stack,
                             )?;
                         }
                         _ => (),

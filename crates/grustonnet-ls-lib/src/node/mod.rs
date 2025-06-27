@@ -397,6 +397,7 @@ impl Var {
             return None;
         };
         let get_node_with_id = |binds: &Vec<LocalBind>| -> Option<Node> {
+            log::debug!("Searching for {} in {:#?}", id.0, binds);
             let bind = binds.iter().find(|local| local.variable.0 == id.0);
             bind?.body.clone()
         };
@@ -433,6 +434,49 @@ impl DesugaredObjectField {
             NodeKind::LiteralString(name) => Some(name.value.clone()),
             _ => None,
         }
+    }
+}
+
+impl Function {
+    pub fn get_bind_for_arguments(&self, arguments: &Arguments) -> Option<Vec<Node>> {
+        let mut bindings = vec![];
+        for (i, expr) in arguments.positional.iter().enumerate() {
+            let var = self.parameters.clone()?.get(i)?.name.clone();
+            log::debug!("Pushed arg {}", var.0);
+            bindings.push(Node {
+                node_kind: Box::new(NodeKind::Local(Local {
+                    binds: vec![LocalBind {
+                        variable: var,
+                        body: Some(expr.expr.clone()),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                })),
+                node_base: NodeBase {
+                    ctx: Some("manually pushed".to_string()),
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        }
+
+        let named_nodes = arguments.named.iter().map(|arg| {
+            log::debug!("Pushed arg {}", arg.name.0);
+            Node {
+                node_kind: Box::new(NodeKind::Local(Local {
+                    binds: vec![LocalBind {
+                        variable: arg.name.clone(),
+                        body: Some(arg.arg.clone()),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                })),
+                ..Default::default()
+            }
+        });
+        bindings.extend(named_nodes);
+
+        Some(bindings)
     }
 }
 

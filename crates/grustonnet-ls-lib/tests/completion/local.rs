@@ -189,3 +189,21 @@ fn function_return_arg_ignored() {
     }
     .check();
 }
+
+#[test]
+fn function_return_arg_single() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_return_arg_single.jsonnet".into(),
+        replace_string: "x: myFunc(1)".into(),
+        replace_by_string: "x: myFunc({myArg: 3}).key.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "myArg".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+    }
+    .check();
+}
