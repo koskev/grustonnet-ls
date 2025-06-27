@@ -67,6 +67,28 @@ impl<'a> LocalCompletion<'a> {
                         };
                     }
                 }
+                NodeKind::Apply(apply) => {
+                    search_stack.push(apply.target.clone());
+                    log::debug!("Got apply");
+                    // TODO: find function
+                    // get names of positional arguments and push them to the document stack
+                }
+                NodeKind::Function(func) => {
+                    if let Some(apply_node) = document_stack.stack.iter().find(|n| {
+                        if let NodeKind::Apply(_) = *n.node_kind {
+                            true
+                        } else {
+                            false
+                        }
+                    }) {
+                        // Match arguments from apply to function and push them to the search and
+                        // document stack
+                        // Push the function body to the stack
+                        search_stack.push(func.body.clone());
+                    }
+                    log::debug!("Got function");
+                    // TODO: search the stack for the corresponding apply node
+                }
                 _ => log::warn!(
                     "Unhandled node in completion iterator: {}",
                     current_node.node_kind.variant_name()

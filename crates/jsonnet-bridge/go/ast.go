@@ -162,6 +162,9 @@ func to_json_map_arr[T any](vals []T) []map[string]any {
 }
 
 func tagged_marshal(val any) map[string]any {
+	if val == nil {
+		return map[string]any{}
+	}
 	data := map[string]any{}
 	reflect_val := reflect.ValueOf(val)
 	if reflect_val.Kind() == reflect.Pointer {
@@ -188,7 +191,9 @@ func tagged_marshal(val any) map[string]any {
 			data[field_type.Name] = slice_data
 
 		case reflect.Struct, reflect.Interface:
-			data[field_type.Name] = tagged_marshal(field_val.Interface())
+			if field_val.Interface() != nil {
+				data[field_type.Name] = tagged_marshal(field_val.Interface())
+			}
 		case reflect.Pointer:
 			if field_val.Elem().Kind() == reflect.Struct {
 				data[field_type.Name] = tagged_marshal(field_val.Elem().Interface())

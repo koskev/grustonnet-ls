@@ -171,3 +171,21 @@ fn default_function_arg() {
     }
     .check();
 }
+
+#[test]
+fn function_return_arg_ignored() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_return_arg_ignored.jsonnet".into(),
+        replace_string: "x: myFunc(1)".into(),
+        replace_by_string: "x: myFunc(1).".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "key".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+    }
+    .check();
+}

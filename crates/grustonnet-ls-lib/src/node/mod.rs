@@ -366,6 +366,8 @@ pub enum NodeKind {
 
     #[serde(alias = "Self")]
     SelfNode,
+
+    // Leftover nodes. Most likely something is broken
     Other(serde_json::Value),
 }
 
