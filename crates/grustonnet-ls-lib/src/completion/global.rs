@@ -3,7 +3,7 @@ use lsp_types::{CompletionItem, CompletionItemKind};
 
 use crate::{
     cache::JsonnetASTGenerator,
-    completion::Completion,
+    completion::{Completion, CompletionResult},
     node::{LocalBind, NodeKind, location::Location},
 };
 
@@ -18,11 +18,10 @@ impl<'a> GlobalCompletion<'a> {
 }
 
 impl<'a> Completion for GlobalCompletion<'a> {
-    fn complete(&self, pos: Location, filename: &str) -> lsp_types::CompletionList {
+    fn complete(&self, pos: Location, filename: &str) -> CompletionResult {
         let doc = self.cache.get_document(filename).unwrap();
 
-        let stack = doc.ast.unwrap().get_stack_by_position(&pos);
-        eprintln!("STACK: {}", stack);
+        let stack = doc.get_ast()?.get_stack_by_position(&pos);
         let binds: Vec<LocalBind> = stack
             .stack
             .iter()
@@ -74,9 +73,9 @@ impl<'a> Completion for GlobalCompletion<'a> {
                 }
             })
             .collect();
-        lsp_types::CompletionList {
+        Ok(lsp_types::CompletionList {
             items,
             is_incomplete: false,
-        }
+        })
     }
 }

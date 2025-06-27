@@ -4,6 +4,9 @@ use std::{
 };
 
 use anyhow::Result;
+use lsp_server::ErrorCode;
+
+use crate::server::LSPError;
 
 pub trait ASTGenerator: Clone + Default
 where
@@ -23,6 +26,17 @@ pub struct Document<N: ASTNode> {
     pub filename: String,
     // If false the ast and content match. Otherwise the ast may be old
     pub is_dirty: bool,
+}
+
+impl<N: ASTNode> Document<N> {
+    pub fn get_ast(&self) -> Result<&N, LSPError> {
+        self.ast.as_ref().ok_or(LSPError {
+            error_code: ErrorCode::ParseError as i32,
+            message:
+                "The document was never parsed. Please fix all errors to get proper completion"
+                    .to_string(),
+        })
+    }
 }
 
 #[derive(Default, Debug)]
@@ -67,10 +81,13 @@ impl<G: ASTGenerator> Cache<G> {
         }
     }
 
-    pub fn get_document(&self, name: &str) -> Option<Document<G::Node>> {
+    pub fn get_document(&self, name: &str) -> Result<Document<G::Node>, LSPError> {
         match self.documents.read().unwrap().get(name) {
-            Some(val) => Some(val.clone()),
-            None => None,
+            Some(val) => Ok(val.clone()),
+            None => Err(LSPError {
+                error_code: ErrorCode::RequestFailed as i32,
+                message: "The requested document was never loaded".to_string(),
+            }),
         }
     }
 }

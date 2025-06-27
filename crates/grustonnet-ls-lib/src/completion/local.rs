@@ -1,9 +1,10 @@
+use anyhow::anyhow;
 use language_server::cache::Cache;
 use lsp_types::{CompletionItem, CompletionList};
 
 use crate::{
     cache::JsonnetASTGenerator,
-    completion::{Completion, std::StdCompletion},
+    completion::{Completion, CompletionResult, std::StdCompletion},
     node::{Node, NodeKind, location::Location, stack::NodeStack},
 };
 
@@ -146,10 +147,10 @@ impl<'a> LocalCompletion<'a> {
 }
 
 impl<'a> Completion for LocalCompletion<'a> {
-    fn complete(&self, location: Location, filename: &str) -> CompletionList {
+    fn complete(&self, location: Location, filename: &str) -> CompletionResult {
         let doc = self.cache.get_document(filename).unwrap();
 
-        let stack = doc.ast.unwrap().get_stack_by_position(&location);
+        let stack = doc.get_ast()?.get_stack_by_position(&location);
         let top_node = stack.peek().unwrap();
         log::debug!(
             "Completing {} at {:?}",
@@ -161,7 +162,7 @@ impl<'a> Completion for LocalCompletion<'a> {
         // use the second one as a filter
         // TODO: Resolve the complete call stack
         let Some(node) = self.build_node(stack) else {
-            return CompletionList::default();
+            return Err(anyhow!("Could not build_node"));
         };
         let items = match node.node_kind.as_ref() {
             NodeKind::DesugaredObject(obj) => obj
@@ -177,7 +178,7 @@ impl<'a> Completion for LocalCompletion<'a> {
                 .collect(),
             NodeKind::Var(var) => {
                 if var.is_std() {
-                    StdCompletion::new().complete(location, filename).items
+                    StdCompletion::new().complete(location, filename)?.items
                 } else {
                     vec![]
                 }
@@ -191,10 +192,10 @@ impl<'a> Completion for LocalCompletion<'a> {
             }
         };
 
-        CompletionList {
+        Ok(CompletionList {
             items,
             ..Default::default()
-        }
+        })
     }
 }
 

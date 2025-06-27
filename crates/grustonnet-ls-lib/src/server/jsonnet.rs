@@ -4,9 +4,8 @@ use anyhow::Result;
 use language_server::{
     cache::Cache,
     diagnostics::Diagnostics,
-    server::{LSPConnection, LSPResponse, LSPServer},
+    server::{LSPConnection, LSPError, LSPResponse, LSPServer, get_response_error},
 };
-use lsp_server::ResponseError;
 use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
@@ -69,8 +68,19 @@ impl LSPServer for JsonnetServer {
         }
     }
 
-    fn did_change_configuration(&self, params: DidChangeConfigurationParams) -> Result<()> {
-        let new_config = Configuration::try_from(params)?;
+    fn did_change_configuration(
+        &self,
+        params: DidChangeConfigurationParams,
+    ) -> Result<(), LSPError> {
+        let new_config = match Configuration::try_from(params) {
+            Ok(conf) => conf,
+            Err(e) => {
+                return Err(get_response_error(format!(
+                    "Could not parse the configuration: {}",
+                    e
+                )));
+            }
+        };
 
         // TODO: revisit config architecture
         *self.cache.ast_generator.jsonnet.config.write().unwrap() = new_config.jsonnet.clone();
@@ -82,7 +92,7 @@ impl LSPServer for JsonnetServer {
     fn document_diagnostics(
         &self,
         params: DocumentDiagnosticParams,
-    ) -> Result<LSPResponse, ResponseError> {
+    ) -> Result<LSPResponse, LSPError> {
         Ok(
             DocumentDiagnosticReportResult::Report(lsp_types::DocumentDiagnosticReport::Full(
                 RelatedFullDocumentDiagnosticReport {
@@ -97,11 +107,11 @@ impl LSPServer for JsonnetServer {
         )
     }
 
-    fn completion(&self, params: CompletionParams) -> Result<LSPResponse, ResponseError> {
+    fn completion(&self, params: CompletionParams) -> Result<LSPResponse, LSPError> {
         let doc = self
             .cache
-            .get_document(params.text_document_position.text_document.uri.as_str())
-            .unwrap();
+            .get_document(params.text_document_position.text_document.uri.as_str())?;
+
         let completion_info =
             CompletionInfo::new(&doc.content, params.text_document_position.position.into());
 
@@ -138,10 +148,25 @@ impl LSPServer for JsonnetServer {
             }
             _ => (),
         }
+        let failed: Vec<_> = lists.iter().filter_map(|res| res.as_ref().err()).collect();
+        let succeeded: Vec<&CompletionList> =
+            lists.iter().filter_map(|res| res.as_ref().ok()).collect();
 
-        let is_incomplete = lists.iter().any(|list| list.is_incomplete);
+        if succeeded.len() == 0 && failed.len() > 0 {
+            let first_err = *failed.first().unwrap();
+            return Err(first_err.into());
+        }
+
+        for err in failed {
+            log::error!("Failed to complete: {}", err)
+        }
+
+        let is_incomplete = succeeded.iter().any(|list| list.is_incomplete);
         let completion_list = CompletionList {
-            items: lists.into_iter().flat_map(|list| list.items).collect(),
+            items: succeeded
+                .into_iter()
+                .flat_map(|list| list.items.clone())
+                .collect(),
             is_incomplete,
         };
         Ok(CompletionResponse::List(completion_list).into())

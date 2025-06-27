@@ -1,6 +1,10 @@
 use lsp_types::{CompletionItem, CompletionList};
 
-use crate::{completion::Completion, node::location::Location, stdlib::StdFunctions};
+use crate::{
+    completion::{Completion, CompletionResult},
+    node::location::Location,
+    stdlib::StdFunctions,
+};
 
 pub struct StdCompletion;
 
@@ -13,7 +17,7 @@ impl StdCompletion {
 // TODO: Remove this dedicated completion and instead support documentation for functions and
 // handle the stdlib as a normal function with documentation
 impl Completion for StdCompletion {
-    fn complete(&self, _location: Location, _filename: &str) -> CompletionList {
+    fn complete(&self, _location: Location, _filename: &str) -> CompletionResult {
         let functions = StdFunctions::generate();
         let items = functions
             .functions
@@ -25,9 +29,9 @@ impl Completion for StdCompletion {
             })
             .collect();
 
-        CompletionList {
+        Ok(CompletionList {
             is_incomplete: false,
             items,
-        }
+        })
     }
 }

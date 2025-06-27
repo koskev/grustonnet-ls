@@ -1,6 +1,10 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    error::Error,
+    fmt::Display,
+    sync::{Arc, Mutex},
+};
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use lsp_server::{
     Connection, ErrorCode, ExtractError, IoThreads, Message, Notification, Request, RequestId,
     Response, ResponseError,
@@ -22,7 +26,7 @@ use crate::cache::{ASTGenerator, Cache};
 
 macro_rules! lsp_function_req {
     ($name:ident, $param:ty) => {
-        fn $name(&self, params: $param) -> Result<LSPResponse, ResponseError> {
+        fn $name(&self, params: $param) -> Result<LSPResponse, LSPError> {
             Err(not_implemented_error())
         }
     };
@@ -30,8 +34,8 @@ macro_rules! lsp_function_req {
 
 macro_rules! lsp_function_not {
     ($name:ident, $param:ty) => {
-        fn $name(&self, params: $param) -> Result<()> {
-            Err(anyhow!("Not implemented"))
+        fn $name(&self, params: $param) -> Result<(), LSPError> {
+            Err(not_implemented_error())
         }
     };
 }
@@ -55,7 +59,7 @@ macro_rules! lsp_handle_notification {
             Ok(params) => {
                 match $server.$name(params) {
                     Ok(_) => (),
-                    Err(e) => eprintln!("Notification failed: {}", e),
+                    Err(e) => log::error!("Notification failed: {:?}", e),
                 };
                 return Ok(());
             }
@@ -63,6 +67,54 @@ macro_rules! lsp_handle_notification {
             Err(ExtractError::MethodMismatch(req)) => req,
         }
     };
+}
+
+#[derive(Default, Debug)]
+pub struct LSPError {
+    pub message: String,
+    pub error_code: i32,
+}
+
+impl Error for LSPError {}
+impl Display for LSPError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+// TODO: fix error handling
+impl From<ResponseError> for LSPError {
+    fn from(value: ResponseError) -> Self {
+        Self {
+            message: value.message,
+            error_code: value.code,
+        }
+    }
+}
+
+impl Into<ResponseError> for LSPError {
+    fn into(self) -> ResponseError {
+        ResponseError {
+            code: self.error_code,
+            message: self.message,
+            data: None,
+        }
+    }
+}
+
+impl From<anyhow::Error> for LSPError {
+    fn from(value: anyhow::Error) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&anyhow::Error> for LSPError {
+    fn from(value: &anyhow::Error) -> Self {
+        Self {
+            error_code: ErrorCode::UnknownErrorCode as i32,
+            message: value.to_string(),
+        }
+    }
 }
 
 #[derive(Default, Debug)]
@@ -83,11 +135,17 @@ impl Into<serde_json::Value> for LSPResponse {
     }
 }
 
-fn not_implemented_error() -> ResponseError {
-    ResponseError {
-        code: ErrorCode::MethodNotFound as i32,
+fn not_implemented_error() -> LSPError {
+    LSPError {
+        error_code: ErrorCode::MethodNotFound as i32,
         message: "Method not implemented".into(),
-        data: None,
+    }
+}
+
+pub fn get_response_error(message: String) -> LSPError {
+    LSPError {
+        error_code: ErrorCode::UnknownErrorCode as i32,
+        message: message,
     }
 }
 
@@ -116,7 +174,7 @@ impl<S: LSPServer> LSPServerManager<S> {
                     let resp = self.handle_request(req.clone());
                     let result: Result<serde_json::Value, ResponseError> = match resp {
                         Ok(val) => Ok(val.into()),
-                        Err(e) => Err(e),
+                        Err(e) => Err(e.into()),
                     };
 
                     self.server.connection().send(Message::Response(Response {
@@ -138,18 +196,17 @@ impl<S: LSPServer> LSPServerManager<S> {
         }
         Ok(())
     }
-    fn handle_request(&self, req: Request) -> Result<LSPResponse, ResponseError> {
+    fn handle_request(&self, req: Request) -> Result<LSPResponse, LSPError> {
         let _req =
             lsp_handle_request!(self.server, completion, lsp_types::request::Completion, req);
 
-        Err(ResponseError {
-            code: ErrorCode::MethodNotFound as i32,
+        Err(LSPError {
+            error_code: ErrorCode::MethodNotFound as i32,
             message: "Method not implemented".into(),
-            data: None,
         })
     }
 
-    fn handle_notification(&self, req: Notification) -> Result<(), ResponseError> {
+    fn handle_notification(&self, req: Notification) -> Result<(), LSPError> {
         let mut req = lsp_handle_notification!(
             self.server,
             did_change_configuration,
@@ -160,10 +217,9 @@ impl<S: LSPServer> LSPServerManager<S> {
         req = lsp_handle_notification!(self.server, did_open, DidOpenTextDocument, req);
 
         let _ = req;
-        Err(ResponseError {
-            code: ErrorCode::MethodNotFound as i32,
+        Err(LSPError {
+            error_code: ErrorCode::MethodNotFound as i32,
             message: "Method not implemented".into(),
-            data: None,
         })
     }
 }
@@ -255,16 +311,15 @@ pub trait LSPServer {
         }
     }
 
-    fn did_change_text(&self, params: DidChangeTextDocumentParams) -> Result<()> {
+    fn did_change_text(&self, params: DidChangeTextDocumentParams) -> Result<(), LSPError> {
         for change in params.content_changes {
-            let current_text = match self.cache().get_document(params.text_document.uri.as_str()) {
-                Some(doc) => doc,
-                None => return Err(anyhow!("Unable to find document in cache!")),
-            };
+            let current_text = self
+                .cache()
+                .get_document(params.text_document.uri.as_str())?;
 
             let range = match change.range {
                 Some(r) => r,
-                None => return Err(anyhow!("Got change params without range")),
+                None => return Err(get_response_error("Got change params without range".into())),
             };
             let mut rope = Rope::from_str(&current_text.content);
             if self.is_incremental() {
