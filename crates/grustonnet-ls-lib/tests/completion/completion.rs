@@ -21,6 +21,7 @@ fn setup() {
     });
 }
 
+#[derive(Default)]
 pub(crate) struct CompletionTestCase {
     pub(crate) filename: String,
     pub(crate) replace_string: String,

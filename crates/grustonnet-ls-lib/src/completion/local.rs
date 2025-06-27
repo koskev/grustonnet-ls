@@ -104,6 +104,17 @@ impl<'a> LocalCompletion<'a> {
                     search_stack.push(binary.left.clone());
                     search_stack.push(binary.right.clone());
                 }
+                NodeKind::SelfNode => {
+                    if let Some(found_object) = document_stack.stack.iter().rfind(|n| {
+                        if let NodeKind::DesugaredObject(_) = n.node_kind.as_ref() {
+                            true
+                        } else {
+                            false
+                        }
+                    }) {
+                        search_stack.push(found_object.clone());
+                    };
+                }
                 _ => log::warn!(
                     "Unhandled node in completion iterator: {}",
                     current_node.node_kind.variant_name()
