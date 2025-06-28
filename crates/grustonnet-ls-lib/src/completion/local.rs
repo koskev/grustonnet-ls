@@ -73,7 +73,7 @@ impl<'a> LocalCompletion<'a> {
                 }
                 NodeKind::Apply(apply) => {
                     search_stack.push(apply.target.clone());
-                    log::debug!("Got apply {:#?}", apply.target.node_kind.variant_name());
+                    log::debug!("Got apply {}", apply.target.node_kind);
                     // TODO: find function
                     // get names of positional arguments and push them to the document stack
                 }
@@ -148,6 +148,7 @@ impl<'a> LocalCompletion<'a> {
             .peek()
             .ok_or(anyhow!("Could not peek the document stack. Is it empty?"))?
             .get_call_stack();
+        log::debug!("Call stack {}", call_stack);
         let mut document_stack = document_stack;
 
         let base_node = call_stack

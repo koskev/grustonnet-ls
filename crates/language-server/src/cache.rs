@@ -60,6 +60,10 @@ impl<G: ASTGenerator> Cache<G> {
         self.documents.write().unwrap().insert(name.into(), doc);
     }
 
+    pub fn remove_document(&self, name: &str) {
+        self.documents.write().unwrap().remove(name);
+    }
+
     pub fn update_content(&self, name: &str, text: &str) {
         let mut lock = self.documents.write().unwrap();
         let doc = lock.entry(name.into()).or_insert(Document::default());

@@ -10,11 +10,11 @@ use lsp_server::{
     Response, ResponseError,
 };
 use lsp_types::{
-    Diagnostic, DidChangeTextDocumentParams, DidOpenTextDocumentParams, InitializeParams,
-    InlayHint, PublishDiagnosticsParams, ServerCapabilities, TextDocumentSyncCapability,
-    TextDocumentSyncKind, Uri,
+    Diagnostic, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+    InitializeParams, InlayHint, PublishDiagnosticsParams, ServerCapabilities,
+    TextDocumentSyncCapability, TextDocumentSyncKind, Uri,
     notification::{
-        DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument,
+        DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument,
         Notification as NotificationTrait, PublishDiagnostics,
     },
     request::{
@@ -221,6 +221,7 @@ impl<S: LSPServer> LSPServerManager<S> {
         );
         req = lsp_handle_notification!(self.server, did_change_text, DidChangeTextDocument, req);
         req = lsp_handle_notification!(self.server, did_open, DidOpenTextDocument, req);
+        req = lsp_handle_notification!(self.server, did_close, DidCloseTextDocument, req);
 
         let _ = req;
         Err(LSPError {
@@ -296,6 +297,13 @@ pub trait LSPServer {
     lsp_function_not!(did_change_configuration, DidChangeConfiguration);
 
     fn get_diagnostics(&self, filename: &str) -> Vec<Diagnostic>;
+
+    fn did_close(&self, params: DidCloseTextDocumentParams) -> Result<()> {
+        self.cache()
+            .remove_document(params.text_document.uri.as_str());
+
+        Ok(())
+    }
 
     fn did_open(&self, params: DidOpenTextDocumentParams) -> Result<()> {
         self.cache().update_content(
