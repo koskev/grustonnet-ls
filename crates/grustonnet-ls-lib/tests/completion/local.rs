@@ -431,3 +431,28 @@ fn self_imported() {
     }
     .check();
 }
+
+#[test]
+fn self_var_nested() {
+    CompletionTestCase {
+        filename: "testdata/complete/self/nested_var.jsonnet".into(),
+        replace_string: "x: selfvar.outer".into(),
+        replace_by_string: "x: selfvar.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "outer".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "nested".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}

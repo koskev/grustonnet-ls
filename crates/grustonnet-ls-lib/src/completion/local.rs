@@ -105,7 +105,10 @@ impl<'a> LocalCompletion<'a> {
                     search_stack.push(binary.right.clone());
                 }
                 NodeKind::SelfNode => {
-                    if let Some(found_object) = document_stack.stack.iter().rfind(|n| {
+                    // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
+                    // current object instead of the var object
+                    let self_stack = document_stack.generate_stack_for_node(&current_node);
+                    if let Some(found_object) = self_stack.into_iter().rfind(|n| {
                         if let NodeKind::DesugaredObject(_) = n.node_kind.as_ref() {
                             true
                         } else {

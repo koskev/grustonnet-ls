@@ -22,6 +22,18 @@ impl NodeStack {
     pub fn peek(&self) -> Option<Node> {
         self.stack.last().cloned()
     }
+
+    pub fn generate_stack_for_node(&self, node: &Node) -> Vec<&Node> {
+        self.stack
+            .iter()
+            .filter(|stack_node| {
+                stack_node
+                    .node_base
+                    .loc_range
+                    .in_range(&node.node_base.loc_range.begin)
+            })
+            .collect()
+    }
 }
 
 impl Display for NodeStack {
