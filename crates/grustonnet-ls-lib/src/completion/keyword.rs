@@ -1,11 +1,10 @@
-use language_server::cache::Cache;
-use lsp_types::{CompletionItem, CompletionItemKind, CompletionList};
-
-use crate::{
-    cache::JsonnetASTGenerator,
+use language_server::{
+    cache::Cache,
     completion::{Completion, CompletionResult},
-    node::NodeKind,
 };
+use lsp_types::{CompletionItem, CompletionItemKind, CompletionList, Position};
+
+use crate::{cache::JsonnetASTGenerator, node::NodeKind};
 
 pub struct KeywordCompletion<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -18,14 +17,10 @@ impl<'a> KeywordCompletion<'a> {
 }
 
 impl<'a> Completion for KeywordCompletion<'a> {
-    fn complete(
-        &self,
-        location: crate::node::location::Location,
-        filename: &str,
-    ) -> CompletionResult {
+    fn complete(&self, location: Position, filename: &str) -> CompletionResult {
         let doc = self.cache.get_document(filename).unwrap();
 
-        let stack = doc.get_ast()?.get_stack_by_position(&location);
+        let stack = doc.get_ast()?.get_stack_by_position(&location.into());
 
         let show_self = stack.stack.iter().any(|node| {
             if let NodeKind::DesugaredObject(_) = *node.node_kind {

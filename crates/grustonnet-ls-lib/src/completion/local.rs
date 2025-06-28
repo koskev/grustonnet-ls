@@ -1,11 +1,14 @@
 use anyhow::{Result, anyhow};
-use language_server::cache::Cache;
-use lsp_types::{CompletionItem, CompletionList};
+use language_server::{
+    cache::Cache,
+    completion::{Completion, CompletionResult},
+};
+use lsp_types::{CompletionItem, CompletionList, Position};
 
 use crate::{
     cache::JsonnetASTGenerator,
-    completion::{Completion, CompletionResult, std::StdCompletion},
-    node::{Node, NodeKind, location::Location, stack::NodeStack},
+    completion::std::StdCompletion,
+    node::{Node, NodeKind, stack::NodeStack},
 };
 
 pub struct LocalCompletion<'a> {
@@ -195,10 +198,10 @@ impl<'a> LocalCompletion<'a> {
 }
 
 impl<'a> Completion for LocalCompletion<'a> {
-    fn complete(&self, location: Location, filename: &str) -> CompletionResult {
+    fn complete(&self, location: Position, filename: &str) -> CompletionResult {
         let doc = self.cache.get_document(filename).unwrap();
 
-        let stack = doc.get_ast()?.get_stack_by_position(&location);
+        let stack = doc.get_ast()?.get_stack_by_position(&location.into());
         let top_node = stack.peek().unwrap();
         log::debug!(
             "Completing {} at {:?}",

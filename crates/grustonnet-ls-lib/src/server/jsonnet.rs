@@ -6,6 +6,7 @@ use std::{
 use anyhow::Result;
 use language_server::{
     cache::Cache,
+    completion::Completion,
     diagnostics::Diagnostics,
     server::{LSPConnection, LSPError, LSPResponse, LSPServer, get_response_error},
     utils::diff,
@@ -21,9 +22,7 @@ use lsp_types::{
 use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
-    completion::{
-        Completion, global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion,
-    },
+    completion::{global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion},
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
     node::{DesugaredObject, DesugaredObjectField, LiteralString, Node, NodeKind},
@@ -134,7 +133,7 @@ impl LSPServer for JsonnetServer {
                 if config.completion.enable_global {
                     let global_completion = GlobalCompletion::new(&self.cache);
                     lists.push(global_completion.complete(
-                        completion_info.pos.clone(),
+                        completion_info.pos.clone().into(),
                         params.text_document_position.text_document.uri.as_str(),
                     ));
                 }
@@ -142,7 +141,7 @@ impl LSPServer for JsonnetServer {
                 if config.completion.enable_keywords {
                     let keyword_completion = KeywordCompletion::new(&self.cache);
                     lists.push(keyword_completion.complete(
-                        completion_info.pos.clone(),
+                        completion_info.pos.clone().into(),
                         params.text_document_position.text_document.uri.as_str(),
                     ));
                 }
@@ -151,7 +150,7 @@ impl LSPServer for JsonnetServer {
                 if config.completion.enable_local {
                     let local_completion = LocalCompletion::new(&self.cache);
                     lists.push(local_completion.complete(
-                        completion_info.pos.clone(),
+                        completion_info.pos.clone().into(),
                         params.text_document_position.text_document.uri.as_str(),
                     ));
                 }
