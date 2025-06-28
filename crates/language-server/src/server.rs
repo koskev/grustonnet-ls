@@ -11,13 +11,16 @@ use lsp_server::{
 };
 use lsp_types::{
     Diagnostic, DidChangeTextDocumentParams, DidOpenTextDocumentParams, InitializeParams,
-    PublishDiagnosticsParams, ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
-    Uri,
+    InlayHint, PublishDiagnosticsParams, ServerCapabilities, TextDocumentSyncCapability,
+    TextDocumentSyncKind, Uri,
     notification::{
         DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument,
         Notification as NotificationTrait, PublishDiagnostics,
     },
-    request::{Completion, DocumentDiagnosticRequest, Formatting, Request as RequestTrait},
+    request::{
+        Completion, DocumentDiagnosticRequest, Formatting, GotoDefinition, InlayHintRequest,
+        Request as RequestTrait,
+    },
 };
 use ropey::Rope;
 use serde::Serialize;
@@ -200,6 +203,7 @@ impl<S: LSPServer> LSPServerManager<S> {
         let mut req =
             lsp_handle_request!(self.server, completion, lsp_types::request::Completion, req);
         req = lsp_handle_request!(self.server, formatting, lsp_types::request::Formatting, req);
+        req = lsp_handle_request!(self.server, inlay_hint, InlayHintRequest, req);
 
         Err(LSPError {
             error_code: ErrorCode::MethodNotFound as i32,
@@ -283,6 +287,7 @@ pub trait LSPServer {
     lsp_function_req!(completion, Completion);
     lsp_function_req!(document_diagnostics, DocumentDiagnosticRequest);
     lsp_function_req!(formatting, Formatting);
+    lsp_function_req!(inlay_hint, InlayHintRequest);
 
     // Notifications
 

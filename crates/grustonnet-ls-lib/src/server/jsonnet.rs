@@ -1,4 +1,7 @@
-use std::sync::{Arc, RwLock};
+use std::{
+    str::FromStr,
+    sync::{Arc, RwLock},
+};
 
 use anyhow::Result;
 use language_server::{
@@ -9,9 +12,10 @@ use language_server::{
 };
 use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
-    DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult, OneOf,
+    DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
+    GotoDefinitionParams, GotoDefinitionResponse, InlayHint, InlayHintParams, OneOf, Range,
     RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions,
+    TextDocumentSyncOptions, Uri,
 };
 
 use crate::{
@@ -22,6 +26,7 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
+    node::{DesugaredObject, DesugaredObjectField, LiteralString, LocalBind, Node, NodeKind},
     server::config::Configuration,
 };
 
@@ -67,6 +72,7 @@ impl LSPServer for JsonnetServer {
                 ..Default::default()
             }),
             document_formatting_provider: Some(OneOf::Left(true)),
+            inlay_hint_provider: Some(OneOf::Left(true)),
             ..Default::default()
         }
     }
@@ -210,5 +216,25 @@ impl LSPServer for JsonnetServer {
         let edits = diff::get_text_edits(&doc.content, &formatted);
 
         Ok(edits.into())
+    }
+    fn inlay_hint(&self, params: InlayHintParams) -> Result<LSPResponse, LSPError> {
+        let doc = self.cache.get_document(params.text_document.uri.as_str())?;
+
+        let doc_stack = doc.get_ast()?.get_complete_stack();
+        let hints: Vec<InlayHint> = doc_stack
+            .stack
+            .iter()
+            .map(|n| InlayHint {
+                position: n.node_base.loc_range.begin.clone().into(),
+                padding_right: Some(true),
+                label: lsp_types::InlayHintLabel::String(n.node_kind.variant_name().to_string()),
+                kind: None,
+                text_edits: None,
+                tooltip: None,
+                padding_left: None,
+                data: None,
+            })
+            .collect();
+        Ok(hints.into())
     }
 }
