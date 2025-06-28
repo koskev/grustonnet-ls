@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 
 use language_server::cache::ASTNode;
 use log::*;
@@ -44,17 +44,7 @@ impl Node {
         while let Some(current_node) = search_stack.stack.pop() {
             match &(*current_node.node_kind) {
                 NodeKind::Index(idx) => {
-                    // If the previous node on the call stack is an apply and we are the target:
-                    // Swap the index and apply node
-                    if let Some(prev_node) = call_stack.peek()
-                        && let NodeKind::Apply(_prev_apply) = prev_node.node_kind.as_ref()
-                    {
-                        let tmp_node = call_stack.stack.pop().unwrap();
-                        call_stack.push(current_node.clone());
-                        call_stack.push(tmp_node);
-                    } else {
-                        call_stack.push(current_node.clone());
-                    }
+                    call_stack.push(current_node.clone());
 
                     search_stack.push(idx.target.clone());
                 }
@@ -62,9 +52,13 @@ impl Node {
                     call_stack.push(current_node);
                     // TODO: handle array
                 }
-                // TODO: this breaks completing params
                 NodeKind::Apply(apply) => {
-                    search_stack.push(apply.target.clone());
+                    log::debug!("Apply target {}", apply.target.node_kind.variant_name());
+                    // If apply target is an index we need to add it to the search stack. E.g. for
+                    // myVar.myFunc()
+                    if matches!(*apply.target.node_kind, NodeKind::Index(_)) {
+                        search_stack.push(apply.target.clone());
+                    }
                     call_stack.push(current_node);
                 }
                 _ => {
@@ -417,6 +411,31 @@ pub enum NodeKind {
 
     // Leftover nodes. Most likely something is broken
     Other(serde_json::Value),
+}
+
+impl Display for NodeKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::LiteralString(s) => {
+                write!(f, "{}", s.value)
+            }
+            Self::Apply(apply) => {
+                write!(
+                    f,
+                    "Apply ({:?}) -> {}",
+                    apply.arguments, apply.target.node_kind
+                )
+            }
+            Self::Index(idx) => {
+                write!(
+                    f,
+                    "Index {} -> {}",
+                    idx.index.node_kind, idx.target.node_kind
+                )
+            }
+            _ => write!(f, "{:#?}", self),
+        }
+    }
 }
 
 impl Default for NodeKind {

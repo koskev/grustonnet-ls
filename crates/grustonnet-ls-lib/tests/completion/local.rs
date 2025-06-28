@@ -190,7 +190,6 @@ fn function_return_arg_ignored() {
 }
 
 #[test]
-#[ignore = "broken"]
 fn function_return_arg_single() {
     CompletionTestCase {
         filename: "testdata/complete/functions/function_return_arg_single.jsonnet".into(),
