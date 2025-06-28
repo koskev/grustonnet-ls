@@ -13,4 +13,5 @@ pretty_assertions = "1.4.1"
 env_logger = "0.11.8"
 log = "0.4.27"
 ropey = "1.6.1"
+similar = "2.7.0"
 

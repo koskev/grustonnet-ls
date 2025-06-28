@@ -5,16 +5,14 @@ use language_server::{
     cache::Cache,
     diagnostics::Diagnostics,
     server::{LSPConnection, LSPError, LSPResponse, LSPServer, get_response_error},
-    utils::rope::RopeHelper,
+    utils::diff,
 };
 use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult, OneOf,
-    Range, RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions, TextEdit,
+    RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
+    TextDocumentSyncOptions,
 };
-use ropey::Rope;
-use similar::Algorithm;
 
 use crate::{
     bridge::GenerateAST,
@@ -198,71 +196,18 @@ impl LSPServer for JsonnetServer {
         let filename = params.text_document.uri.as_str();
         let options = &self.configuration.read().unwrap().format;
         let doc = self.cache.get_document(filename)?;
-        let formatted = self
-            .cache
-            .ast_generator
-            .jsonnet
-            .format_snippet(filename, &doc.content, &options)
-            .unwrap();
+        let formatted =
+            match self
+                .cache
+                .ast_generator
+                .jsonnet
+                .format_snippet(filename, &doc.content, &options)
+            {
+                Ok(res) => res,
+                Err(e) => return Err(e.into()),
+            };
 
-        let operations = similar::capture_diff_slices(
-            Algorithm::Myers,
-            doc.content.as_bytes(),
-            formatted.as_bytes(),
-        );
-
-        let rope_old = Rope::from_str(&doc.content);
-        let rope_new = Rope::from_str(&formatted);
-
-        let edits: Vec<TextEdit> = operations
-            .iter()
-            .filter_map(|op| match op {
-                similar::DiffOp::Replace {
-                    old_index,
-                    old_len,
-                    new_index,
-                    new_len,
-                } => Some(TextEdit {
-                    new_text: rope_new
-                        .slice(new_index..&(new_index + new_len))
-                        .as_str()?
-                        .to_string(),
-                    range: Range {
-                        start: rope_old.get_location(*old_index)?.into(),
-                        end: rope_old.get_location(*old_index + *old_len)?,
-                    },
-                }),
-                similar::DiffOp::Delete {
-                    old_index,
-                    old_len,
-                    new_index: _,
-                } => Some(TextEdit {
-                    new_text: String::new(),
-                    range: Range {
-                        start: rope_old.get_location(*old_index)?.into(),
-                        end: rope_old.get_location(*old_index + *old_len)?.into(),
-                    },
-                }),
-                similar::DiffOp::Insert {
-                    old_index,
-                    new_index,
-                    new_len,
-                } => {
-                    let pos = rope_old.get_location(*old_index)?.into();
-                    Some(TextEdit {
-                        range: Range {
-                            start: pos,
-                            end: pos,
-                        },
-                        new_text: rope_new
-                            .slice(new_index..&(new_index + new_len))
-                            .as_str()?
-                            .to_string(),
-                    })
-                }
-                _ => None,
-            })
-            .collect();
+        let edits = diff::get_text_edits(&doc.content, &formatted);
 
         Ok(edits.into())
     }

@@ -1,12 +1,14 @@
 use std::{
     error::Error,
-    fmt::{Debug, Display},
+    fmt::{Debug, Display, format},
     path::Path,
     str::FromStr,
     sync::{Arc, RwLock},
 };
 
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue, FormatOptions};
+use language_server::server::LSPError;
+use lsp_server::ErrorCode;
 use lsp_types::Uri;
 use name_variant::NamedVariant;
 use regex::Regex;
@@ -66,6 +68,15 @@ impl Display for EvaluateError {
             "{}:{:?}-{:?} | {}",
             self.filename, self.start, self.end, self.message
         )
+    }
+}
+
+impl Into<LSPError> for EvaluateError {
+    fn into(self) -> LSPError {
+        LSPError {
+            message: self.to_string(),
+            error_code: ErrorCode::ParseError as i32,
+        }
     }
 }
 
