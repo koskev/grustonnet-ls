@@ -27,6 +27,7 @@ smart-default = "0.7.1"
 schemars = "1.0.1"
 similar = "2.7.0"
 jsonnet-std-docs = { path = "../jsonnet-std-docs"}
+bevy_tasks = { version = "0.16.1", features = ["multi_threaded"] }
 
 [build-dependencies]
 reqwest = { version = "0.12.20", features = ["blocking"] }

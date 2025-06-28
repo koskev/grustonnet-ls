@@ -4,6 +4,7 @@ use std::{
 };
 
 use anyhow::Result;
+use bevy_tasks::TaskPool;
 use language_server::{
     cache::Cache,
     completion::Completion,
@@ -124,39 +125,39 @@ impl LSPServer for JsonnetServer {
         let completion_info =
             CompletionInfo::new(&doc.content, params.text_document_position.position.into());
 
-        let mut lists = vec![];
-
         let config = self.configuration.read().unwrap().clone();
+        let mut completion_list: Vec<Box<dyn Completion>> = vec![];
         match completion_info.completion_type {
             CompletionType::Global => {
                 // Global completion
                 if config.completion.enable_global {
                     let global_completion = GlobalCompletion::new(&self.cache);
-                    lists.push(global_completion.complete(
-                        completion_info.pos.clone().into(),
-                        params.text_document_position.text_document.uri.as_str(),
-                    ));
+                    completion_list.push(Box::new(global_completion));
                 }
                 // Keyword completion
                 if config.completion.enable_keywords {
                     let keyword_completion = KeywordCompletion::new(&self.cache);
-                    lists.push(keyword_completion.complete(
-                        completion_info.pos.clone().into(),
-                        params.text_document_position.text_document.uri.as_str(),
-                    ));
+                    completion_list.push(Box::new(keyword_completion));
                 }
             }
             CompletionType::Local => {
                 if config.completion.enable_local {
                     let local_completion = LocalCompletion::new(&self.cache);
-                    lists.push(local_completion.complete(
-                        completion_info.pos.clone().into(),
-                        params.text_document_position.text_document.uri.as_str(),
-                    ));
+                    completion_list.push(Box::new(local_completion));
                 }
             }
             _ => (),
         }
+
+        let pool = TaskPool::new();
+        let filename = params.text_document_position.text_document.uri.as_str();
+        let lists = pool.scope(|s| {
+            for provider in completion_list {
+                let location = completion_info.pos.clone().into();
+                s.spawn(async move { provider.complete(location, filename) });
+            }
+        });
+
         let failed: Vec<_> = lists.iter().filter_map(|res| res.as_ref().err()).collect();
         let succeeded: Vec<&CompletionList> =
             lists.iter().filter_map(|res| res.as_ref().ok()).collect();

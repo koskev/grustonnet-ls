@@ -3,6 +3,6 @@ use lsp_types::{CompletionList, Position};
 
 pub type CompletionResult = Result<CompletionList>;
 
-pub trait Completion {
+pub trait Completion: Send {
     fn complete(&self, location: Position, filename: &str) -> CompletionResult;
 }
