@@ -1,6 +1,6 @@
 use std::{
     error::Error,
-    fmt::{Debug, Display, format},
+    fmt::{Debug, Display},
     path::Path,
     str::FromStr,
     sync::{Arc, RwLock},

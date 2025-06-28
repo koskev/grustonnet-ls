@@ -4,6 +4,7 @@ use std::{
 };
 
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams};
+use jsonnet_std_docs::StdLib;
 
 const STDLIB_FILE: &'static str = "stdlib-content.jsonnet";
 
@@ -53,10 +54,23 @@ fn build_stdlib() {
         info.error_data
     );
     assert!(info.ast_data.len() != 0, "No eval data {:?}", info.ast_data);
+
+    // Convert html to md
+    let mut lib: StdLib = serde_json::from_str(&info.ast_data).unwrap();
+    lib.groups.iter_mut().for_each(|group| {
+        group.fields.iter_mut().for_each(|func| {
+            func.description = htmd::HtmlToMarkdown::new()
+                .convert(&func.description)
+                .unwrap();
+        });
+    });
+
+    let out_content = serde_json::to_string(&lib).unwrap();
+
     let out_dir = std::env::var("OUT_DIR").unwrap();
     let out_path = Path::new(&out_dir);
     let stdlib_path = out_path.join("stdlib.json");
-    fs::write(stdlib_path.clone(), info.ast_data).expect(&format!(
+    fs::write(stdlib_path.clone(), out_content).expect(&format!(
         "Failed to write stdlib to out path at {:?}",
         stdlib_path
     ));

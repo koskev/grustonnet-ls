@@ -1,10 +1,12 @@
-use lsp_types::{CompletionItem, CompletionList};
+use jsonnet_std_docs::StdFunctions;
+use lsp_types::{CompletionItem, CompletionList, Documentation};
 
 use crate::{
     completion::{Completion, CompletionResult},
     node::location::Location,
-    stdlib::StdFunctions,
 };
+
+const STDLIB_DEFINITIONS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
 
 pub struct StdCompletion;
 
@@ -18,14 +20,21 @@ impl StdCompletion {
 // handle the stdlib as a normal function with documentation
 impl Completion for StdCompletion {
     fn complete(&self, _location: Location, _filename: &str) -> CompletionResult {
-        let functions = StdFunctions::generate();
+        let functions = StdFunctions::generate(STDLIB_DEFINITIONS);
         let items = functions
             .functions
             .iter()
-            .map(|(_name, func)| CompletionItem {
-                label: func.name.clone(),
-                detail: Some(func.description.clone()),
-                ..Default::default()
+            .map(|(_name, func)| {
+                let param_string = match &func.params {
+                    Some(list) => format!("({})", list.join(", ")),
+                    None => "".to_string(),
+                };
+                CompletionItem {
+                    label: func.name.clone(),
+                    detail: Some(format!("{}{}", func.name.clone(), param_string)),
+                    documentation: Some(Documentation::String(func.description.clone())),
+                    ..Default::default()
+                }
             })
             .collect();
 

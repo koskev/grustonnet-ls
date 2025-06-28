@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-const STDLIB_DEFINITIONS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct StdFunction {
@@ -12,15 +11,15 @@ pub struct StdFunction {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-struct StdLibGroup {
-    fields: Vec<StdFunction>,
-    name: String,
-    id: String,
+pub struct StdLibGroup {
+    pub fields: Vec<StdFunction>,
+    pub name: String,
+    pub id: String,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-struct StdLib {
-    groups: Vec<StdLibGroup>,
+pub struct StdLib {
+    pub groups: Vec<StdLibGroup>,
 }
 
 #[derive(Debug, Default)]
@@ -29,8 +28,8 @@ pub struct StdFunctions {
 }
 
 impl StdFunctions {
-    pub fn generate() -> Self {
-        let lib: StdLib = serde_json::from_str(STDLIB_DEFINITIONS).unwrap();
+    pub fn generate(data: &str) -> Self {
+        let lib: StdLib = serde_json::from_str(data).unwrap();
 
         Self {
             functions: lib

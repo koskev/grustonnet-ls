@@ -26,7 +26,7 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
-    node::{DesugaredObject, DesugaredObjectField, LiteralString, LocalBind, Node, NodeKind},
+    node::{DesugaredObject, DesugaredObjectField, LiteralString, Node, NodeKind},
     server::config::Configuration,
 };
 

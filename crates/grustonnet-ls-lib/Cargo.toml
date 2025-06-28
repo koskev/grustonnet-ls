@@ -26,7 +26,12 @@ log = "0.4.27"
 smart-default = "0.7.1"
 schemars = "1.0.1"
 similar = "2.7.0"
+jsonnet-std-docs = { path = "../jsonnet-std-docs"}
 
 [build-dependencies]
 reqwest = { version = "0.12.20", features = ["blocking"] }
 jsonnet-bridge = { path = "../jsonnet-bridge"}
+jsonnet-std-docs = { path = "../jsonnet-std-docs"}
+htmd = "0.2.2"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
