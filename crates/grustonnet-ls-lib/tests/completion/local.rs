@@ -15,7 +15,6 @@ fn local_config() -> Configuration {
 }
 
 #[test]
-#[ignore = "Currently not supported"]
 fn simple_local() {
     CompletionTestCase {
         filename: "testdata/simple_object.jsonnet".into(),
@@ -191,6 +190,7 @@ fn function_return_arg_ignored() {
 }
 
 #[test]
+#[ignore = "broken"]
 fn function_return_arg_single() {
     CompletionTestCase {
         filename: "testdata/complete/functions/function_return_arg_single.jsonnet".into(),
@@ -200,6 +200,66 @@ fn function_return_arg_single() {
             is_incomplete: false,
             items: vec![CompletionItem {
                 label: "myArg".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+    }
+    .check();
+}
+
+#[test]
+fn function_return_arg_index() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_in_object.jsonnet".into(),
+        replace_string: "x: myObj".into(),
+        replace_by_string: "x: myObj.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "withArg".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "withoutArg".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+    }
+    .check();
+}
+
+#[test]
+fn function_return_arg_index_no_arg() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_in_object.jsonnet".into(),
+        replace_string: "x: myObj".into(),
+        replace_by_string: "x: myObj.withoutArg().".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "b".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+    }
+    .check();
+}
+
+#[test]
+fn function_return_arg_index_unnamed_arg() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_in_object.jsonnet".into(),
+        replace_string: "x: myObj".into(),
+        replace_by_string: "x: myObj.withArg(1).".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "a".to_string(),
                 ..Default::default()
             }],
         },

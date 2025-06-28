@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::{Result, anyhow};
 use language_server::cache::Cache;
 use lsp_types::{CompletionItem, CompletionList};
 
@@ -19,7 +19,7 @@ impl<'a> LocalCompletion<'a> {
 }
 
 impl<'a> LocalCompletion<'a> {
-    fn get_desugared_object(&self, node: Node, document_stack: &mut NodeStack) -> Option<Node> {
+    pub fn get_desugared_object(&self, node: Node, document_stack: &mut NodeStack) -> Option<Node> {
         let mut search_stack = NodeStack::new();
         let mut objects = vec![];
         search_stack.push(node);
@@ -30,7 +30,10 @@ impl<'a> LocalCompletion<'a> {
                 NodeKind::Other(other) => {
                     log::error!("Got invalid node {:#?}", other);
                 }
-                NodeKind::Index(idx) => search_stack.push(idx.target.clone()),
+                NodeKind::Index(idx) => {
+                    search_stack.push(idx.target.clone());
+                    log::error!("idx: {:#?}", idx);
+                }
                 NodeKind::DesugaredObject(_obj) => {
                     log::error!("Found desugared!");
                     objects.push(current_node);
@@ -70,7 +73,7 @@ impl<'a> LocalCompletion<'a> {
                 }
                 NodeKind::Apply(apply) => {
                     search_stack.push(apply.target.clone());
-                    log::debug!("Got apply");
+                    log::debug!("Got apply {:#?}", apply.target.node_kind.variant_name());
                     // TODO: find function
                     // get names of positional arguments and push them to the document stack
                 }
@@ -140,30 +143,44 @@ impl<'a> LocalCompletion<'a> {
     }
 
     // TODO: make a completion iterator
-    fn build_node(&self, document_stack: NodeStack) -> Option<Node> {
-        let mut call_stack = document_stack.peek()?.get_call_stack();
+    pub fn build_node(&self, document_stack: NodeStack) -> Result<Node> {
+        let mut call_stack = document_stack
+            .peek()
+            .ok_or(anyhow!("Could not peek the document stack. Is it empty?"))?
+            .get_call_stack();
         let mut document_stack = document_stack;
 
-        let mut base_object =
-            self.get_desugared_object(call_stack.stack.pop()?, &mut document_stack)?;
+        let base_node = call_stack
+            .stack
+            .pop()
+            .ok_or(anyhow!("Could not pop call stack"))?;
+        let mut base_object = self
+            .get_desugared_object(base_node.clone(), &mut document_stack)
+            .ok_or(anyhow!(
+                "Could not get desugared object for {}",
+                base_node.node_kind.variant_name()
+            ))?;
 
         while let Some(call_node) = call_stack.stack.pop() {
             match *call_node.node_kind {
                 NodeKind::Index(idx) => {
-                    let index_name = idx.get_name()?;
+                    let index_name = idx.get_name().ok_or(anyhow!("getting index name"))?;
                     match &(*base_object.node_kind) {
                         NodeKind::DesugaredObject(obj) => {
-                            let found_field = obj.fields.iter().find(|field| {
-                                if let Some(field_name) = field.get_name() {
-                                    field_name == index_name
-                                } else {
-                                    false
-                                }
-                            })?;
-                            base_object = self.get_desugared_object(
-                                found_field.body.clone(),
-                                &mut document_stack,
-                            )?;
+                            let found_field = obj
+                                .fields
+                                .iter()
+                                .find(|field| {
+                                    if let Some(field_name) = field.get_name() {
+                                        field_name == index_name
+                                    } else {
+                                        false
+                                    }
+                                })
+                                .ok_or(anyhow!("finding desugared field"))?;
+                            base_object = self
+                                .get_desugared_object(found_field.body.clone(), &mut document_stack)
+                                .ok_or(anyhow!("getting new base object"))?;
                         }
                         _ => (),
                     }
@@ -172,7 +189,7 @@ impl<'a> LocalCompletion<'a> {
             }
         }
 
-        Some(base_object)
+        Ok(base_object)
     }
 }
 
@@ -191,9 +208,7 @@ impl<'a> Completion for LocalCompletion<'a> {
         // TODO: Create call stack and get every stage for the completion. Get the first object and
         // use the second one as a filter
         // TODO: Resolve the complete call stack
-        let Some(node) = self.build_node(stack) else {
-            return Err(anyhow!("Could not build_node"));
-        };
+        let node = self.build_node(stack)?;
         let items = match node.node_kind.as_ref() {
             NodeKind::DesugaredObject(obj) => obj
                 .fields

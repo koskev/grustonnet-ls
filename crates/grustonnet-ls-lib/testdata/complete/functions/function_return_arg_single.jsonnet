@@ -1,7 +1,7 @@
 local myFunc(arg) = {
-	key: arg,
+  key: arg,
 };
 
 {
-	x: myFunc(1)
+  x: myFunc(1),
 }

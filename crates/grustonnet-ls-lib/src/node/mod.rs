@@ -44,17 +44,50 @@ impl Node {
         while let Some(current_node) = search_stack.stack.pop() {
             match &(*current_node.node_kind) {
                 NodeKind::Index(idx) => {
+                    // If the previous node on the call stack is an apply and we are the target:
+                    // Swap the index and apply node
+                    if let Some(prev_node) = call_stack.peek()
+                        && let NodeKind::Apply(_prev_apply) = prev_node.node_kind.as_ref()
+                    {
+                        let tmp_node = call_stack.stack.pop().unwrap();
+                        call_stack.push(current_node.clone());
+                        call_stack.push(tmp_node);
+                    } else {
+                        call_stack.push(current_node.clone());
+                    }
+
                     search_stack.push(idx.target.clone());
-                    call_stack.push(current_node);
                 }
                 NodeKind::Var(_var) => {
                     call_stack.push(current_node);
+                    // TODO: handle array
                 }
-                _ => call_stack.push(current_node),
+                // TODO: this breaks completing params
+                NodeKind::Apply(apply) => {
+                    search_stack.push(apply.target.clone());
+                    call_stack.push(current_node);
+                }
+                _ => {
+                    log::debug!(
+                        "Unhandled in build call stack: {}",
+                        current_node.node_kind.variant_name()
+                    );
+                    call_stack.push(current_node);
+                }
             }
         }
 
         call_stack
+    }
+
+    pub fn get_complete_stack(&self) -> NodeStack {
+        let mut stack: NodeStack = self
+            .iter()
+            .map(|child: &Node| child.get_complete_stack())
+            .collect();
+        stack.push_front(self.clone());
+
+        stack
     }
 
     pub fn get_stack_by_position(&self, pos: &Location) -> NodeStack {
@@ -124,6 +157,21 @@ impl<'a> Iterator for NodeIter<'a> {
             }
             // Var has no children
             NodeKind::Var(_) => (),
+            NodeKind::Index(idx) => {
+                self.index += 1;
+                return match self.index {
+                    1 => Some(&idx.target),
+                    2 => Some(&idx.index),
+                    _ => None,
+                };
+            }
+            NodeKind::Apply(apply) => {
+                if self.index == 0 {
+                    self.index += 1;
+                    return Some(&apply.target);
+                }
+                return None;
+            }
             _ => {
                 error!(
                     "Unhandled type {} while searching for children",
@@ -397,7 +445,6 @@ impl Var {
             return None;
         };
         let get_node_with_id = |binds: &Vec<LocalBind>| -> Option<Node> {
-            log::debug!("Searching for {} in {:#?}", id.0, binds);
             let bind = binds.iter().find(|local| local.variable.0 == id.0);
             bind?.body.clone()
         };
@@ -488,6 +535,18 @@ impl Function {
         bindings.extend(named_nodes);
 
         Some(bindings)
+    }
+}
+
+impl LiteralString {
+    pub fn node_from_str(val: &str) -> Node {
+        Node {
+            node_kind: Box::new(NodeKind::LiteralString(LiteralString {
+                value: val.to_string(),
+                ..Default::default()
+            })),
+            ..Default::default()
+        }
     }
 }
 

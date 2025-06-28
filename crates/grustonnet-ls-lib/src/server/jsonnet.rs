@@ -72,6 +72,7 @@ impl LSPServer for JsonnetServer {
                 ..Default::default()
             }),
             document_formatting_provider: Some(OneOf::Left(true)),
+            definition_provider: Some(OneOf::Left(true)),
             inlay_hint_provider: Some(OneOf::Left(true)),
             ..Default::default()
         }
@@ -217,6 +218,66 @@ impl LSPServer for JsonnetServer {
 
         Ok(edits.into())
     }
+
+    fn goto_definition(&self, params: GotoDefinitionParams) -> Result<LSPResponse, LSPError> {
+        // Get selected node
+        let doc = self.cache.get_document(
+            params
+                .text_document_position_params
+                .text_document
+                .uri
+                .as_str(),
+        )?;
+
+        let pos = params.text_document_position_params.position;
+
+        let mut stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
+
+        log::error!(
+            "Goto definition: {:#?}",
+            stack.peek().unwrap().node_kind.variant_name()
+        );
+
+        // We create a dummy object which contains the desired target. Then we resolve the object
+        // and get our dummy field which contains the correct location
+        let to_find_node = stack.stack.pop().unwrap();
+        let my_node = Node {
+            node_kind: Box::new(NodeKind::DesugaredObject(DesugaredObject {
+                fields: vec![DesugaredObjectField {
+                    name: LiteralString::node_from_str("goto"),
+                    body: to_find_node,
+                    ..Default::default()
+                }],
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        stack.push(my_node);
+
+        let completion = LocalCompletion::new(&self.cache);
+        let built_node = completion.build_node(stack).unwrap();
+
+        log::error!("Built node: {:#?}", built_node);
+        if let NodeKind::DesugaredObject(resolved_object) = built_node.node_kind.as_ref() {
+            if let Some(n) = resolved_object.fields.first() {
+                let loc = n.body.node_base.loc_range.clone();
+                let lsp_loc = lsp_types::Location {
+                    uri: Uri::from_str(&loc.file_name).unwrap(),
+                    range: Range {
+                        start: loc.begin.into(),
+                        ..Default::default()
+                    },
+                };
+                return Ok(GotoDefinitionResponse::Scalar(lsp_loc).into());
+            }
+        };
+
+        Ok(LSPResponse::default())
+
+        // Resolve node
+        // Return link
+    }
+
     fn inlay_hint(&self, params: InlayHintParams) -> Result<LSPResponse, LSPError> {
         let doc = self.cache.get_document(params.text_document.uri.as_str())?;
 

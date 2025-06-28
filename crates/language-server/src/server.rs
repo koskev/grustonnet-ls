@@ -203,6 +203,7 @@ impl<S: LSPServer> LSPServerManager<S> {
         let mut req =
             lsp_handle_request!(self.server, completion, lsp_types::request::Completion, req);
         req = lsp_handle_request!(self.server, formatting, lsp_types::request::Formatting, req);
+        req = lsp_handle_request!(self.server, goto_definition, GotoDefinition, req);
         req = lsp_handle_request!(self.server, inlay_hint, InlayHintRequest, req);
 
         Err(LSPError {
@@ -287,6 +288,7 @@ pub trait LSPServer {
     lsp_function_req!(completion, Completion);
     lsp_function_req!(document_diagnostics, DocumentDiagnosticRequest);
     lsp_function_req!(formatting, Formatting);
+    lsp_function_req!(goto_definition, GotoDefinition);
     lsp_function_req!(inlay_hint, InlayHintRequest);
 
     // Notifications
