@@ -10,14 +10,14 @@ use lsp_server::{
     Response, ResponseError,
 };
 use lsp_types::{
-    CompletionParams, Diagnostic, DidChangeConfigurationParams, DidChangeTextDocumentParams,
-    DidOpenTextDocumentParams, DocumentDiagnosticParams, InitializeParams,
+    Diagnostic, DidChangeTextDocumentParams, DidOpenTextDocumentParams, InitializeParams,
     PublishDiagnosticsParams, ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
     Uri,
     notification::{
         DidChangeConfiguration, DidChangeTextDocument, DidOpenTextDocument,
         Notification as NotificationTrait, PublishDiagnostics,
     },
+    request::{Completion, DocumentDiagnosticRequest, Formatting, Request as RequestTrait},
 };
 use ropey::Rope;
 use serde::Serialize;
@@ -25,8 +25,8 @@ use serde::Serialize;
 use crate::cache::{ASTGenerator, Cache};
 
 macro_rules! lsp_function_req {
-    ($name:ident, $param:ty) => {
-        fn $name(&self, params: $param) -> Result<LSPResponse, LSPError> {
+    ($name:ident, $req:ty) => {
+        fn $name(&self, params: <$req as RequestTrait>::Params) -> Result<LSPResponse, LSPError> {
             Err(not_implemented_error())
         }
     };
@@ -34,7 +34,7 @@ macro_rules! lsp_function_req {
 
 macro_rules! lsp_function_not {
     ($name:ident, $param:ty) => {
-        fn $name(&self, params: $param) -> Result<(), LSPError> {
+        fn $name(&self, params: <$param as NotificationTrait>::Params) -> Result<(), LSPError> {
             Err(not_implemented_error())
         }
     };
@@ -197,12 +197,13 @@ impl<S: LSPServer> LSPServerManager<S> {
         Ok(())
     }
     fn handle_request(&self, req: Request) -> Result<LSPResponse, LSPError> {
-        let _req =
+        let mut req =
             lsp_handle_request!(self.server, completion, lsp_types::request::Completion, req);
+        req = lsp_handle_request!(self.server, formatting, lsp_types::request::Formatting, req);
 
         Err(LSPError {
             error_code: ErrorCode::MethodNotFound as i32,
-            message: "Method not implemented".into(),
+            message: format!("Method {} not implemented", req.method),
         })
     }
 
@@ -279,12 +280,13 @@ pub trait LSPServer {
     fn cache(&self) -> &Cache<Self::AstGenerator>;
     fn get_capabilities(&self) -> ServerCapabilities;
 
-    lsp_function_req!(completion, CompletionParams);
-    lsp_function_req!(document_diagnostics, DocumentDiagnosticParams);
+    lsp_function_req!(completion, Completion);
+    lsp_function_req!(document_diagnostics, DocumentDiagnosticRequest);
+    lsp_function_req!(formatting, Formatting);
 
     // Notifications
 
-    lsp_function_not!(did_change_configuration, DidChangeConfigurationParams);
+    lsp_function_not!(did_change_configuration, DidChangeConfiguration);
 
     fn get_diagnostics(&self, filename: &str) -> Vec<Diagnostic>;
 

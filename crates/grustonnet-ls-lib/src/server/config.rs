@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use jsonnet_bridge::go::FormatOptions;
 use lsp_types::DidChangeConfigurationParams;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -39,6 +40,7 @@ pub struct Configuration {
     pub completion: CompletionConfig,
     pub diagnostics: DiagnosticConfig,
     pub jsonnet: JsonnetConfig,
+    pub format: FormatOptions,
 }
 
 impl TryFrom<DidChangeConfigurationParams> for Configuration {

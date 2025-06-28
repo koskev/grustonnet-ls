@@ -26,8 +26,8 @@ impl RopeHelper for Rope {
     }
 
     fn get_location(&self, character: usize) -> Option<Position> {
-        let line = self.char_to_line(character);
-        let char = character - self.line_to_char(line);
+        let line = self.try_char_to_line(character).ok()?;
+        let char = character - self.try_line_to_char(line).ok()?;
 
         Some(Position {
             line: line as u32,

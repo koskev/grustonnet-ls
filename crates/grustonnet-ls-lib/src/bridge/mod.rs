@@ -6,7 +6,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue};
+use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue, FormatOptions};
 use lsp_types::Uri;
 use name_variant::NamedVariant;
 use regex::Regex;
@@ -20,6 +20,13 @@ pub trait GenerateAST {
     fn evaluate_ast(&self, ast_string: &str, source_file: &str) -> Result<String, EvaluateError>;
     fn evaluate_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
     fn lint_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
+
+    fn format_snippet(
+        &self,
+        filename: &str,
+        snippet: &str,
+        options: &FormatOptions,
+    ) -> Result<String, EvaluateError>;
 }
 
 #[derive(Debug, Default, NamedVariant)]
@@ -206,6 +213,23 @@ impl GenerateAST for GoJsonnet {
             filename.to_string(),
             snippet.to_string(),
             self.get_evaluate_params(filename),
+        );
+        if res.error_data.len() > 0 {
+            return Err(EvaluateError::from(res.error_data));
+        }
+        Ok(res.ast_data)
+    }
+
+    fn format_snippet(
+        &self,
+        filename: &str,
+        snippet: &str,
+        options: &FormatOptions,
+    ) -> Result<String, EvaluateError> {
+        let res = ASTBridgeImpl::format_snippet(
+            filename.to_string(),
+            snippet.to_string(),
+            options.clone(),
         );
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));

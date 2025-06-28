@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/go-jsonnet"
 	"github.com/google/go-jsonnet/ast"
+	"github.com/google/go-jsonnet/formatter"
 	"github.com/google/go-jsonnet/linter"
 )
 
@@ -132,6 +133,34 @@ func (GoAst) lint_snippet(filename *string, snippet *string, params *EvaluatePar
 	} else {
 		info.ast_data = buf.String()
 	}
+	return info
+}
+
+func (GoAst) format_snippet(filename *string, snippet *string, options *FormatOptions) ASTInfo {
+	formatter_options := formatter.DefaultOptions()
+	formatter_options.CommentStyle = formatter.CommentStyle(options.comment_style)
+	formatter_options.Indent = int(options.indent)
+	formatter_options.MaxBlankLines = int(options.max_blank_lines)
+	formatter_options.StringStyle = formatter.StringStyle(options.string_style)
+	formatter_options.CommentStyle = formatter.CommentStyle(options.comment_style)
+	formatter_options.PrettyFieldNames = options.pretty_field_names
+	formatter_options.PadArrays = options.pad_arrays
+	formatter_options.PadObjects = options.pad_objects
+	formatter_options.SortImports = options.sort_imports
+	formatter_options.UseImplicitPlus = options.use_implicit_plus
+	formatter_options.StripEverything = options.strip_everything
+	formatter_options.StripComments = options.strip_comments
+	formatter_options.StripAllButComments = options.strip_all_but_comments
+
+	formatted, err := formatter.Format(*filename, *snippet, formatter_options)
+
+	info := ASTInfo{}
+	if err != nil {
+		info.error_data = err.Error()
+	} else {
+		info.ast_data = formatted
+	}
+
 	return info
 }
 
