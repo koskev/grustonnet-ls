@@ -1,3 +1,4 @@
+use language_server::utils::cst::CstNodeHelper;
 use ropey::Rope;
 use tree_sitter::{Node, Point};
 

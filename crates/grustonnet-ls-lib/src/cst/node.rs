@@ -6,7 +6,6 @@ pub trait JsonnetNode {
     fn is_symbol_node(&self) -> bool;
     fn is_ending_node(&self) -> bool;
     // Get the previous node in the tree
-    fn get_prev_node(&self) -> Option<Node>;
 
     fn get_node_at(&self, point: Point) -> Option<Node>;
 }
@@ -18,17 +17,6 @@ impl<'a> JsonnetNode for Node<'a> {
 
     fn is_ending_node(&self) -> bool {
         NodeType::from(self.grammar_name()).is_statement_ending()
-    }
-
-    fn get_prev_node(&self) -> Option<Node> {
-        match self.prev_sibling() {
-            Some(sibling) => {
-                let mut cursor = sibling.walk();
-                while cursor.goto_last_child() {}
-                Some(cursor.node())
-            }
-            None => self.parent(),
-        }
     }
 
     fn get_node_at(&self, point: Point) -> Option<Node> {

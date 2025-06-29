@@ -283,7 +283,7 @@ where
 pub trait LSPServer {
     type AstGenerator: ASTGenerator;
 
-    fn handle_init_parameters(&self, params: InitializeParams);
+    fn handle_init_parameters(&self, params: InitializeParams) {}
     fn connection(&self) -> &LSPConnection;
     fn cache(&self) -> &Cache<Self::AstGenerator>;
     fn get_capabilities(&self) -> ServerCapabilities;
