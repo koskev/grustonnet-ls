@@ -226,11 +226,9 @@ impl<'a> LocalCompletion<'a> {
         // Pass as mut or other solution?
         let mut base_object =
             ResolveNodeIter::new(base_node.clone(), &mut document_stack, self.cache)
-                .filter(|n| matches!(*n.node_kind, NodeKind::DesugaredObject(_)))
-                // There might be other desugared objects e.g. in locals. We a interested in the
-                // last one
+                // The last node is the one we desire
                 .last()
-                .ok_or(anyhow!("Node is not an object"))?;
+                .ok_or(anyhow!("Unable to get base node to complete"))?;
 
         while let Some(call_node) = call_stack.stack.pop() {
             match *call_node.node_kind {
@@ -300,6 +298,7 @@ impl<'a> Completion for LocalCompletion<'a> {
                 if var.is_std() {
                     StdCompletion::new().complete(location, filename)?.items
                 } else {
+                    log::warn!("Tried to complete var that is not std! {}", node.node_kind);
                     vec![]
                 }
             }
