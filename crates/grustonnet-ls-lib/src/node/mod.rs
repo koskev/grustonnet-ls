@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display, Formatter, write};
 
 use language_server::cache::ASTNode;
 use log::*;
@@ -415,26 +415,28 @@ pub enum NodeKind {
 
 impl Display for NodeKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: ", self.variant_name())?;
         match self {
+            Self::Local(local) => {
+                write!(f, "Binds:")?;
+            }
             Self::LiteralString(s) => {
-                write!(f, "{}", s.value)
+                write!(f, "{}", s.value)?;
             }
             Self::Apply(apply) => {
-                write!(
-                    f,
-                    "Apply ({:?}) -> {}",
-                    apply.arguments, apply.target.node_kind
-                )
+                write!(f, "({:?}) -> {}", apply.arguments, apply.target.node_kind)?;
             }
             Self::Index(idx) => {
-                write!(
-                    f,
-                    "Index {} -> {}",
-                    idx.index.node_kind, idx.target.node_kind
-                )
+                write!(f, "{} -> {}", idx.index.node_kind, idx.target.node_kind)?;
             }
-            _ => write!(f, "{:#?}", self),
-        }
+            Self::Var(var) => {
+                if let Some(id) = &var.id {
+                    write!(f, "{}", id.0)?;
+                }
+            }
+            _ => (),
+        };
+        Ok(())
     }
 }
 
