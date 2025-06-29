@@ -32,6 +32,12 @@ pub struct JsonnetConfig {
     pub ext_code: HashMap<String, String>,
     pub ext_vars: HashMap<String, String>,
     pub jpaths: Vec<String>,
+
+    #[default = true]
+    // Searches from the root directory upwards for
+    // <name>.extcode.libsonnet and
+    // <name>.extvars.libsonnet
+    pub find_upwards: bool,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]

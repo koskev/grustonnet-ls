@@ -447,6 +447,7 @@ impl Default for NodeKind {
 }
 
 impl Var {
+    // TODO: resolve before is vars
     pub fn is_std(&self) -> bool {
         if let Some(id) = &self.id {
             return id.0 == "std";
@@ -556,6 +557,16 @@ impl Function {
         bindings.extend(named_nodes);
 
         Some(bindings)
+    }
+}
+
+impl Arguments {
+    pub fn get_argument(&self, pos: usize) -> Option<Node> {
+        if let Some(arg) = self.positional.get(pos) {
+            Some(arg.expr.clone())
+        } else {
+            Some(self.named.get(pos - self.positional.len())?.arg.clone())
+        }
     }
 }
 

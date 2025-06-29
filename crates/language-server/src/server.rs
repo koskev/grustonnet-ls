@@ -166,7 +166,8 @@ impl<S: LSPServer> LSPServerManager<S> {
             .initialize(server_capabilities)
             .expect("init connection");
 
-        let _params: InitializeParams = serde_json::from_value(params).unwrap();
+        let params: InitializeParams = serde_json::from_value(params).unwrap();
+        self.server.handle_init_parameters(params);
         eprintln!("starting example main loop");
         for msg in &self.server.connection().connection.receiver {
             match msg {
@@ -282,6 +283,7 @@ where
 pub trait LSPServer {
     type AstGenerator: ASTGenerator;
 
+    fn handle_init_parameters(&self, params: InitializeParams);
     fn connection(&self) -> &LSPConnection;
     fn cache(&self) -> &Cache<Self::AstGenerator>;
     fn get_capabilities(&self) -> ServerCapabilities;

@@ -4,7 +4,7 @@ use smart_default::SmartDefault;
 
 use crate::binding;
 
-#[derive(rust2go::R2G)]
+#[derive(rust2go::R2G, Default, Debug, Clone)]
 pub struct ExtValue {
     pub name: String,
     pub value: String,
@@ -17,7 +17,7 @@ pub struct ASTInfo {
     pub error_data: String,
 }
 
-#[derive(rust2go::R2G, Default)]
+#[derive(rust2go::R2G, Default, Debug, Clone)]
 pub struct EvaluateParams {
     pub ext_vars: Vec<ExtValue>,
     pub ext_code: Vec<ExtValue>,

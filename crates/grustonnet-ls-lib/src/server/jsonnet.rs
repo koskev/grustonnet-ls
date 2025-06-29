@@ -15,9 +15,9 @@ use language_server::{
 use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
-    GotoDefinitionParams, GotoDefinitionResponse, InlayHint, InlayHintParams, OneOf, Range,
-    RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions, Uri,
+    GotoDefinitionParams, GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams,
+    OneOf, Range, RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
+    TextDocumentSyncOptions, Uri, WorkspaceFolder,
 };
 
 use crate::{
@@ -51,6 +51,17 @@ impl LSPServer for JsonnetServer {
     type AstGenerator = JsonnetASTGenerator;
     fn connection(&self) -> &LSPConnection {
         &self.connection
+    }
+
+    fn handle_init_parameters(&self, params: InitializeParams) {
+        let workspaces = params.workspace_folders.unwrap_or_default();
+
+        if workspaces.len() > 0 {
+            self.cache
+                .ast_generator
+                .jsonnet
+                .set_root_dir(workspaces.first().unwrap().uri.path().as_str());
+        }
     }
 
     fn cache(&self) -> &Cache<Self::AstGenerator> {
@@ -93,7 +104,10 @@ impl LSPServer for JsonnetServer {
         };
 
         // TODO: revisit config architecture
-        *self.cache.ast_generator.jsonnet.config.write().unwrap() = new_config.jsonnet.clone();
+        self.cache
+            .ast_generator
+            .jsonnet
+            .set_config(&new_config.jsonnet);
 
         *self.configuration.write().unwrap() = new_config;
         Ok(())

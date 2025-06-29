@@ -1,11 +1,14 @@
 use std::{
+    collections::HashMap,
     error::Error,
     fmt::{Debug, Display},
+    fs,
     path::Path,
     str::FromStr,
     sync::{Arc, RwLock},
 };
 
+use anyhow::Result;
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue, FormatOptions};
 use language_server::server::LSPError;
 use lsp_server::ErrorCode;
@@ -120,42 +123,86 @@ impl Error for EvaluateError {}
 
 #[derive(Default, Debug, Clone)]
 pub struct GoJsonnet {
-    pub config: Arc<RwLock<JsonnetConfig>>,
+    root_dir: Arc<RwLock<String>>,
+    config: Arc<RwLock<JsonnetConfig>>,
+    params: Arc<RwLock<EvaluateParams>>,
 }
 
+fn find_upwards(cwd: &str, suffix: &str) -> HashMap<String, String> {
+    // TODO: generic magic
+    let mut cwd_path = Path::new(cwd);
+    let mut files_found = HashMap::new();
+    loop {
+        let Ok(dir) = fs::read_dir(cwd_path) else {
+            break;
+        };
+        dir.into_iter()
+            .filter_map(|res| res.ok())
+            .filter(|entry| match entry.file_name().into_string() {
+                Ok(file_name) => {
+                    //log::error!("Does {} end with {}?", file_name, suffix);
+                    file_name.ends_with(suffix)
+                }
+                Err(_) => false,
+            })
+            .for_each(|found| {
+                let name = found
+                    .file_name()
+                    .into_string()
+                    .unwrap()
+                    .strip_suffix(suffix)
+                    .unwrap()
+                    .to_string();
+                if !files_found.contains_key(&name) {
+                    if let Ok(content) = fs::read_to_string(found.path()) {
+                        files_found.insert(name, content);
+                    }
+                }
+            });
+
+        match cwd_path.parent() {
+            Some(parent) => cwd_path = parent,
+            None => break,
+        }
+    }
+    return files_found;
+}
+
+// TODO: performance nightmare
 impl GoJsonnet {
-    pub fn new() -> Self {
+    pub fn new(root_dir: &str) -> Self {
         Self {
+            root_dir: Arc::new(RwLock::new(root_dir.to_string())),
             ..Default::default()
         }
     }
 
-    // TODO: this is a performance nightmare
-    fn get_evaluate_params(&self, filepath: &str) -> EvaluateParams {
-        // TODO: the uri part is a mess. Just use uri everywhere?
-        let uri = Uri::from_str(filepath).unwrap();
-        let mut p = Path::new(uri.path().as_str());
-        if p.is_file() {
-            p = p.parent().unwrap()
-        }
-        let mut jpaths = vec![p.to_str().unwrap().to_string()];
-        jpaths.extend(self.config.read().unwrap().jpaths.clone());
-        EvaluateParams {
-            ext_code: self
-                .config
-                .read()
-                .unwrap()
+    pub fn set_root_dir(&self, dir: &str) {
+        *self.root_dir.write().unwrap() = dir.to_string();
+    }
+
+    pub fn get_config(&self) -> JsonnetConfig {
+        self.config.read().unwrap().clone()
+    }
+
+    pub fn set_config(&self, config: &JsonnetConfig) {
+        let mut config_lock = self.config.write().unwrap();
+        *config_lock = config.clone();
+
+        // Find upwards
+        let found_extcode = find_upwards(&self.root_dir.read().unwrap(), ".extcode.libsonnet");
+
+        *self.params.write().unwrap() = EvaluateParams {
+            ext_code: config
                 .ext_code
                 .iter()
+                .chain(found_extcode.iter())
                 .map(|(key, val)| ExtValue {
                     name: key.to_string(),
                     value: val.to_string(),
                 })
                 .collect(),
-            ext_vars: self
-                .config
-                .read()
-                .unwrap()
+            ext_vars: config
                 .ext_vars
                 .iter()
                 .map(|(key, val)| ExtValue {
@@ -163,8 +210,20 @@ impl GoJsonnet {
                     value: val.to_string(),
                 })
                 .collect(),
-            jpaths,
+            jpaths: config.jpaths.clone(),
         }
+    }
+
+    fn get_evaluate_params(&self, filepath: &str) -> EvaluateParams {
+        let mut params = self.params.read().unwrap().clone();
+        // TODO: the uri part is a mess. Just use uri everywhere?
+        let uri = Uri::from_str(filepath).unwrap();
+        let mut p = Path::new(uri.path().as_str());
+        if p.is_file() {
+            p = p.parent().unwrap()
+        }
+        params.jpaths.push(p.to_str().unwrap().to_string());
+        params
     }
 }
 

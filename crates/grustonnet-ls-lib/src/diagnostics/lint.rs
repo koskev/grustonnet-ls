@@ -3,10 +3,7 @@ use std::str::FromStr;
 use language_server::{cache::Cache, diagnostics::Diagnostics};
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
-use crate::{
-    bridge::{GenerateAST, GoJsonnet},
-    cache::JsonnetASTGenerator,
-};
+use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
 
 pub struct LintDiagnostics<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -21,7 +18,11 @@ impl<'a> LintDiagnostics<'a> {
 impl<'a> Diagnostics for LintDiagnostics<'a> {
     fn diagnostics(&self, filename: &str) -> Vec<lsp_types::Diagnostic> {
         let doc = self.cache.get_document(filename).unwrap();
-        let res = GoJsonnet::new().lint_snippet(&doc.filename, &doc.content);
+        let res = self
+            .cache
+            .ast_generator
+            .jsonnet
+            .lint_snippet(&doc.filename, &doc.content);
 
         if let Err(diag_err) = res {
             return vec![Diagnostic {
