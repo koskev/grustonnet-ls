@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use bevy_tasks::TaskPool;
 use language_server::{
     cache::Cache,
@@ -16,8 +16,8 @@ use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
     GotoDefinitionParams, GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams,
-    OneOf, Range, RelatedFullDocumentDiagnosticReport, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions, Uri, WorkspaceFolder,
+    Location, OneOf, Range, RelatedFullDocumentDiagnosticReport, ServerCapabilities,
+    TextDocumentSyncKind, TextDocumentSyncOptions, Uri, WorkspaceFolder,
 };
 
 use crate::{
@@ -245,48 +245,26 @@ impl LSPServer for JsonnetServer {
 
         let pos = params.text_document_position_params.position;
 
-        let mut stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
+        let stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
 
-        log::error!(
-            "Goto definition: {:#?}",
-            stack.peek().unwrap().node_kind.variant_name()
-        );
-
-        // We create a dummy object which contains the desired target. Then we resolve the object
-        // and get our dummy field which contains the correct location
-        let to_find_node = stack.stack.pop().unwrap();
-        let my_node = Node {
-            node_kind: Box::new(NodeKind::DesugaredObject(DesugaredObject {
-                fields: vec![DesugaredObjectField {
-                    name: LiteralString::node_from_str("goto"),
-                    body: to_find_node,
-                    ..Default::default()
-                }],
-                ..Default::default()
-            })),
-            ..Default::default()
-        };
-        stack.push(my_node);
+        if stack.stack.len() > 0 {
+            log::error!("Goto definition: {}", stack.peek().unwrap().node_kind);
+        }
 
         let completion = LocalCompletion::new(&self.cache);
-        let built_node = completion.build_node(stack).unwrap();
+        let built_node = completion.build_node(stack)?;
 
         log::error!("Built node: {:#?}", built_node);
-        if let NodeKind::DesugaredObject(resolved_object) = built_node.node_kind.as_ref() {
-            if let Some(n) = resolved_object.fields.first() {
-                let loc = n.body.node_base.loc_range.clone();
-                let lsp_loc = lsp_types::Location {
-                    uri: Uri::from_str(&loc.file_name).unwrap(),
-                    range: Range {
-                        start: loc.begin.into(),
-                        ..Default::default()
-                    },
-                };
-                return Ok(GotoDefinitionResponse::Scalar(lsp_loc).into());
-            }
-        };
 
-        Ok(LSPResponse::default())
+        Ok(GotoDefinitionResponse::Scalar(Location {
+            uri: Uri::from_str(&built_node.node_base.loc_range.file_name)
+                .map_err(|e| anyhow!("Parsing uri from node {}", e))?,
+            range: Range {
+                start: built_node.node_base.loc_range.begin.into(),
+                end: built_node.node_base.loc_range.end.into(),
+            },
+        })
+        .into())
 
         // Resolve node
         // Return link

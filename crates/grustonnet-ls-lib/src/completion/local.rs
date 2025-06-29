@@ -9,8 +9,7 @@ use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
     completion::std::StdCompletion,
-    node::{Apply, Index, Node, NodeKind, Var, stack::NodeStack},
-    server::config,
+    node::{Apply, Node, NodeKind, stack::NodeStack},
 };
 
 pub struct LocalCompletion<'a> {
