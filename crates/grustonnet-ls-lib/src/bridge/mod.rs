@@ -191,6 +191,11 @@ impl GoJsonnet {
 
         // Find upwards
         let found_extcode = find_upwards(&self.root_dir.read().unwrap(), ".extcode.libsonnet");
+        config_lock.ext_code.extend(
+            found_extcode
+                .iter()
+                .map(|(a, b)| (a.to_string(), b.to_string())),
+        );
 
         *self.params.write().unwrap() = EvaluateParams {
             ext_code: config

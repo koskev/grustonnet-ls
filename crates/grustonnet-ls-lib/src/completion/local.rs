@@ -6,9 +6,11 @@ use language_server::{
 use lsp_types::{CompletionItem, CompletionList, Position};
 
 use crate::{
+    bridge::GenerateAST,
     cache::JsonnetASTGenerator,
     completion::std::StdCompletion,
-    node::{Node, NodeKind, stack::NodeStack},
+    node::{Apply, Index, Node, NodeKind, Var, stack::NodeStack},
+    server::config,
 };
 
 pub struct LocalCompletion<'a> {
@@ -49,11 +51,32 @@ impl<'a> ResolveNodeIter<'a> {
     }
 }
 
+impl<'a> ResolveNodeIter<'a> {
+    fn handle_extvar(&mut self, current_node: &Node, apply: &Apply) -> Option<Node> {
+        let conf = self.cache.ast_generator.jsonnet.get_config();
+        let arg_node = apply.arguments.get_argument(0)?;
+        if let NodeKind::LiteralString(name_node) = arg_node.node_kind.as_ref() {
+            let val = conf.ext_code.get(&name_node.value)?;
+            // Get ast snippet and add to stack
+            let ext_ast = self
+                .cache
+                .ast_generator
+                .jsonnet
+                .get_ast_snippet(&current_node.node_base.loc_range.file_name, val)
+                .ok()?;
+            let ext_node = serde_json::from_str::<Node>(&ext_ast).ok()?;
+            self.search_stack.push(ext_node.clone());
+            Some(ext_node)
+        } else {
+            None
+        }
+    }
+}
 impl<'a> Iterator for ResolveNodeIter<'a> {
     type Item = Node;
     fn next(&mut self) -> Option<Self::Item> {
         let current_node = self.search_stack.stack.pop()?;
-        log::debug!("Looking at {}", current_node.node_kind.variant_name());
+        log::debug!("Looking at {}", current_node.node_kind);
         self.document_stack.push(current_node.clone());
         match &(*current_node.node_kind) {
             NodeKind::Other(other) => {
@@ -120,6 +143,24 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 }
             }
             NodeKind::Apply(apply) => {
+                // If the target is an index that points to std: we need to handle the current
+                // apply node as an std function
+                // TODO: $std for loops etc.
+
+                if let NodeKind::Index(idx) = apply.target.node_kind.as_ref() {
+                    if let NodeKind::Var(var) = idx.target.node_kind.as_ref()
+                        && var.is_std()
+                    {
+                        // Handle the std node
+                        // extVar: We can't compile the node due to hidden fields
+                        return match idx.get_name().unwrap_or_default().as_str() {
+                            "extVar" => self.handle_extvar(&current_node, apply),
+                            // TODO: just compile the node
+                            _ => None,
+                        };
+                    }
+                }
+
                 self.search_stack.push(apply.target.clone());
                 log::debug!("Got apply {}", apply.target.node_kind);
                 // TODO: find function
