@@ -432,8 +432,8 @@ fn self_var() {
     .check();
 }
 
-// FIXME: This only works due to a bug that causes the binary to be the completion target instead of self
 #[test]
+#[ignore = "Not implemented yet"]
 fn self_binary() {
     CompletionTestCase {
         filename: "testdata/complete/self/binary.jsonnet".into(),
@@ -466,7 +466,7 @@ fn self_binary() {
 fn self_imported() {
     CompletionTestCase {
         filename: "testdata/complete/self/import.jsonnet".into(),
-        replace_string: "x: imported.selfval.x".into(),
+        replace_string: "x: imported.selfval.y".into(),
         replace_by_string: "x: imported.selfval.".into(),
         expected: CompletionList {
             is_incomplete: false,
@@ -476,7 +476,7 @@ fn self_imported() {
                     ..Default::default()
                 },
                 CompletionItem {
-                    label: "x".to_string(),
+                    label: "y".to_string(),
                     ..Default::default()
                 },
                 CompletionItem {

@@ -2,30 +2,41 @@ use std::fmt::Display;
 
 use crate::node::Node;
 
-#[derive(Debug, Clone)]
-pub struct NodeStack {
-    pub stack: Vec<Node>,
+#[derive(Clone)]
+pub struct NodeStackG<T>
+where
+    T: Clone,
+{
+    pub stack: Vec<T>,
 }
 
-impl NodeStack {
+impl<T> NodeStackG<T>
+where
+    T: Clone,
+{
     pub fn new() -> Self {
         Self { stack: vec![] }
     }
 
-    pub fn push(&mut self, node: Node) {
+    pub fn push(&mut self, node: T) {
         self.stack.push(node);
     }
-    pub fn push_front(&mut self, node: Node) {
+    pub fn push_front(&mut self, node: T) {
         self.stack.insert(0, node);
     }
 
-    pub fn peek(&self) -> Option<Node> {
+    pub fn peek(&self) -> Option<T> {
         self.stack.last().cloned()
     }
+}
 
-    pub fn generate_stack_for_node(&self, node: &Node) -> Vec<&Node> {
+pub type NodeStack = NodeStackG<Node>;
+
+impl NodeStackG<Node> {
+    pub fn generate_stack_for_node(&self, node: Node) -> NodeStackG<Node> {
         self.stack
-            .iter()
+            .clone()
+            .into_iter()
             .filter(|stack_node| {
                 stack_node
                     .node_base
@@ -41,7 +52,7 @@ impl Display for NodeStack {
         let names: String = self
             .stack
             .iter()
-            .map(|node| format!("{}\n", node.node_kind.variant_name()))
+            .map(|node| format!("{}\n", node.node_kind))
             .collect();
         write!(f, "{}", names)
     }

@@ -1,5 +1,5 @@
-local imported = import "imported.libsonnet";
+local imported = import 'imported.libsonnet';
 
 {
-	x: imported.selfval.x
+  x: imported.selfval.y,
 }
