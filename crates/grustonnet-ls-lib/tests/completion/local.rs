@@ -515,3 +515,23 @@ fn self_var_nested() {
     }
     .check();
 }
+
+// TODO: macro to test all levels
+#[test]
+fn nested_object() {
+    CompletionTestCase {
+        filename: "testdata/complete/object/nested.jsonnet".into(),
+        replace_string: "x: myObj".into(),
+        replace_by_string: "x: myObj.one.two.three.four.five.six.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "seven".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
