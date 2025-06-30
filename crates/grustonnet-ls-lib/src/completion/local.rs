@@ -249,26 +249,21 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
 }
 
 impl<'a> LocalCompletion<'a> {
-    // TODO: make a completion iterator
-    pub fn build_node(&self, document_stack: NodeStack) -> Result<Node> {
-        let mut call_stack = document_stack
-            .peek()
-            .ok_or(anyhow!("Could not peek the document stack. Is it empty?"))?
-            .get_call_stack();
-        log::debug!("Call stack {}", call_stack);
-        let mut document_stack = document_stack;
-
+    pub fn build_call_stack(
+        &self,
+        mut call_stack: NodeStack,
+        mut document_stack: &mut NodeStack,
+    ) -> Result<Node> {
         let base_node = call_stack
             .stack
             .pop()
             .ok_or(anyhow!("Could not pop call stack"))?;
         // TODO: do we need to update the document stack?
         // Pass as mut or other solution?
-        let mut base_object =
-            ResolveNodeIter::new(base_node.clone(), &mut document_stack, self.cache)
-                // The last node is the one we desire
-                .last()
-                .ok_or(anyhow!("Unable to get base node to complete"))?;
+        let mut base_object = ResolveNodeIter::new(base_node.clone(), document_stack, self.cache)
+            // The last node is the one we desire
+            .last()
+            .ok_or(anyhow!("Unable to get base node to complete"))?;
 
         while let Some(call_node) = call_stack.stack.pop() {
             match *call_node.node_kind {
@@ -301,8 +296,21 @@ impl<'a> LocalCompletion<'a> {
                 _ => (),
             }
         }
-
         Ok(base_object)
+    }
+
+    // TODO: make a completion iterator
+    pub fn build_node(&self, document_stack: NodeStack) -> Result<Node> {
+        let call_stack = document_stack
+            .peek()
+            .ok_or(anyhow!("Could not peek the document stack. Is it empty?"))?
+            .get_call_stack();
+        log::debug!("Call stack {}", call_stack);
+        let mut document_stack = document_stack;
+
+        let built_node = self.build_call_stack(call_stack, &mut document_stack);
+
+        Ok(built_node?)
     }
 }
 
