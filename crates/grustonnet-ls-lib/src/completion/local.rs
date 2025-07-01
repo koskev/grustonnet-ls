@@ -248,69 +248,117 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
     }
 }
 
+pub struct CallStackIter<'a> {
+    pub call_stack: NodeStack,
+    pub base_object: Option<Node>,
+
+    pub document_stack: &'a mut NodeStack,
+    pub cache: &'a Cache<JsonnetASTGenerator>,
+}
+
+impl<'a> CallStackIter<'a> {
+    pub fn new(
+        cache: &'a Cache<JsonnetASTGenerator>,
+        document_stack: &'a mut NodeStack,
+    ) -> Option<Self> {
+        let call_stack = document_stack.peek()?.get_call_stack();
+        Some(Self {
+            cache,
+            base_object: None,
+            document_stack,
+            call_stack,
+        })
+    }
+}
+
+// This iterator resolves one of a.b.c.d in every iteration
+impl<'a> Iterator for CallStackIter<'a> {
+    type Item = Node;
+    fn next(&mut self) -> Option<Self::Item> {
+        let call_node = self.call_stack.stack.pop()?;
+        // Get the next object to complete. If we don't have a base object: Just use the call node
+        // if we have a base object: Check for the DesugaredObject fields and get the correct one
+        let to_complete_object = match &self.base_object {
+            None => call_node,
+            Some(base_object) => match call_node.node_kind.as_ref() {
+                NodeKind::Index(idx) => {
+                    let index_name = idx.get_name()?;
+                    match base_object.node_kind.as_ref() {
+                        NodeKind::DesugaredObject(obj) => {
+                            let found_field = obj.fields.iter().find(|field| {
+                                if let Some(field_name) = field.get_name() {
+                                    field_name == index_name
+                                } else {
+                                    false
+                                }
+                            })?;
+                            found_field.body.clone()
+                        }
+                        // Index does not point to an object
+                        _ => base_object.clone(),
+                    }
+                }
+                // Not an index
+                _ => base_object.clone(),
+            },
+        };
+        // Actually resolve the object
+        self.base_object =
+            Some(ResolveNodeIter::new(to_complete_object, self.document_stack, self.cache).last()?);
+        self.base_object.clone()
+    }
+}
+
 impl<'a> LocalCompletion<'a> {
-    pub fn build_call_stack(
+    pub fn build_node_from_call_stack(
         &self,
         mut call_stack: NodeStack,
         mut document_stack: &mut NodeStack,
     ) -> Result<Node> {
-        let base_node = call_stack
-            .stack
-            .pop()
-            .ok_or(anyhow!("Could not pop call stack"))?;
-        // TODO: do we need to update the document stack?
-        // Pass as mut or other solution?
-        let mut base_object = ResolveNodeIter::new(base_node.clone(), document_stack, self.cache)
-            // The last node is the one we desire
-            .last()
-            .ok_or(anyhow!("Unable to get base node to complete"))?;
+        let mut base_object: Option<Node> = None;
 
         while let Some(call_node) = call_stack.stack.pop() {
-            match *call_node.node_kind {
-                NodeKind::Index(idx) => {
-                    let index_name = idx.get_name().ok_or(anyhow!("getting index name"))?;
-                    match &(*base_object.node_kind) {
-                        NodeKind::DesugaredObject(obj) => {
-                            let found_field = obj
-                                .fields
-                                .iter()
-                                .find(|field| {
-                                    if let Some(field_name) = field.get_name() {
-                                        field_name == index_name
-                                    } else {
-                                        false
-                                    }
-                                })
-                                .ok_or(anyhow!("finding desugared field"))?;
-                            base_object = ResolveNodeIter::new(
-                                found_field.body.clone(),
-                                &mut document_stack,
-                                self.cache,
-                            )
-                            .find(|n| matches!(*n.node_kind, NodeKind::DesugaredObject(_)))
-                            .ok_or(anyhow!("getting new base object"))?;
+            let to_complete_object = match base_object {
+                None => call_node,
+                Some(base_object) => match call_node.node_kind.as_ref() {
+                    NodeKind::Index(idx) => {
+                        let index_name = idx.get_name().ok_or(anyhow!("getting index name"))?;
+                        match base_object.node_kind.as_ref() {
+                            NodeKind::DesugaredObject(obj) => {
+                                let found_field = obj
+                                    .fields
+                                    .iter()
+                                    .find(|field| {
+                                        if let Some(field_name) = field.get_name() {
+                                            field_name == index_name
+                                        } else {
+                                            false
+                                        }
+                                    })
+                                    .ok_or(anyhow!("finding desugared field"))?;
+                                found_field.body.clone()
+                            }
+                            _ => base_object,
                         }
-                        _ => (),
                     }
-                }
-                _ => (),
-            }
+                    _ => base_object,
+                },
+            };
+            base_object = Some(
+                ResolveNodeIter::new(to_complete_object, &mut document_stack, self.cache)
+                    .last()
+                    .ok_or(anyhow!("getting new base object"))?,
+            );
         }
-        Ok(base_object)
+        Ok(base_object.ok_or(anyhow!("no object found"))?)
     }
 
-    // TODO: make a completion iterator
     pub fn build_node(&self, document_stack: NodeStack) -> Result<Node> {
-        let call_stack = document_stack
-            .peek()
-            .ok_or(anyhow!("Could not peek the document stack. Is it empty?"))?
-            .get_call_stack();
-        log::debug!("Call stack {}", call_stack);
         let mut document_stack = document_stack;
-
-        let built_node = self.build_call_stack(call_stack, &mut document_stack);
-
-        Ok(built_node?)
+        let iter = CallStackIter::new(self.cache, &mut document_stack)
+            .ok_or(anyhow!("Could not create callstack iter"))?;
+        iter.last()
+            .ok_or(anyhow!("Could not resolve last node of call stack"))
     }
 }
 
