@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Configuration",
+  "type": "object",
+  "properties": {
+    "completion": {
+      "$ref": "#/$defs/CompletionConfig",
+      "default": {
+        "enable_global": true,
+        "enable_keywords": true,
+        "enable_local": true
+      }
+    },
+    "diagnostics": {
+      "$ref": "#/$defs/DiagnosticConfig",
+      "default": {
+        "enable_eval": true
+      }
+    }
+  },
+  "$defs": {
+    "CompletionConfig": {
+      "type": "object",
+      "properties": {
+        "enable_global": {
+          "type": "boolean",
+          "default": true
+        },
+        "enable_keywords": {
+          "type": "boolean",
+          "default": true
+        },
+        "enable_local": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "DiagnosticConfig": {
+      "type": "object",
+      "properties": {
+        "enable_eval": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }
+}

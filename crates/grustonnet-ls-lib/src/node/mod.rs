@@ -434,6 +434,14 @@ impl Display for NodeKind {
                     write!(f, "{}", id.0)?;
                 }
             }
+            Self::DesugaredObject(obj) => {
+                let names: String = obj
+                    .fields
+                    .iter()
+                    .map(|f| format!("field {}", f.name.node_kind))
+                    .collect();
+                write!(f, "{}", names)?;
+            }
             _ => (),
         };
         Ok(())
@@ -514,6 +522,16 @@ impl DesugaredObject {
         new_object.locals.extend(other.locals);
 
         new_object
+    }
+
+    pub fn get_field(&self, name: &str) -> Option<&DesugaredObjectField> {
+        self.fields.iter().find(|field| {
+            if let Some(field_name) = field.get_name() {
+                field_name == name
+            } else {
+                false
+            }
+        })
     }
 }
 

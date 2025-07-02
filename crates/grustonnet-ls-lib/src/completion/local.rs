@@ -285,13 +285,7 @@ impl<'a> Iterator for CallStackIter<'a> {
                     let index_name = idx.get_name()?;
                     match base_object.node_kind.as_ref() {
                         NodeKind::DesugaredObject(obj) => {
-                            let found_field = obj.fields.iter().find(|field| {
-                                if let Some(field_name) = field.get_name() {
-                                    field_name == index_name
-                                } else {
-                                    false
-                                }
-                            })?;
+                            let found_field = obj.get_field(&index_name)?;
                             found_field.body.clone()
                         }
                         // Index does not point to an object

@@ -1,0 +1,7 @@
+{
+  "$schema": "./test.json",
+  "completion": {
+    "enable_global": true,
+    "enable_keywords": true
+  }
+}
