@@ -272,7 +272,6 @@ impl<'a> CallStackIter<'a> {
 }
 
 // This iterator resolves one of a.b.c.d in every iteration
-// Returns the unresolved object for each step
 impl<'a> Iterator for CallStackIter<'a> {
     type Item = Node;
     fn next(&mut self) -> Option<Self::Item> {
@@ -281,29 +280,25 @@ impl<'a> Iterator for CallStackIter<'a> {
         // if we have a base object: Check for the DesugaredObject fields and get the correct one
         let to_complete_object = match &self.base_object {
             None => call_node,
-            Some(base_object) => {
-                // Actually resolve the object
-                let base_object =
-                    ResolveNodeIter::new(base_object.clone(), self.document_stack, self.cache)
-                        .last()?;
-                match call_node.node_kind.as_ref() {
-                    NodeKind::Index(idx) => {
-                        let index_name = idx.get_name()?;
-                        match base_object.node_kind.as_ref() {
-                            NodeKind::DesugaredObject(obj) => {
-                                let found_field = obj.get_field(&index_name)?;
-                                found_field.body.clone()
-                            }
-                            // Index does not point to an object
-                            _ => base_object.clone(),
+            Some(base_object) => match call_node.node_kind.as_ref() {
+                NodeKind::Index(idx) => {
+                    let index_name = idx.get_name()?;
+                    match base_object.node_kind.as_ref() {
+                        NodeKind::DesugaredObject(obj) => {
+                            let found_field = obj.get_field(&index_name)?;
+                            found_field.body.clone()
                         }
+                        // Index does not point to an object
+                        _ => base_object.clone(),
                     }
-                    // Not an index
-                    _ => base_object.clone(),
                 }
-            }
+                // Not an index
+                _ => base_object.clone(),
+            },
         };
-        self.base_object = Some(to_complete_object);
+        // Actually resolve the object
+        self.base_object =
+            Some(ResolveNodeIter::new(to_complete_object, self.document_stack, self.cache).last()?);
         self.base_object.clone()
     }
 }
@@ -356,12 +351,8 @@ impl<'a> LocalCompletion<'a> {
         let mut document_stack = document_stack;
         let iter = CallStackIter::new(self.cache, &mut document_stack)
             .ok_or(anyhow!("Could not create callstack iter"))?;
-        let last_node = iter
-            .last()
-            .ok_or(anyhow!("Could not resolve last node of call stack"))?;
-        ResolveNodeIter::new(last_node, &mut document_stack, self.cache)
-            .last()
-            .ok_or(anyhow!("Could not resolve the last node"))
+        iter.last()
+            .ok_or(anyhow!("Could not resolve last node of call stack"))
     }
 }
 
