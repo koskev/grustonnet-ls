@@ -23,10 +23,17 @@ use lsp_types::{
 use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
-    completion::{global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion},
+    completion::{
+        global::GlobalCompletion,
+        keyword::KeywordCompletion,
+        local::{CallStackIter, LocalCompletion, ResolveNodeIter},
+    },
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
-    node::{DesugaredObject, DesugaredObjectField, LiteralString, Node, NodeKind},
+    node::{
+        DesugaredObject, DesugaredObjectField, LiteralString, Node, NodeKind,
+        location::LocationRange,
+    },
     server::config::Configuration,
 };
 
@@ -247,27 +254,70 @@ impl LSPServer for JsonnetServer {
 
         let stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
 
-        if stack.stack.len() > 0 {
-            log::error!("Goto definition: {}", stack.peek().unwrap().node_kind);
+        let mut document_stack = stack;
+        let mut call_stack = document_stack
+            .peek()
+            .ok_or(anyhow!("document stack is empty"))?
+            .get_call_stack();
+        let mut index_name = String::new();
+        let built_node = match call_stack.stack.len() {
+            x if x == 1 => call_stack.stack.pop().expect("impossible to reach"),
+            x if x > 1 => {
+                // Remove the last node (=at the beginning of the vec) and resolve the rest of the stack
+                let last_node = call_stack.stack.remove(0);
+                index_name = match last_node.node_kind.as_ref() {
+                    NodeKind::Index(idx) => {
+                        idx.get_name().ok_or(anyhow!("could not get index name"))?
+                    }
+                    NodeKind::Apply(func) => {
+                        func.get_name().ok_or(anyhow!("could not get apply name"))?
+                    }
+                    _ => "".to_string(),
+                };
+                let call_iter = CallStackIter::new_with_call_stack(
+                    &self.cache,
+                    &mut document_stack,
+                    call_stack,
+                )
+                .ok_or(anyhow!("could not resolve call stack"))?;
+                call_iter
+                    .last()
+                    .ok_or(anyhow!("Call iter was empty. Can't goto definition"))?
+            }
+            _ => {
+                return Err(anyhow!("Cant find the destination of an empty stack").into());
+            }
+        };
+
+        let location: LocationRange = match built_node.node_kind.as_ref() {
+            NodeKind::Var(var) => Some(
+                var.resolve_bind(&document_stack)
+                    .ok_or(anyhow!("unable to resolve var"))?
+                    .loc_range
+                    .clone(),
+            ),
+            NodeKind::DesugaredObject(obj) => Some(
+                obj.get_field(&index_name)
+                    .ok_or(anyhow!("unable to get object field"))?
+                    .loc_range
+                    .clone(),
+            ),
+            _ => None,
         }
-
-        let completion = LocalCompletion::new(&self.cache);
-        let built_node = completion.build_node(stack)?;
-
-        log::error!("Built node: {:#?}", built_node);
+        .ok_or(anyhow!(
+            "Could not resolve location of {}",
+            built_node.node_kind
+        ))?;
 
         Ok(GotoDefinitionResponse::Scalar(Location {
             uri: Uri::from_str(&built_node.node_base.loc_range.file_name)
                 .map_err(|e| anyhow!("Parsing uri from node {}", e))?,
             range: Range {
-                start: built_node.node_base.loc_range.begin.into(),
-                end: built_node.node_base.loc_range.end.into(),
+                start: location.begin.into(),
+                end: location.end.into(),
             },
         })
         .into())
-
-        // Resolve node
-        // Return link
     }
 
     fn inlay_hint(&self, params: InlayHintParams) -> Result<LSPResponse, LSPError> {

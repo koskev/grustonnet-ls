@@ -246,6 +246,7 @@ pub struct LocalBind {
     pub variable: Identifier,
     pub close_fodder: Option<Fodder>,
     pub fun: Option<Function>,
+    pub loc_range: LocationRange,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -434,6 +435,9 @@ impl Display for NodeKind {
                     write!(f, "{}", id.0)?;
                 }
             }
+            Self::Function(func) => {
+                write!(f, "{}", func.body.node_kind)?;
+            }
             Self::DesugaredObject(obj) => {
                 let names: String = obj
                     .fields
@@ -468,6 +472,24 @@ impl Var {
             return id.0 == "self";
         }
         return false;
+    }
+
+    pub fn resolve_bind<'a>(&self, document_stack: &'a NodeStack) -> Option<&'a LocalBind> {
+        let Some(id) = &self.id else {
+            return None;
+        };
+        let get_node_with_id = |binds: &'a Vec<LocalBind>| -> Option<&'a LocalBind> {
+            let bind = binds.iter().find(|local| local.variable.0 == id.0);
+            bind
+        };
+        document_stack
+            .stack
+            .iter()
+            .find_map(|node| match &(*node.node_kind) {
+                NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
+                NodeKind::Local(local) => get_node_with_id(&local.binds),
+                _ => None,
+            })
     }
 
     pub fn resolve(&self, document_stack: &NodeStack) -> Option<Node> {
@@ -532,6 +554,16 @@ impl DesugaredObject {
                 false
             }
         })
+    }
+}
+
+impl Apply {
+    pub fn get_name(&self) -> Option<String> {
+        if let NodeKind::Index(idx) = self.target.node_kind.as_ref() {
+            idx.get_name()
+        } else {
+            None
+        }
     }
 }
 

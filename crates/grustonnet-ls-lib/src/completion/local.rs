@@ -269,6 +269,19 @@ impl<'a> CallStackIter<'a> {
             call_stack,
         })
     }
+
+    pub fn new_with_call_stack(
+        cache: &'a Cache<JsonnetASTGenerator>,
+        document_stack: &'a mut NodeStack,
+        call_stack: NodeStack,
+    ) -> Option<Self> {
+        Some(Self {
+            cache,
+            base_object: None,
+            document_stack,
+            call_stack,
+        })
+    }
 }
 
 // This iterator resolves one of a.b.c.d in every iteration
