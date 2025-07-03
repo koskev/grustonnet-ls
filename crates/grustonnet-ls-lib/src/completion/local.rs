@@ -87,7 +87,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 Some(idx.target.clone())
             }
             NodeKind::DesugaredObject(_obj) => {
-                log::error!("Found desugared!");
+                log::debug!("Found desugared!");
                 Some(current_node)
             }
             NodeKind::Var(var) => {
@@ -97,7 +97,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 }
 
                 if let Some(resolved) = var.resolve(&self.document_stack) {
-                    log::warn!("Resolved to {:?}", resolved.node_kind.variant_name());
+                    log::debug!("Resolved to {:?}", resolved.node_kind.variant_name());
                     self.search_stack.push(resolved.clone());
                     Some(resolved.clone())
                 } else {
@@ -124,7 +124,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                         .import_ast(&current_node.node_base.loc_range.file_name, &file.value);
                     match imported {
                         Ok(imported_node) => {
-                            log::error!(
+                            log::debug!(
                                 "pushing import node {}",
                                 imported_node.node_kind.variant_name()
                             );
@@ -168,28 +168,29 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 Some(apply.target.clone())
             }
             NodeKind::Function(func) => {
-                let apply_node = self.document_stack.stack.iter().find_map(|n| {
+                log::debug!("Got function. Stack: {}", self.document_stack);
+                if let Some(apply_node) = self.document_stack.stack.iter().find_map(|n| {
                     if let NodeKind::Apply(apply) = n.node_kind.as_ref() {
                         Some(apply)
                     } else {
                         None
                     }
-                })?;
-                // Match arguments from apply to function and push them to the search and
-                // document stack
-                if let Some(bindings) = func.get_bind_for_arguments(&apply_node.arguments) {
-                    log::debug!("Found correct bindings");
-                    for binding in bindings {
-                        log::error!("Pushing to document stack {:?}", binding);
-                        self.document_stack.push(binding);
+                }) {
+                    // Match arguments from apply to function and push them to the search and
+                    // document stack
+                    if let Some(bindings) = func.get_bind_for_arguments(&apply_node.arguments) {
+                        log::debug!("Found correct bindings");
+                        for binding in bindings {
+                            log::error!("Pushing to document stack {:?}", binding);
+                            self.document_stack.push(binding);
+                        }
+                        //document_stack.stack.extend(bindings);
+                    } else {
+                        log::debug!("Failed to find bindings");
                     }
-                    //document_stack.stack.extend(bindings);
-                } else {
-                    log::debug!("Failed to find bindings");
                 }
                 // Push the function body to the stack
                 self.search_stack.push(func.body.clone());
-                log::debug!("Got function");
 
                 Some(func.body.clone())
             }
@@ -262,6 +263,7 @@ impl<'a> CallStackIter<'a> {
         document_stack: &'a mut NodeStack,
     ) -> Option<Self> {
         let call_stack = document_stack.peek()?.get_call_stack();
+        log::debug!("New callstack iter with stack {}", call_stack);
         Some(Self {
             cache,
             base_object: None,
@@ -310,8 +312,14 @@ impl<'a> Iterator for CallStackIter<'a> {
             },
         };
         // Actually resolve the object
-        self.base_object =
-            Some(ResolveNodeIter::new(to_complete_object, self.document_stack, self.cache).last()?);
+        let new_object =
+            ResolveNodeIter::new(to_complete_object, self.document_stack, self.cache).last()?;
+        log::debug!(
+            "New object: {} Stack: {}",
+            new_object.node_kind,
+            self.document_stack
+        );
+        self.base_object = Some(new_object);
         self.base_object.clone()
     }
 }
