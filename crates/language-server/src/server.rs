@@ -19,7 +19,7 @@ use lsp_types::{
     },
     request::{
         Completion, DocumentDiagnosticRequest, Formatting, GotoDefinition, InlayHintRequest,
-        Request as RequestTrait,
+        References, Rename, Request as RequestTrait,
     },
 };
 use ropey::Rope;
@@ -206,6 +206,8 @@ impl<S: LSPServer> LSPServerManager<S> {
         req = lsp_handle_request!(self.server, formatting, lsp_types::request::Formatting, req);
         req = lsp_handle_request!(self.server, goto_definition, GotoDefinition, req);
         req = lsp_handle_request!(self.server, inlay_hint, InlayHintRequest, req);
+        req = lsp_handle_request!(self.server, references, References, req);
+        req = lsp_handle_request!(self.server, rename, Rename, req);
 
         Err(LSPError {
             error_code: ErrorCode::MethodNotFound as i32,
@@ -293,6 +295,8 @@ pub trait LSPServer {
     lsp_function_req!(formatting, Formatting);
     lsp_function_req!(goto_definition, GotoDefinition);
     lsp_function_req!(inlay_hint, InlayHintRequest);
+    lsp_function_req!(references, References);
+    lsp_function_req!(rename, Rename);
 
     // Notifications
 
