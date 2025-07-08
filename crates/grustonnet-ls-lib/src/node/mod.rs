@@ -16,7 +16,7 @@ pub mod stack;
 
 impl ASTNode for Node {}
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", default)]
 pub struct NodeBase {
     pub fodder: Option<Fodder>,
@@ -25,7 +25,7 @@ pub struct NodeBase {
     pub loc_range: LocationRange,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", default)]
 pub struct Node {
     pub node_base: NodeBase,
@@ -166,6 +166,14 @@ impl<'a> Iterator for NodeIter<'a> {
                 }
                 return None;
             }
+            NodeKind::Binary(binary) => {
+                self.index += 1;
+                return match self.index {
+                    1 => Some(&binary.left),
+                    2 => Some(&binary.right),
+                    _ => None,
+                };
+            }
             _ => {
                 error!(
                     "Unhandled type {} while searching for children",
@@ -177,11 +185,11 @@ impl<'a> Iterator for NodeIter<'a> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Fodder(pub Vec<FodderElement>);
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct FodderElement {
     pub comment: Vec<String>,
@@ -190,7 +198,7 @@ pub struct FodderElement {
     pub indent: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub enum FodderKind {
     #[default]
@@ -199,14 +207,14 @@ pub enum FodderKind {
     FodderParagraph,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct CommaSeparatedExpr {
     pub expr: Node,
     pub comma_fodder: Option<Fodder>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub enum BinaryOp {
     #[default]
@@ -237,7 +245,7 @@ pub enum BinaryOp {
     Or,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct LocalBind {
     pub var_fodder: Option<Fodder>,
@@ -249,7 +257,7 @@ pub struct LocalBind {
     pub loc_range: LocationRange,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub enum LiteralStringKind {
     #[default]
@@ -260,7 +268,7 @@ pub enum LiteralStringKind {
     VerbatimStringSingle,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct LiteralString {
     pub value: String,
@@ -269,7 +277,7 @@ pub struct LiteralString {
     pub kind: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Array {
     pub elements: Option<Vec<CommaSeparatedExpr>>,
@@ -277,7 +285,7 @@ pub struct Array {
     pub trailing_comma: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Arguments {
     pub positional: Vec<CommaSeparatedExpr>,
@@ -288,7 +296,7 @@ pub struct Arguments {
 #[serde(rename_all = "PascalCase")]
 pub struct Identifier(pub String);
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct NamedArgument {
     pub name_fodder: Option<Fodder>,
@@ -298,7 +306,7 @@ pub struct NamedArgument {
     pub comma_fodder: Option<Fodder>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Apply {
     pub target: Node,
@@ -311,7 +319,7 @@ pub struct Apply {
     pub tail_strict: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Parameter {
     pub name_fodder: Option<Fodder>,
@@ -322,7 +330,7 @@ pub struct Parameter {
     pub loc_range: LocationRange,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Function {
     pub paren_left_fodder: Option<Fodder>,
@@ -333,7 +341,7 @@ pub struct Function {
     pub trailing_comma: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct DesugaredObjectField {
     pub name: Node,
@@ -343,7 +351,7 @@ pub struct DesugaredObjectField {
     pub plus_super: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct DesugaredObject {
     pub asserts: Vec<Node>,
@@ -351,7 +359,7 @@ pub struct DesugaredObject {
     pub locals: Vec<LocalBind>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Index {
     pub target: Node,
@@ -361,20 +369,20 @@ pub struct Index {
     pub id: Option<Identifier>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Var {
     pub id: Option<Identifier>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Local {
     pub binds: Vec<LocalBind>,
     pub body: Option<Node>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Binary {
     pub left: Node,
@@ -383,13 +391,13 @@ pub struct Binary {
     pub op: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Import {
     pub file: Node,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, NamedVariant)]
+#[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub enum NodeKind {
     Binary(Binary),
@@ -439,12 +447,14 @@ impl Display for NodeKind {
                 write!(f, "{}", func.body.node_kind)?;
             }
             Self::DesugaredObject(obj) => {
-                let names: String = obj
-                    .fields
-                    .iter()
-                    .map(|f| format!("field {}", f.name.node_kind))
-                    .collect();
-                write!(f, "{}", names)?;
+                write!(f, "{}", obj)?;
+            }
+            Self::Binary(binary) => {
+                write!(
+                    f,
+                    "left {} right {}",
+                    binary.left.node_kind, binary.right.node_kind
+                )?;
             }
             _ => (),
         };
@@ -536,9 +546,21 @@ impl DesugaredObjectField {
     }
 }
 
+impl Display for DesugaredObject {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let names: String = self
+            .fields
+            .iter()
+            .map(|f| format!("field {}", f.name.node_kind))
+            .collect();
+        write!(f, "{}", names)
+    }
+}
+
 impl DesugaredObject {
     pub fn merge(&self, other: DesugaredObject) -> DesugaredObject {
         let mut new_object = self.clone();
+        log::debug!("Merging {} and {}", self, other);
         new_object.asserts.extend(other.asserts);
         new_object.fields.extend(other.fields);
         new_object.locals.extend(other.locals);
@@ -629,6 +651,24 @@ impl LiteralString {
             })),
             ..Default::default()
         }
+    }
+}
+
+impl Binary {
+    pub fn flatten(&self) -> Vec<&Node> {
+        let mut nodes = vec![];
+        if let NodeKind::Binary(left) = self.left.node_kind.as_ref() {
+            nodes.extend(left.flatten());
+        } else {
+            nodes.push(&self.left);
+        }
+        if let NodeKind::Binary(right) = self.right.node_kind.as_ref() {
+            nodes.extend(right.flatten());
+        } else {
+            nodes.push(&self.right);
+        }
+
+        nodes
     }
 }
 

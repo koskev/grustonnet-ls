@@ -1,7 +1,7 @@
 local object = {
-	key: 5,
+  key: 5,
 };
 
 {
-	x: object,
+  x: object,
 }

@@ -75,7 +75,6 @@ fn object_multiple_no_text() {
 }
 
 #[test]
-#[ignore = "Currently not supported"]
 fn object_multiple() {
     CompletionTestCase {
         filename: "testdata/simple_object_multiple_fields.jsonnet".into(),
@@ -83,10 +82,17 @@ fn object_multiple() {
         replace_by_string: "x: object.k".into(),
         expected: CompletionList {
             is_incomplete: false,
-            items: vec![CompletionItem {
-                label: "key".to_string(),
-                ..Default::default()
-            }],
+            items: vec![
+                // All values should be completed to allow for client fuzy to find everything
+                CompletionItem {
+                    label: "key".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "second".to_string(),
+                    ..Default::default()
+                },
+            ],
         },
         config: local_config(),
     }
@@ -433,17 +439,16 @@ fn self_var() {
 }
 
 #[test]
-#[ignore = "Not implemented yet"]
 fn self_binary() {
     CompletionTestCase {
         filename: "testdata/complete/self/binary.jsonnet".into(),
-        replace_string: "b: self.a".into(),
-        replace_by_string: "b: self.".into(),
+        replace_string: "b:: self.a".into(),
+        replace_by_string: "b:: self.".into(),
         expected: CompletionList {
             is_incomplete: false,
             items: vec![
                 CompletionItem {
-                    label: "c".to_string(),
+                    label: "a".to_string(),
                     ..Default::default()
                 },
                 CompletionItem {
@@ -451,7 +456,7 @@ fn self_binary() {
                     ..Default::default()
                 },
                 CompletionItem {
-                    label: "a".to_string(),
+                    label: "c".to_string(),
                     ..Default::default()
                 },
             ],

@@ -1,9 +1,9 @@
 local a = {
-	one: 1,
+  one: 1,
 } + {
-	two: 2,
+  two: 2,
 };
 
 {
-	x: a
+  x: a,
 }

@@ -30,7 +30,12 @@ pub struct ResolveNodeIter<'a> {
     pub document_stack: &'a mut NodeStack,
     pub cache: &'a Cache<JsonnetASTGenerator>,
 
-    pub binary_index: i32,
+    // TODO: Use a proper solution inside the binary case. Maybe a recursive Iterator?
+    /// DesugaredObject to merge (should all be from a binary)
+    merge_nodes: Vec<Node>,
+
+    /// Nodes to search with priority (used if a node returns multiple nodes. e.g. a binary)
+    next_nodes: Vec<Node>,
 }
 
 impl<'a> ResolveNodeIter<'a> {
@@ -45,7 +50,8 @@ impl<'a> ResolveNodeIter<'a> {
             search_stack,
             document_stack,
             cache,
-            binary_index: 0,
+            merge_nodes: vec![],
+            next_nodes: vec![],
         }
     }
 }
@@ -74,7 +80,29 @@ impl<'a> ResolveNodeIter<'a> {
 impl<'a> Iterator for ResolveNodeIter<'a> {
     type Item = Node;
     fn next(&mut self) -> Option<Self::Item> {
-        let current_node = self.search_stack.stack.pop()?;
+        if let Some(next_node) = self.next_nodes.pop() {
+            self.search_stack.push(next_node.clone());
+            return Some(next_node);
+        }
+        let Some(current_node) = self.search_stack.stack.pop() else {
+            log::debug!(
+                "Search stack is empty. Checking if theere are nodes to merge. Len {}",
+                self.merge_nodes.len()
+            );
+            let mut merged_node = self.merge_nodes.pop()?;
+            let NodeKind::DesugaredObject(mut merged_object) =
+                merged_node.node_kind.as_ref().clone()
+            else {
+                return None;
+            };
+            while let Some(other_node) = self.merge_nodes.pop() {
+                if let NodeKind::DesugaredObject(obj) = *other_node.node_kind {
+                    merged_object = merged_object.merge(obj);
+                }
+            }
+            merged_node.node_kind = Box::new(NodeKind::DesugaredObject(merged_object));
+            return Some(merged_node);
+        };
         log::debug!("Looking at {}", current_node.node_kind);
         self.document_stack.push(current_node.clone());
         match &(*current_node.node_kind) {
@@ -88,6 +116,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             }
             NodeKind::DesugaredObject(_obj) => {
                 log::debug!("Found desugared!");
+                self.merge_nodes.push(current_node.clone());
                 Some(current_node)
             }
             NodeKind::Var(var) => {
@@ -195,31 +224,9 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 Some(func.body.clone())
             }
             NodeKind::Binary(binary) => {
-                if let NodeKind::DesugaredObject(a_desugared) = binary.left.node_kind.as_ref()
-                    && let NodeKind::DesugaredObject(b_desugared) = binary.right.node_kind.as_ref()
-                {
-                    // FIXME: why does this need to be switched?
-                    let merged = b_desugared.merge(a_desugared.clone());
-                    let mut merged_node = current_node.clone();
-                    *merged_node.node_kind = NodeKind::DesugaredObject(merged);
-                    Some(merged_node)
-                } else {
-                    self.binary_index += 1;
-                    match self.binary_index {
-                        1 => {
-                            // Push it back to the search stack to get the right node in the next
-                            // iteration
-                            self.search_stack.push_front(current_node.clone());
-                            self.search_stack.push(binary.left.clone());
-                            Some(binary.left.clone())
-                        }
-                        2 => {
-                            self.search_stack.push(binary.right.clone());
-                            Some(binary.right.clone())
-                        }
-                        _ => None,
-                    }
-                }
+                self.next_nodes.push(binary.left.clone());
+                self.search_stack.push(binary.right.clone());
+                Some(binary.right.clone())
             }
             NodeKind::SelfNode => {
                 // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
@@ -227,7 +234,45 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 let self_stack = self
                     .document_stack
                     .generate_stack_for_node(current_node.clone());
-                log::error!("SELF STACK: {}", self_stack);
+
+                // The next node is a binary
+                // TODO: Check with weird examples if this is correct and we won't find an
+                // unrelated binary or not the one we are searching for
+                if matches!(
+                    *self_stack.stack.iter().next().unwrap().node_kind,
+                    NodeKind::Binary(_)
+                ) {
+                    // Find all binaries in a row and keep the top one
+                    let binary_pos = self_stack
+                        .stack
+                        .iter()
+                        .position(|n| matches!(*n.node_kind, NodeKind::Binary(_)));
+                    let binary_pos = match binary_pos {
+                        Some(pos) => pos,
+                        None => 0,
+                    };
+                    let NodeKind::Binary(binary) = self_stack.stack[binary_pos].node_kind.as_ref()
+                    else {
+                        log::error!("BUG: Binary is not there");
+                        return None;
+                    };
+                    let mut nodes: Vec<Node> = binary
+                        .flatten()
+                        .iter()
+                        // Filter out self to avoid an endless loop
+                        .filter(|n| **n != &current_node)
+                        .map(|n| (*n).clone())
+                        .rev()
+                        .collect();
+                    let first_node = nodes.pop()?;
+                    self.search_stack.push(first_node.clone());
+                    if let Some(node) = nodes.pop() {
+                        self.next_nodes.append(&mut nodes);
+                        self.search_stack.push(node.clone());
+                    }
+                    return Some(first_node);
+                }
+                // Find the object the self node belongs to
                 let found_object = self_stack.stack.into_iter().rfind(|n| {
                     if let NodeKind::DesugaredObject(_) = n.node_kind.as_ref() {
                         true
