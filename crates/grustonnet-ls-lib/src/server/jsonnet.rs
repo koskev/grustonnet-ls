@@ -30,7 +30,7 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
-    inlay_hint::{Inlay, debug::DebugInlay},
+    inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay},
     node::{
         DesugaredObject, DesugaredObjectField, LiteralString, Node, NodeKind,
         location::LocationRange,
@@ -253,42 +253,9 @@ impl LSPServer for JsonnetServer {
 
         let pos = params.text_document_position_params.position;
 
-        let stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
+        let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
 
-        let mut document_stack = stack;
-        let mut call_stack = document_stack
-            .peek()
-            .ok_or(anyhow!("document stack is empty"))?
-            .get_call_stack();
-        let mut index_name = String::new();
-        let built_node = match call_stack.stack.len() {
-            x if x == 1 => call_stack.stack.pop().expect("impossible to reach"),
-            x if x > 1 => {
-                // Remove the last node (=at the beginning of the vec) and resolve the rest of the stack
-                let last_node = call_stack.stack.remove(0);
-                index_name = match last_node.node_kind.as_ref() {
-                    NodeKind::Index(idx) => {
-                        idx.get_name().ok_or(anyhow!("could not get index name"))?
-                    }
-                    NodeKind::Apply(func) => {
-                        func.get_name().ok_or(anyhow!("could not get apply name"))?
-                    }
-                    _ => "".to_string(),
-                };
-                let call_iter = CallStackIter::new_with_call_stack(
-                    &self.cache,
-                    &mut document_stack,
-                    call_stack,
-                )
-                .ok_or(anyhow!("could not resolve call stack"))?;
-                call_iter
-                    .last()
-                    .ok_or(anyhow!("Call iter was empty. Can't goto definition"))?
-            }
-            _ => {
-                return Err(anyhow!("Cant find the destination of an empty stack").into());
-            }
-        };
+        let (index_name, built_node) = document_stack.build_except_last(&self.cache)?;
 
         let location: LocationRange = match built_node.node_kind.as_ref() {
             NodeKind::Var(var) => Some(
@@ -329,6 +296,10 @@ impl LSPServer for JsonnetServer {
                 DebugInlay::new(&self.cache).inlay(params.text_document.uri.as_str())?;
             hints.extend(debug_hints);
         }
+
+        let argument_hints =
+            ApplyInlay::new(&self.cache).inlay(params.text_document.uri.as_str())?;
+        hints.extend(argument_hints);
 
         Ok(hints.into())
     }

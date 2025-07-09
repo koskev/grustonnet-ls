@@ -97,6 +97,7 @@ impl Node {
 
         stack
     }
+
     pub fn iter<'a>(&'a self) -> NodeIter<'a> {
         NodeIter {
             root_node: self,
