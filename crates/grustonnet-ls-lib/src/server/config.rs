@@ -28,6 +28,12 @@ pub struct DiagnosticConfig {
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
+pub struct InlayConfig {
+    pub enable_debug: bool,
+}
+
+#[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(default)]
 pub struct JsonnetConfig {
     pub ext_code: HashMap<String, String>,
     pub ext_vars: HashMap<String, String>,
@@ -47,6 +53,7 @@ pub struct Configuration {
     pub diagnostics: DiagnosticConfig,
     pub jsonnet: JsonnetConfig,
     pub format: FormatOptions,
+    pub inlay: InlayConfig,
 }
 
 impl TryFrom<DidChangeConfigurationParams> for Configuration {

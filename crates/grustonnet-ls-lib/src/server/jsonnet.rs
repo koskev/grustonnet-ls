@@ -30,6 +30,7 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
+    inlay_hint::{Inlay, debug::DebugInlay},
     node::{
         DesugaredObject, DesugaredObjectField, LiteralString, Node, NodeKind,
         location::LocationRange,
@@ -321,23 +322,14 @@ impl LSPServer for JsonnetServer {
     }
 
     fn inlay_hint(&self, params: InlayHintParams) -> Result<LSPResponse, LSPError> {
-        let doc = self.cache.get_document(params.text_document.uri.as_str())?;
+        let mut hints: Vec<InlayHint> = vec![];
 
-        let doc_stack = doc.get_ast()?.get_complete_stack();
-        let hints: Vec<InlayHint> = doc_stack
-            .stack
-            .iter()
-            .map(|n| InlayHint {
-                position: n.node_base.loc_range.begin.clone().into(),
-                padding_right: Some(true),
-                label: lsp_types::InlayHintLabel::String(n.node_kind.variant_name().to_string()),
-                kind: None,
-                text_edits: None,
-                tooltip: None,
-                padding_left: None,
-                data: None,
-            })
-            .collect();
+        if self.configuration.read().unwrap().inlay.enable_debug {
+            let debug_hints =
+                DebugInlay::new(&self.cache).inlay(params.text_document.uri.as_str())?;
+            hints.extend(debug_hints);
+        }
+
         Ok(hints.into())
     }
 }
