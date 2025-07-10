@@ -17,24 +17,17 @@ use lsp_types::{
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
     GotoDefinitionParams, GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams,
     Location, OneOf, Range, RelatedFullDocumentDiagnosticReport, ServerCapabilities,
-    TextDocumentSyncKind, TextDocumentSyncOptions, Uri, WorkspaceFolder,
+    TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
 
 use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
-    completion::{
-        global::GlobalCompletion,
-        keyword::KeywordCompletion,
-        local::{CallStackIter, LocalCompletion, ResolveNodeIter},
-    },
+    completion::{global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion},
     cst::completion::{CompletionInfo, CompletionType},
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay},
-    node::{
-        DesugaredObject, DesugaredObjectField, LiteralString, Node, NodeKind,
-        location::LocationRange,
-    },
+    node::{location::LocationRange, types::node_kind::NodeKind},
     server::config::Configuration,
 };
 

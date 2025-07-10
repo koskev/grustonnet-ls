@@ -6,7 +6,7 @@ use lsp_types::{CompletionItem, CompletionItemKind, Position};
 
 use crate::{
     cache::JsonnetASTGenerator,
-    node::{LocalBind, NodeKind},
+    node::types::{local_bind::LocalBind, node_kind::NodeKind},
 };
 
 pub struct GlobalCompletion<'a> {

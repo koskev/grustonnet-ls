@@ -6,7 +6,7 @@ use language_server::cache::Cache;
 use crate::{
     cache::JsonnetASTGenerator,
     completion::local::CallStackIter,
-    node::{Node, NodeKind},
+    node::types::{node::Node, node_kind::NodeKind},
 };
 
 #[derive(Clone)]

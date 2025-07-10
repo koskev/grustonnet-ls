@@ -2,12 +2,7 @@ use anyhow::Result;
 use language_server::cache::Cache;
 use lsp_types::InlayHint;
 
-use crate::{
-    cache::JsonnetASTGenerator,
-    completion::local::CallStackIter,
-    inlay_hint::Inlay,
-    node::{NodeKind, stack::NodeStack},
-};
+use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay, node::types::node_kind::NodeKind};
 
 pub struct ApplyInlay<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,

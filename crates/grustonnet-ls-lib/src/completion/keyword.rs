@@ -4,7 +4,7 @@ use language_server::{
 };
 use lsp_types::{CompletionItem, CompletionItemKind, CompletionList, Position};
 
-use crate::{cache::JsonnetASTGenerator, node::NodeKind};
+use crate::{cache::JsonnetASTGenerator, node::types::node_kind::NodeKind};
 
 pub struct KeywordCompletion<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,

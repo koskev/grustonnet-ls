@@ -4,7 +4,7 @@ use ropey::Rope;
 
 use crate::{
     bridge::{EvaluateErrorType, GenerateAST, GoJsonnet},
-    node::Node,
+    node::types::node::Node,
 };
 
 #[derive(Default, Debug, Clone)]
