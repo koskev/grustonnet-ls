@@ -9,6 +9,9 @@ use schemars::schema_for;
 struct Args {
     #[arg(long)]
     export_config_schema: bool,
+
+    #[arg(long, short)]
+    port: Option<u16>,
 }
 
 #[tokio::main]
@@ -25,7 +28,11 @@ async fn main() {
     env_logger::Builder::from_env(Env::default().default_filter_or("warn")).init();
     let server = LSPServerManager {
         server: JsonnetServer {
-            connection: LSPConnection::new_network(4874),
+            connection: if let Some(port) = args.port {
+                LSPConnection::new_network(port)
+            } else {
+                LSPConnection::default()
+            },
             ..Default::default()
         },
     };
