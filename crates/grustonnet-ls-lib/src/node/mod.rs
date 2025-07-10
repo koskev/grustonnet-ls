@@ -718,6 +718,13 @@ impl Binary {
     }
 }
 
+impl Conditional {
+    pub fn resolve(&self) -> &Node {
+        // TODO: Properly resolve
+        return &self.branch_true;
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct EmptyNode {

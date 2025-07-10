@@ -591,3 +591,103 @@ fn nested_object_func() {
     }
     .check();
 }
+
+#[test]
+fn object_functions_with_inner_assert() {
+    CompletionTestCase {
+        filename: "testdata/complete/object/functions_with_assert.jsonnet".into(),
+        replace_string: "x: outerSelf.deploy(1, '2', '3')".into(),
+        replace_by_string: "x: outerSelf.deploy(1, '2', '3').".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "version".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "metadata".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn object_functions_with_inner_assert_nested() {
+    CompletionTestCase {
+        filename: "testdata/complete/object/functions_with_assert.jsonnet".into(),
+        replace_string: "x: outerSelf.deploy(1, '2', '3')".into(),
+        replace_by_string: "x: outerSelf.deploy(1, '2', '3').metadata.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "name".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "namespace".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn object_functions_with_outer_assert() {
+    CompletionTestCase {
+        filename: "testdata/complete/object/functions_with_assert.jsonnet".into(),
+        replace_string: "y: outerSelf.deployOuterAssert(1, '2', '3')".into(),
+        replace_by_string: "y: outerSelf.deployOuterAssert(1, '2', '3').".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "version".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "metadata".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn object_functions_with_outer_assert_nested() {
+    CompletionTestCase {
+        filename: "testdata/complete/object/functions_with_assert.jsonnet".into(),
+        replace_string: "y: outerSelf.deployOuterAssert(1, '2', '3')".into(),
+        replace_by_string: "y: outerSelf.deployOuterAssert(1, '2', '3').metadata.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "name".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "namespace".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}

@@ -284,9 +284,9 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 Some(found_object.clone())
             }
             NodeKind::Conditional(cond) => {
-                // TODO: resolve conditional
-                self.search_stack.push(cond.branch_true.clone());
-                Some(cond.branch_true.clone())
+                let resolved = cond.resolve().clone();
+                self.search_stack.push(resolved.clone());
+                Some(resolved)
             }
             _ => {
                 log::warn!(
