@@ -37,7 +37,7 @@ impl<'a> Inlay for ApplyInlay<'a> {
                 };
                 let mut temp_stack =
                     ast.get_stack_by_position(&apply_node.target.node_base.loc_range.end);
-                let last_node = temp_stack.get_last_unbuilt_node(self.cache).unwrap();
+                let last_node = temp_stack.get_last_unbuilt_node(self.cache).ok()?;
                 // TODO: build the last node?
                 let NodeKind::Function(found_function) = *last_node.node_kind else {
                     return None;
