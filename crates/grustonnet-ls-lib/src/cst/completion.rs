@@ -71,11 +71,27 @@ impl<'a> CompletionInfo<'a> {
             .find(|node| NodeType::from(**node) == NodeType::NodeDot)
         {
             info.completion_type = CompletionType::Local;
+            log::debug!("Local completion!");
             if let Some(prev_node) = dot_node.get_prev_node() {
-                let prev_node = match NodeType::from(prev_node) {
+                log::debug!("Prev node: {}", prev_node.grammar_name());
+                // If the prev node is an error (which it most likely is), just skip it
+                let mut prev_node = match NodeType::from(prev_node) {
                     NodeType::NodeError => prev_node.get_prev_node().unwrap_or(prev_node),
                     _ => prev_node,
                 };
+
+                // If we have a closing bracket and the prev sibling is an import: We use that node
+                // as the completion pos
+                if NodeType::from(prev_node) == NodeType::NodeClosingBracket {
+                    log::debug!("Got closing bracket");
+                    // If next sibling is import we use this as the completion node
+                    if let Some(prev_sibling) = prev_node.prev_sibling() {
+                        if NodeType::from(prev_sibling) == NodeType::NodeImport {
+                            prev_node = prev_sibling
+                        }
+                    }
+                }
+
                 log::error!("Prev node {:?}", prev_node.start_position());
                 info.pos = prev_node.start_position().into();
                 info.pos.column += 1;

@@ -1,0 +1,3 @@
+{
+  x: (import 'lib.libsonnet'),
+}
