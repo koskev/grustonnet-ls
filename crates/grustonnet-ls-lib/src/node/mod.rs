@@ -175,6 +175,22 @@ impl<'a> Iterator for NodeIter<'a> {
                     _ => None,
                 };
             }
+            NodeKind::Conditional(cond) => {
+                self.index += 1;
+                // TODO: Eval condition
+                return match self.index {
+                    1 => Some(&cond.branch_true),
+                    2 => Some(&cond.branch_false),
+                    _ => None,
+                };
+            }
+            NodeKind::Error(err) => {
+                if self.index == 0 {
+                    self.index += 1;
+                    return Some(&err.expr);
+                }
+                return None;
+            }
             _ => {
                 error!(
                     "Unhandled type {} while searching for children",

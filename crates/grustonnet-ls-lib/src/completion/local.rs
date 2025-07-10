@@ -86,7 +86,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
         }
         let Some(current_node) = self.search_stack.stack.pop() else {
             log::debug!(
-                "Search stack is empty. Checking if theere are nodes to merge. Len {}",
+                "Search stack is empty. Checking if there are nodes to merge. Len {}",
                 self.merge_nodes.len()
             );
             let mut merged_node = self.merge_nodes.pop()?;
@@ -282,6 +282,11 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 })?;
                 self.search_stack.push(found_object.clone());
                 Some(found_object.clone())
+            }
+            NodeKind::Conditional(cond) => {
+                // TODO: resolve conditional
+                self.search_stack.push(cond.branch_true.clone());
+                Some(cond.branch_true.clone())
             }
             _ => {
                 log::warn!(
