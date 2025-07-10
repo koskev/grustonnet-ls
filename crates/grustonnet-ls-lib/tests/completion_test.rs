@@ -1,1 +1,2 @@
 mod completion;
+mod diagnostics;

@@ -208,6 +208,7 @@ impl LSPServer for JsonnetServer {
             let diags = LintDiagnostics::new(&self.cache).diagnostics(filename);
             items.extend(diags);
         }
+        // TODO: Filter messages with the same target but different severity
         return items;
     }
 
