@@ -29,6 +29,7 @@ fn simple_local() {
             }],
         },
         config: global_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -48,6 +49,7 @@ fn simple_local_func() {
             }],
         },
         config: global_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -79,6 +81,7 @@ fn function_args() {
             ],
         },
         config: global_config(),
+        ..Default::default()
     }
     .check();
 }

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use grustonnet_ls_lib::server::config::{CompletionConfig, Configuration};
 use lsp_types::{CompletionItem, CompletionList};
 
@@ -28,6 +30,7 @@ fn simple_local() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -46,6 +49,7 @@ fn simple_local_no_text() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -70,6 +74,7 @@ fn object_multiple_no_text() {
             ],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -95,6 +100,7 @@ fn object_multiple() {
             ],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -113,6 +119,7 @@ fn object_nested() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -137,6 +144,7 @@ fn simple_import() {
             ],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -155,6 +163,7 @@ fn simple_import_object() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -173,6 +182,7 @@ fn default_function_arg() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -191,6 +201,7 @@ fn function_return_arg_ignored() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -209,6 +220,7 @@ fn function_return_arg_single() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -233,6 +245,7 @@ fn function_return_arg_index() {
             ],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -251,6 +264,7 @@ fn function_return_arg_index_no_arg() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -269,6 +283,7 @@ fn function_return_arg_index_unnamed_arg() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -293,6 +308,7 @@ fn binary_simple() {
             ],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -312,6 +328,7 @@ fn binary_override_single() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -330,6 +347,7 @@ fn binary_override_value() {
             }],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -362,6 +380,7 @@ fn binary_multiple() {
             ],
         },
         config: local_config(),
+        ..Default::default()
     }
     .check();
 }
@@ -682,6 +701,32 @@ fn object_functions_with_outer_assert_nested() {
                 },
                 CompletionItem {
                     label: "namespace".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn ext_code_simple() {
+    CompletionTestCase {
+        filename: "testdata/complete/extvar/extcode.jsonnet".into(),
+        replace_string: "x: params".into(),
+        replace_by_string: "x: params.".into(),
+        ext_code: HashMap::from([("PARAMS".into(), "{a: 1, b: 2}".into())]),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "a".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "b".to_string(),
                     ..Default::default()
                 },
             ],

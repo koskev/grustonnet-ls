@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs::read_to_string,
     str::FromStr,
     sync::{Arc, Once, RwLock},
@@ -29,6 +30,8 @@ pub(crate) struct CompletionTestCase {
     pub(crate) expected: CompletionList,
 
     pub(crate) config: Configuration,
+
+    pub(crate) ext_code: HashMap<String, String>,
 }
 
 impl CompletionTestCase {
@@ -43,6 +46,12 @@ impl CompletionTestCase {
         let server = self.create_server();
         let file_content = read_to_string(&self.filename).unwrap();
         let file_uri = Uri::from_str(&self.filename).unwrap();
+        server.configuration.write().unwrap().jsonnet.ext_code = self.ext_code.clone();
+        server
+            .cache
+            .ast_generator
+            .jsonnet
+            .set_config(&server.configuration.read().unwrap().jsonnet);
         server
             .did_open(lsp_types::DidOpenTextDocumentParams {
                 text_document: lsp_types::TextDocumentItem {
