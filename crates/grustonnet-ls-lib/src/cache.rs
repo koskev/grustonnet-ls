@@ -33,8 +33,8 @@ impl ASTGenerator for JsonnetASTGenerator {
                 .get_ast_snippet(source_file, &current_content.to_string());
             match json_data {
                 Ok(json_data) => {
-                    log::debug!("Got valid ast!");
                     let node_data = serde_json::from_str::<Node>(&json_data)?;
+                    log::debug!("Got valid ast!");
                     return Ok(node_data);
                 }
                 Err(e) => {

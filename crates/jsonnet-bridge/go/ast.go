@@ -12,12 +12,12 @@ import (
 	"github.com/google/go-jsonnet/linter"
 )
 
-type GoAst struct {
-}
+type GoAst struct{}
 
 func init() {
 	ASTBridgeImpl = GoAst{}
 }
+
 func (GoAst) version() string {
 	return jsonnet.Version()
 }
@@ -48,7 +48,7 @@ func (GoAst) get_ast(filename *string) ASTInfo {
 		return info
 	}
 	info.ast_data = string(nodeJson)
-	//fmt.Printf("%+s", nodeJson)
+	// fmt.Printf("%+s", nodeJson)
 	return info
 }
 
@@ -78,7 +78,7 @@ func (GoAst) import_ast(source_file *string, filename *string, params *EvaluateP
 		info.error_data = err.Error()
 		return info
 	}
-	//fmt.Printf("PATHS: %+v", params.jpaths)
+	// fmt.Printf("PATHS: %+v", params.jpaths)
 	nodeJson, err := json.Marshal(tagged_marshal(node))
 	if err != nil {
 		info.error_data = err.Error()
@@ -118,7 +118,6 @@ func (GoAst) evaluate_snippet(filename *string, snippet *string, params *Evaluat
 
 	info.ast_data = res
 	return info
-
 }
 
 func (GoAst) lint_snippet(filename *string, snippet *string, params *EvaluateParams) ASTInfo {
@@ -192,7 +191,7 @@ func to_json_map_arr[T any](vals []T) []map[string]any {
 
 func tagged_marshal(val any) map[string]any {
 	if val == nil {
-		return map[string]any{}
+		return map[string]any{"Type": "empty"}
 	}
 	data := map[string]any{}
 	reflect_val := reflect.ValueOf(val)
@@ -211,9 +210,12 @@ func tagged_marshal(val any) map[string]any {
 		case reflect.Slice:
 			slice_data := []any{}
 			for j := range field_val.Len() {
-				if field_val.Index(j).Kind() == reflect.Struct {
+				switch field_val.Index(j).Kind() {
+				case reflect.Struct, reflect.Interface:
 					slice_data = append(slice_data, tagged_marshal(field_val.Index(j).Interface()))
-				} else {
+				case reflect.Pointer:
+					slice_data = append(slice_data, tagged_marshal(field_val.Elem().Index(j).Interface()))
+				default:
 					slice_data = append(slice_data, field_val.Index(j).Interface())
 				}
 			}
@@ -226,15 +228,12 @@ func tagged_marshal(val any) map[string]any {
 		case reflect.Pointer:
 			if field_val.Elem().Kind() == reflect.Struct {
 				data[field_type.Name] = tagged_marshal(field_val.Elem().Interface())
-				break
 			}
-			fallthrough
 		default:
 			data[field_type.Name] = field_val.Interface()
 		}
 	}
 	return data
-
 }
 
 func Marshal_ast(root_node ast.Node) map[string]any {

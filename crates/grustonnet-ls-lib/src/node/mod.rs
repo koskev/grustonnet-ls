@@ -280,6 +280,18 @@ pub struct LiteralString {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
+pub struct LiteralNumber {
+    pub original_string: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
+pub struct LiteralBoolean {
+    pub value: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Array {
     pub elements: Option<Vec<CommaSeparatedExpr>>,
     pub close_fodder: Option<Fodder>,
@@ -398,16 +410,31 @@ pub struct Import {
     pub file: Node,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
+pub struct Conditional {
+    pub cond: Node,
+    pub branch_true: Node,
+    pub branch_false: Node,
+    pub then_fodder: Option<Fodder>,
+    pub else_fodder: Option<Fodder>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
+pub struct Error {
+    expr: Node,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub enum NodeKind {
     Binary(Binary),
     Array(Array),
     #[serde(rename_all = "PascalCase")]
-    LiteralNumber {
-        original_string: String,
-    },
+    LiteralNumber(LiteralNumber),
     LiteralString(LiteralString),
+    LiteralBoolean(LiteralBoolean),
     Local(Local),
     Function(Function),
     Apply(Apply),
@@ -415,6 +442,8 @@ pub enum NodeKind {
     Index(Index),
     Var(Var),
     Import(Import),
+    Conditional(Conditional),
+    Error(Error),
 
     #[serde(alias = "Self")]
     SelfNode,
