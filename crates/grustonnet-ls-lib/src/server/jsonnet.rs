@@ -272,8 +272,11 @@ impl LSPServer for JsonnetServer {
         ))?;
 
         Ok(GotoDefinitionResponse::Scalar(Location {
-            uri: Uri::from_str(&built_node.node_base.loc_range.file_name)
-                .map_err(|e| anyhow!("Parsing uri from node {}", e))?,
+            uri: Uri::from_str(&format!(
+                "file:///{}",
+                built_node.node_base.loc_range.file_name
+            ))
+            .map_err(|e| anyhow!("Parsing uri from node {}", e))?,
             range: Range {
                 start: location.begin.into(),
                 end: location.end.into(),
