@@ -242,6 +242,15 @@ impl GoJsonnet {
                 .map(|(a, b)| (a.to_string(), b.to_string())),
         );
 
+        let mut jpaths = config.jpaths.clone();
+        let root_dir = self.root_dir.read().unwrap();
+        jpaths.extend(
+            config
+                .default_root_jpaths
+                .iter()
+                .map(|p| format!("{root_dir}/{p}")),
+        );
+
         *self.params.write().unwrap() = EvaluateParams {
             ext_code: config
                 .ext_code
@@ -260,7 +269,7 @@ impl GoJsonnet {
                     value: val.to_string(),
                 })
                 .collect(),
-            jpaths: config.jpaths.clone(),
+            jpaths,
         }
     }
 

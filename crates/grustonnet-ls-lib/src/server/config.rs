@@ -39,6 +39,10 @@ pub struct JsonnetConfig {
     pub ext_vars: HashMap<String, String>,
     pub jpaths: Vec<String>,
 
+    /// Paths relative to the root dir to add to the jpath
+    #[default(vec!["lib".into(), "vendor".into()])]
+    pub default_root_jpaths: Vec<String>,
+
     #[default = true]
     // Searches from the root directory upwards for
     // <name>.extcode.libsonnet and
