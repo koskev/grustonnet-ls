@@ -20,10 +20,10 @@ use crate::node::types::{
 pub enum NodeKind {
     Binary(Binary),
     Array(Array),
-    #[serde(rename_all = "PascalCase")]
     LiteralNumber(LiteralNumber),
     LiteralString(LiteralString),
     LiteralBoolean(LiteralBoolean),
+    LiteralNull,
     Local(Local),
     Function(Function),
     Apply(Apply),
