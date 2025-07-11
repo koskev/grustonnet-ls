@@ -5,6 +5,7 @@ use std::{fs::read_to_string, str::FromStr};
 use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 use lsp_types::{Diagnostic, Uri};
 
+pub mod runtime;
 pub mod r#static;
 
 #[derive(Default)]

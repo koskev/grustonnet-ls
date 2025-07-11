@@ -42,8 +42,8 @@ impl From<lsp_types::Position> for Location {
 impl Into<lsp_types::Position> for Location {
     fn into(self) -> lsp_types::Position {
         Position {
-            line: (self.line - 1) as u32,
-            character: (self.column - 1) as u32,
+            line: std::cmp::max(0, self.line - 1) as u32,
+            character: std::cmp::max(0, self.column - 1) as u32,
         }
     }
 }

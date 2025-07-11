@@ -1,0 +1,8 @@
+{
+  key: {
+    innerKey: {
+      assert false,
+    },
+  },
+
+}
