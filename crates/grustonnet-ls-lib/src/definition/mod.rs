@@ -14,25 +14,34 @@ pub struct DefinitionProvider<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,
 }
 
+#[derive(Debug, Clone)]
+pub struct DefinitinInfo {
+    pub location: lsp_types::Location,
+    pub name: String,
+}
+
 impl<'a> DefinitionProvider<'a> {
     pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 
-    pub fn definition(&self, filename: &str, pos: Location) -> Result<lsp_types::Location> {
+    pub fn definition(&self, filename: &str, pos: Location) -> Result<DefinitinInfo> {
         let doc = self.cache.get_document(filename)?;
 
         let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
 
-        let (index_name, built_node) = document_stack.build_except_last(&self.cache)?;
+        let (mut index_name, built_node) = document_stack.build_except_last(&self.cache)?;
 
         let location: LocationRange = match built_node.node_kind.as_ref() {
-            NodeKind::Var(var) => Some(
-                var.resolve_bind(&document_stack)
-                    .ok_or(anyhow!("unable to resolve var"))?
-                    .loc_range
-                    .clone(),
-            ),
+            NodeKind::Var(var) => {
+                index_name = var.id.clone().unwrap_or_default().0;
+                Some(
+                    var.resolve_bind(&document_stack)
+                        .ok_or(anyhow!("unable to resolve var"))?
+                        .loc_range
+                        .clone(),
+                )
+            }
             NodeKind::DesugaredObject(obj) => Some(
                 obj.get_field(&index_name)
                     .ok_or(anyhow!("unable to get object field"))?
@@ -45,11 +54,14 @@ impl<'a> DefinitionProvider<'a> {
             "Could not resolve location of {}",
             built_node.node_kind
         ))?;
-        Ok(lsp_types::Location {
-            uri: Uri::from_string(&location.file_name)?,
-            range: Range {
-                start: location.begin.into(),
-                end: location.end.into(),
+        Ok(DefinitinInfo {
+            name: index_name,
+            location: lsp_types::Location {
+                uri: Uri::from_string(&location.file_name)?,
+                range: Range {
+                    start: location.begin.into(),
+                    end: location.end.into(),
+                },
             },
         })
     }
