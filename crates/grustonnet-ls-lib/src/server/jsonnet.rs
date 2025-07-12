@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use bevy_tasks::TaskPool;
 use language_server::{
     cache::Cache,
@@ -16,7 +16,7 @@ use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
     GotoDefinitionParams, GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams,
-    Location, OneOf, Range, RelatedFullDocumentDiagnosticReport, SemanticTokensOptions,
+    OneOf, RelatedFullDocumentDiagnosticReport, SemanticTokensOptions,
     SemanticTokensServerCapabilities, ServerCapabilities, TextDocumentSyncKind,
     TextDocumentSyncOptions, Uri,
 };
@@ -26,9 +26,9 @@ use crate::{
     cache::JsonnetASTGenerator,
     completion::{global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion},
     cst::completion::{CompletionInfo, CompletionType},
+    definition::DefinitionProvider,
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay},
-    node::{location::LocationRange, types::node_kind::NodeKind},
     semantic_tokens::{self},
     server::config::Configuration,
 };
@@ -246,53 +246,21 @@ impl LSPServer for JsonnetServer {
     }
 
     fn goto_definition(&self, params: GotoDefinitionParams) -> Result<LSPResponse, LSPError> {
-        // Get selected node
-        let doc = self.cache.get_document(
+        let pos = params.text_document_position_params.position;
+
+        let location = DefinitionProvider::new(&self.cache).definition(
             params
                 .text_document_position_params
                 .text_document
                 .uri
                 .as_str(),
+            pos.into(),
         )?;
 
-        let pos = params.text_document_position_params.position;
+        log::error!("PARSE TEST: {:?}", Uri::from_str("/tmp").unwrap().as_str());
+        log::error!("PARSE TEST: {:?}", location);
 
-        let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
-
-        let (index_name, built_node) = document_stack.build_except_last(&self.cache)?;
-
-        let location: LocationRange = match built_node.node_kind.as_ref() {
-            NodeKind::Var(var) => Some(
-                var.resolve_bind(&document_stack)
-                    .ok_or(anyhow!("unable to resolve var"))?
-                    .loc_range
-                    .clone(),
-            ),
-            NodeKind::DesugaredObject(obj) => Some(
-                obj.get_field(&index_name)
-                    .ok_or(anyhow!("unable to get object field"))?
-                    .loc_range
-                    .clone(),
-            ),
-            _ => None,
-        }
-        .ok_or(anyhow!(
-            "Could not resolve location of {}",
-            built_node.node_kind
-        ))?;
-
-        Ok(GotoDefinitionResponse::Scalar(Location {
-            uri: Uri::from_str(&format!(
-                "file:///{}",
-                built_node.node_base.loc_range.file_name
-            ))
-            .map_err(|e| anyhow!("Parsing uri from node {}", e))?,
-            range: Range {
-                start: location.begin.into(),
-                end: location.end.into(),
-            },
-        })
-        .into())
+        Ok(GotoDefinitionResponse::Scalar(location).into())
     }
 
     fn inlay_hint(&self, params: InlayHintParams) -> Result<LSPResponse, LSPError> {

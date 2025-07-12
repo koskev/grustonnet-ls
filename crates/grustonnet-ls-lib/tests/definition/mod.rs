@@ -1,10 +1,10 @@
-use language_server::server::LSPServer;
+use language_server::{server::LSPServer, utils::UriHelper};
 use pretty_assertions::assert_eq;
-use std::{fs::read_to_string, str::FromStr};
+use std::fs::{self, read_to_string};
 
 use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 use lsp_types::{
-    GotoDefinitionParams, GotoDefinitionResponse, Location, PartialResultParams, Position, Range,
+    GotoDefinitionParams, GotoDefinitionResponse, PartialResultParams, Position,
     TextDocumentIdentifier, TextDocumentPositionParams, Uri, WorkDoneProgressParams,
 };
 
@@ -26,7 +26,9 @@ impl DefinitionTestCase {
     pub(crate) fn check(&self) {
         let server = self.create_server();
         let file_content = read_to_string(&self.filename).unwrap();
-        let file_uri = Uri::from_str(&self.filename).unwrap();
+        let file_uri =
+            Uri::from_string(fs::canonicalize(&self.filename).unwrap().to_str().unwrap()).unwrap();
+        println!("URI: {:?}", file_uri);
 
         server
             .cache
@@ -59,14 +61,14 @@ impl DefinitionTestCase {
         match defs {
             GotoDefinitionResponse::Scalar(loc) => {
                 assert_eq!(
-                    loc.uri.path().as_str(),
-                    Uri::from_str(&format!(
+                    loc.uri.as_str(),
+                    format!(
                         "file:///{}",
-                        self.target_file.clone().unwrap_or(self.filename.clone())
-                    ))
-                    .unwrap()
-                    .path()
-                    .as_str()
+                        fs::canonicalize(self.target_file.clone().unwrap_or(self.filename.clone()))
+                            .unwrap()
+                            .to_str()
+                            .unwrap()
+                    )
                 );
                 assert_eq!(loc.range.start, self.target);
             }
