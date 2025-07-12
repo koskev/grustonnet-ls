@@ -18,6 +18,7 @@ use crate::completion::completion::CompletionTestCase;
 
 pub mod assert;
 pub mod binary;
+pub mod builder;
 pub mod extcode;
 pub mod import;
 pub mod local;
