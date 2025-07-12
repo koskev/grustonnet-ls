@@ -16,8 +16,9 @@ use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
     GotoDefinitionParams, GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams,
-    Location, OneOf, Range, RelatedFullDocumentDiagnosticReport, ServerCapabilities,
-    TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
+    Location, OneOf, Range, RelatedFullDocumentDiagnosticReport, SemanticTokensOptions,
+    SemanticTokensServerCapabilities, ServerCapabilities, TextDocumentSyncKind,
+    TextDocumentSyncOptions, Uri,
 };
 
 use crate::{
@@ -28,6 +29,7 @@ use crate::{
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay},
     node::{location::LocationRange, types::node_kind::NodeKind},
+    semantic_tokens::{self},
     server::config::Configuration,
 };
 
@@ -86,6 +88,14 @@ impl LSPServer for JsonnetServer {
             document_formatting_provider: Some(OneOf::Left(true)),
             definition_provider: Some(OneOf::Left(true)),
             inlay_hint_provider: Some(OneOf::Left(true)),
+            semantic_tokens_provider: Some(
+                SemanticTokensServerCapabilities::SemanticTokensOptions(SemanticTokensOptions {
+                    full: Some(lsp_types::SemanticTokensFullOptions::Bool(true)),
+                    range: Some(false),
+                    legend: semantic_tokens::get_token_map(),
+                    ..Default::default()
+                }),
+            ),
             ..Default::default()
         }
     }
@@ -299,5 +309,14 @@ impl LSPServer for JsonnetServer {
         hints.extend(argument_hints);
 
         Ok(hints.into())
+    }
+
+    fn semantic_tokens(
+        &self,
+        params: <lsp_types::request::SemanticTokensFullRequest as lsp_types::request::Request>::Params,
+    ) -> Result<LSPResponse, LSPError> {
+        let doc = self.cache.get_document(params.text_document.uri.as_str())?;
+        let root = doc.get_ast().unwrap();
+        Ok(semantic_tokens::get_tokens(root).into())
     }
 }
