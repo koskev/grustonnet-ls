@@ -319,7 +319,6 @@ typeLoop:
 					return ret, fmt.Errorf("getting child node: %w", err)
 				}
 				if field.Type.Kind() == reflect.Interface {
-					fmt.Printf("TYPE: %v", field.Type)
 					fieldValue.Set(reflect.ValueOf(childNode))
 				} else {
 					fieldValue.Set(reflect.ValueOf(&childNode))

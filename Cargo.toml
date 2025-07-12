@@ -8,6 +8,7 @@ members = [
 "crates/grustonnet-ls-lib",
 "crates/jsonnet-bridge",
 "crates/language-server",
+"crates/test-macros",
 ]
 resolver = "3"
 

@@ -5,6 +5,7 @@ use std::{fs::read_to_string, str::FromStr};
 use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 use lsp_types::{Diagnostic, Uri};
 
+pub mod empty;
 pub mod runtime;
 pub mod r#static;
 
@@ -24,6 +25,13 @@ impl DiagnosticTestCase {
         let server = self.create_server();
         let file_content = read_to_string(&self.filename).unwrap();
         let file_uri = Uri::from_str(&self.filename).unwrap();
+        server
+            .configuration
+            .write()
+            .unwrap()
+            .jsonnet
+            .ext_code
+            .insert("PARAMS".to_string(), "{}".to_string());
         server
             .cache
             .ast_generator
