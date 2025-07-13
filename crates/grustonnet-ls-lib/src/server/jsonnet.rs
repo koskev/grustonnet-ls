@@ -27,6 +27,7 @@ use crate::{
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay},
     references::ReferenceProvider,
+    rename::RenameProvider,
     semantic_tokens::{self},
     server::config::Configuration,
 };
@@ -95,6 +96,7 @@ impl LSPServer for JsonnetServer {
                 }),
             ),
             references_provider: Some(OneOf::Left(true)),
+            rename_provider: Some(OneOf::Left(true)),
             ..Default::default()
         }
     }
@@ -272,7 +274,7 @@ impl LSPServer for JsonnetServer {
         params: <lsp_types::request::SemanticTokensFullRequest as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
         let doc = self.cache.get_document(&params.text_document.uri)?;
-        let root = doc.get_ast().unwrap();
+        let root = doc.get_ast()?;
         Ok(semantic_tokens::get_tokens(root).into())
     }
 
@@ -304,5 +306,33 @@ impl LSPServer for JsonnetServer {
         )?;
 
         Ok(references.into())
+    }
+
+    fn rename(
+        &self,
+        params: <lsp_types::request::Rename as lsp_types::request::Request>::Params,
+    ) -> Result<LSPResponse, LSPError> {
+        let mut search_paths = self
+            .cache
+            .ast_generator
+            .jsonnet
+            .params
+            .read()
+            .unwrap()
+            .jpaths
+            .clone();
+        search_paths.push(
+            self.cache
+                .ast_generator
+                .jsonnet
+                .root_dir
+                .read()
+                .unwrap()
+                .clone(),
+        );
+
+        Ok(RenameProvider::new(&self.cache)
+            .rename(params, &search_paths)?
+            .into())
     }
 }

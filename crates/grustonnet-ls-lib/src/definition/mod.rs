@@ -30,26 +30,24 @@ impl<'a> DefinitionProvider<'a> {
 
         let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
 
-        let (mut index_name, built_node) = document_stack.build_except_last(&self.cache)?;
+        let (last_node, built_node) = document_stack.build_except_last(&self.cache)?;
+
+        let index_name = last_node.unwrap_or(built_node.clone()).get_name();
 
         let location: LocationRange = match built_node.node_kind.as_ref() {
-            NodeKind::Var(var) => {
-                index_name = var.id.clone().unwrap_or_default().0;
-                Some(
-                    var.resolve_bind(&document_stack)
-                        .ok_or(anyhow!("unable to resolve var"))?
-                        .loc_range
-                        .clone(),
-                )
-            }
+            NodeKind::Var(var) => Some(
+                var.resolve_bind(&document_stack)
+                    .ok_or(anyhow!("unable to resolve var"))?
+                    .loc_range
+                    .clone(),
+            ),
             NodeKind::DesugaredObject(obj) => Some(
                 obj.get_field(&index_name)
-                    .ok_or(anyhow!("unable to get object field"))?
+                    .ok_or(anyhow!("unable to get object field {}", index_name))?
                     .loc_range
                     .clone(),
             ),
             NodeKind::Local(local) => {
-                index_name = local.get_name().unwrap_or_default();
                 if let Some(first_bind) = local.binds.first() {
                     Some(first_bind.loc_range.clone())
                 } else {

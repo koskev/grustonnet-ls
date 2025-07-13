@@ -88,6 +88,20 @@ impl Node {
             index: 0,
         }
     }
+
+    pub fn get_name(&self) -> String {
+        match self.node_kind.as_ref() {
+            NodeKind::Var(var) => var.id.clone().unwrap_or_default().0,
+            NodeKind::Index(idx) => idx.get_name().unwrap_or_default(),
+            NodeKind::Local(local) => local.get_name().unwrap_or_default(),
+            NodeKind::Apply(apply) => apply.get_name().unwrap_or_default(),
+
+            _ => {
+                log::info!("Unhandled get_name for {}", self.node_kind.variant_name());
+                "".into()
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
