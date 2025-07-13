@@ -304,20 +304,17 @@ pub trait LSPServer {
 
     lsp_function_not!(did_change_configuration, DidChangeConfiguration);
 
-    fn get_diagnostics(&self, filename: &str) -> Vec<Diagnostic>;
+    fn get_diagnostics(&self, uri: &Uri) -> Vec<Diagnostic>;
 
     fn did_close(&self, params: DidCloseTextDocumentParams) -> Result<()> {
-        self.cache()
-            .remove_document(params.text_document.uri.as_str());
+        self.cache().remove_document(&params.text_document.uri);
 
         Ok(())
     }
 
     fn did_open(&self, params: DidOpenTextDocumentParams) -> Result<()> {
-        self.cache().update_content(
-            params.text_document.uri.as_str(),
-            &params.text_document.text,
-        );
+        self.cache()
+            .update_content(params.text_document.uri.clone(), &params.text_document.text);
         self.publish_diagnostics(params.text_document.uri.clone());
 
         Ok(())
@@ -338,9 +335,7 @@ pub trait LSPServer {
 
     fn did_change_text(&self, params: DidChangeTextDocumentParams) -> Result<(), LSPError> {
         for change in params.content_changes {
-            let current_text = self
-                .cache()
-                .get_document(params.text_document.uri.as_str())?;
+            let current_text = self.cache().get_document(&params.text_document.uri)?;
 
             let range = match change.range {
                 Some(r) => r,
@@ -358,7 +353,7 @@ pub trait LSPServer {
                 rope = Rope::from_str(&current_text.content);
             }
             self.cache()
-                .update_content(params.text_document.uri.as_str(), rope.to_string().as_str());
+                .update_content(params.text_document.uri.clone(), rope.to_string().as_str());
             self.publish_diagnostics(params.text_document.uri.clone());
         }
         Ok(())
@@ -370,7 +365,7 @@ pub trait LSPServer {
                 method: PublishDiagnostics::METHOD.to_string(),
                 params: serde_json::to_value(PublishDiagnosticsParams {
                     uri: uri.clone(),
-                    diagnostics: self.get_diagnostics(uri.as_str()),
+                    diagnostics: self.get_diagnostics(&uri),
                     version: None,
                 })
                 .unwrap(),

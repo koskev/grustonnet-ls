@@ -3,7 +3,7 @@ use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionList, Position};
+use lsp_types::{CompletionItem, CompletionList, Position, Uri};
 
 use crate::{
     bridge::GenerateAST,
@@ -431,8 +431,8 @@ impl<'a> LocalCompletion<'a> {
 }
 
 impl<'a> Completion for LocalCompletion<'a> {
-    fn complete(&self, location: Position, filename: &str) -> CompletionResult {
-        let doc = self.cache.get_document(filename).unwrap();
+    fn complete(&self, location: Position, uri: &Uri) -> CompletionResult {
+        let doc = self.cache.get_document(uri).unwrap();
 
         let stack = doc.get_ast()?.get_stack_by_position(&location.into());
         let top_node = stack.peek().unwrap();
@@ -460,7 +460,7 @@ impl<'a> Completion for LocalCompletion<'a> {
                 .collect(),
             NodeKind::Var(var) => {
                 if var.is_std() {
-                    StdCompletion::new().complete(location, filename)?.items
+                    StdCompletion::new().complete(location, uri)?.items
                 } else {
                     log::warn!("Tried to complete var that is not std! {}", node.node_kind);
                     vec![]

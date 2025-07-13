@@ -1,6 +1,6 @@
 use anyhow::Result;
 use language_server::cache::Cache;
-use lsp_types::InlayHint;
+use lsp_types::{InlayHint, Uri};
 
 use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay};
 
@@ -15,8 +15,8 @@ impl<'a> DebugInlay<'a> {
 }
 
 impl<'a> Inlay for DebugInlay<'a> {
-    fn inlay(&self, filename: &str) -> Result<Vec<InlayHint>> {
-        let doc = self.cache.get_document(filename)?;
+    fn inlay(&self, uri: &Uri) -> Result<Vec<InlayHint>> {
+        let doc = self.cache.get_document(uri)?;
         let doc_stack = doc.get_ast()?.get_complete_stack();
         let hints: Vec<InlayHint> = doc_stack
             .stack

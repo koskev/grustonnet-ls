@@ -2,7 +2,7 @@ use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemKind, Position};
+use lsp_types::{CompletionItem, CompletionItemKind, Position, Uri};
 
 use crate::{
     cache::JsonnetASTGenerator,
@@ -20,8 +20,8 @@ impl<'a> GlobalCompletion<'a> {
 }
 
 impl<'a> Completion for GlobalCompletion<'a> {
-    fn complete(&self, pos: Position, filename: &str) -> CompletionResult {
-        let doc = self.cache.get_document(filename).unwrap();
+    fn complete(&self, pos: Position, uri: &Uri) -> CompletionResult {
+        let doc = self.cache.get_document(uri).unwrap();
 
         let stack = doc.get_ast()?.get_stack_by_position(&pos.into());
         let binds: Vec<LocalBind> = stack

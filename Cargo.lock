@@ -690,6 +690,7 @@ dependencies = [
  "bevy_tasks",
  "env_logger",
  "htmd",
+ "itertools 0.14.0",
  "jsonnet-bridge",
  "jsonnet-std-docs",
  "language-server",
@@ -714,6 +715,7 @@ dependencies = [
  "tokio",
  "tree-sitter",
  "tree-sitter-jsonnet",
+ "walkdir",
 ]
 
 [[package]]

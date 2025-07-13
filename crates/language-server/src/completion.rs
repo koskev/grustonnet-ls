@@ -1,8 +1,8 @@
 use anyhow::Result;
-use lsp_types::{CompletionList, Position};
+use lsp_types::{CompletionList, Position, Uri};
 
 pub type CompletionResult = Result<CompletionList>;
 
 pub trait Completion: Send {
-    fn complete(&self, location: Position, filename: &str) -> CompletionResult;
+    fn complete(&self, location: Position, uri: &Uri) -> CompletionResult;
 }

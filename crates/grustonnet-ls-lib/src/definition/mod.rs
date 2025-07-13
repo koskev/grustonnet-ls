@@ -25,8 +25,8 @@ impl<'a> DefinitionProvider<'a> {
         Self { cache }
     }
 
-    pub fn definition(&self, filename: &str, pos: Location) -> Result<DefinitinInfo> {
-        let doc = self.cache.get_document(filename)?;
+    pub fn definition(&self, uri: &Uri, pos: Location) -> Result<DefinitinInfo> {
+        let doc = self.cache.get_document(uri)?;
 
         let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
 
@@ -57,7 +57,7 @@ impl<'a> DefinitionProvider<'a> {
         Ok(DefinitinInfo {
             name: index_name,
             location: lsp_types::Location {
-                uri: Uri::from_string(&location.file_name)?,
+                uri: Uri::from_path(&location.file_name)?,
                 range: Range {
                     start: location.begin.into(),
                     end: location.end.into(),

@@ -1,6 +1,6 @@
 use jsonnet_std_docs::StdFunctions;
 use language_server::completion::{Completion, CompletionResult};
-use lsp_types::{CompletionItem, CompletionList, Documentation, Position};
+use lsp_types::{CompletionItem, CompletionList, Documentation, Position, Uri};
 
 const STDLIB_DEFINITIONS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
 
@@ -15,7 +15,7 @@ impl StdCompletion {
 // TODO: Remove this dedicated completion and instead support documentation for functions and
 // handle the stdlib as a normal function with documentation
 impl Completion for StdCompletion {
-    fn complete(&self, _location: Position, _filename: &str) -> CompletionResult {
+    fn complete(&self, _location: Position, _uri: &Uri) -> CompletionResult {
         let functions = StdFunctions::generate(STDLIB_DEFINITIONS);
         let items = functions
             .functions

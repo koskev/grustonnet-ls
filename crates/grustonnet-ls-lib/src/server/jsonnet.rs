@@ -1,7 +1,4 @@
-use std::{
-    str::FromStr,
-    sync::{Arc, RwLock},
-};
+use std::sync::{Arc, RwLock};
 
 use anyhow::Result;
 use bevy_tasks::TaskPool;
@@ -132,7 +129,7 @@ impl LSPServer for JsonnetServer {
             DocumentDiagnosticReportResult::Report(lsp_types::DocumentDiagnosticReport::Full(
                 RelatedFullDocumentDiagnosticReport {
                     full_document_diagnostic_report: lsp_types::FullDocumentDiagnosticReport {
-                        items: self.get_diagnostics(params.text_document.uri.as_str()),
+                        items: self.get_diagnostics(&params.text_document.uri),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -145,7 +142,7 @@ impl LSPServer for JsonnetServer {
     fn completion(&self, params: CompletionParams) -> Result<LSPResponse, LSPError> {
         let doc = self
             .cache
-            .get_document(params.text_document_position.text_document.uri.as_str())?;
+            .get_document(&params.text_document_position.text_document.uri)?;
 
         let completion_info =
             CompletionInfo::new(&doc.content, params.text_document_position.position.into());
@@ -175,11 +172,11 @@ impl LSPServer for JsonnetServer {
         }
 
         let pool = TaskPool::new();
-        let filename = params.text_document_position.text_document.uri.as_str();
         let lists = pool.scope(|s| {
             for provider in completion_list {
                 let location = completion_info.pos.clone().into();
-                s.spawn(async move { provider.complete(location, filename) });
+                let uri = params.text_document_position.text_document.uri.clone();
+                s.spawn(async move { provider.complete(location, &uri) });
             }
         });
 
@@ -207,15 +204,15 @@ impl LSPServer for JsonnetServer {
         Ok(CompletionResponse::List(completion_list).into())
     }
 
-    fn get_diagnostics(&self, filename: &str) -> Vec<Diagnostic> {
+    fn get_diagnostics(&self, uri: &Uri) -> Vec<Diagnostic> {
         let mut items = vec![];
         let config = self.configuration.read().unwrap().clone();
         if config.diagnostics.enable_eval {
-            let diags = EvalDiagnostics::new(&self.cache).diagnostics(filename);
+            let diags = EvalDiagnostics::new(&self.cache).diagnostics(uri);
             items.extend(diags);
         }
         if config.diagnostics.enable_lint {
-            let diags = LintDiagnostics::new(&self.cache).diagnostics(filename);
+            let diags = LintDiagnostics::new(&self.cache).diagnostics(uri);
             items.extend(diags);
         }
         // TODO: Filter messages with the same target but different severity
@@ -226,19 +223,17 @@ impl LSPServer for JsonnetServer {
         &self,
         params: <lsp_types::request::Formatting as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
-        let filename = params.text_document.uri.as_str();
+        let uri = params.text_document.uri;
         let options = &self.configuration.read().unwrap().format;
-        let doc = self.cache.get_document(filename)?;
-        let formatted =
-            match self
-                .cache
-                .ast_generator
-                .jsonnet
-                .format_snippet(filename, &doc.content, &options)
-            {
-                Ok(res) => res,
-                Err(e) => return Err(e.into()),
-            };
+        let doc = self.cache.get_document(&uri)?;
+        let formatted = match self.cache.ast_generator.jsonnet.format_snippet(
+            uri.as_str(),
+            &doc.content,
+            &options,
+        ) {
+            Ok(res) => res,
+            Err(e) => return Err(e.into()),
+        };
 
         let edits = diff::get_text_edits(&doc.content, &formatted);
 
@@ -248,32 +243,23 @@ impl LSPServer for JsonnetServer {
     fn goto_definition(&self, params: GotoDefinitionParams) -> Result<LSPResponse, LSPError> {
         let pos = params.text_document_position_params.position;
 
-        let location = DefinitionProvider::new(&self.cache).definition(
-            params
-                .text_document_position_params
-                .text_document
-                .uri
-                .as_str(),
+        let info = DefinitionProvider::new(&self.cache).definition(
+            &params.text_document_position_params.text_document.uri,
             pos.into(),
         )?;
 
-        log::error!("PARSE TEST: {:?}", Uri::from_str("/tmp").unwrap().as_str());
-        log::error!("PARSE TEST: {:?}", location);
-
-        Ok(GotoDefinitionResponse::Scalar(location).into())
+        Ok(GotoDefinitionResponse::Scalar(info.location).into())
     }
 
     fn inlay_hint(&self, params: InlayHintParams) -> Result<LSPResponse, LSPError> {
         let mut hints: Vec<InlayHint> = vec![];
 
         if self.configuration.read().unwrap().inlay.enable_debug {
-            let debug_hints =
-                DebugInlay::new(&self.cache).inlay(params.text_document.uri.as_str())?;
+            let debug_hints = DebugInlay::new(&self.cache).inlay(&params.text_document.uri)?;
             hints.extend(debug_hints);
         }
 
-        let argument_hints =
-            ApplyInlay::new(&self.cache).inlay(params.text_document.uri.as_str())?;
+        let argument_hints = ApplyInlay::new(&self.cache).inlay(&params.text_document.uri)?;
         hints.extend(argument_hints);
 
         Ok(hints.into())
@@ -283,7 +269,7 @@ impl LSPServer for JsonnetServer {
         &self,
         params: <lsp_types::request::SemanticTokensFullRequest as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
-        let doc = self.cache.get_document(params.text_document.uri.as_str())?;
+        let doc = self.cache.get_document(&params.text_document.uri)?;
         let root = doc.get_ast().unwrap();
         Ok(semantic_tokens::get_tokens(root).into())
     }

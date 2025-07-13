@@ -10,7 +10,7 @@ use std::{
 
 use anyhow::Result;
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue, FormatOptions};
-use language_server::server::LSPError;
+use language_server::{server::LSPError, utils::UriHelper};
 use lsp_server::ErrorCode;
 use lsp_types::Uri;
 use name_variant::NamedVariant;
@@ -276,8 +276,9 @@ impl GoJsonnet {
     fn get_evaluate_params(&self, filepath: &str) -> EvaluateParams {
         let mut params = self.params.read().unwrap().clone();
         // TODO: the uri part is a mess. Just use uri everywhere?
-        let uri = Uri::from_str(filepath).unwrap();
+        let uri = Uri::from_path(filepath).unwrap();
         let mut p = Path::new(uri.path().as_str());
+        // Add the current path of the file to the jpaths
         if p.is_file() {
             p = p.parent().unwrap()
         }

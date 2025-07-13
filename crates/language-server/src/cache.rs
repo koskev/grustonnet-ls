@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::Result;
 use lsp_server::ErrorCode;
+use lsp_types::Uri;
 
 use crate::server::LSPError;
 
@@ -44,7 +45,7 @@ pub struct Cache<G>
 where
     G: ASTGenerator,
 {
-    documents: Arc<RwLock<HashMap<String, Document<G::Node>>>>,
+    documents: Arc<RwLock<HashMap<Uri, Document<G::Node>>>>,
     pub ast_generator: G,
 }
 
@@ -56,23 +57,23 @@ impl<G: ASTGenerator> Cache<G> {
         }
     }
 
-    pub fn set_document(&self, name: &str, doc: Document<G::Node>) {
-        self.documents.write().unwrap().insert(name.into(), doc);
+    pub fn set_document(&self, uri: Uri, doc: Document<G::Node>) {
+        self.documents.write().unwrap().insert(uri, doc);
     }
 
-    pub fn remove_document(&self, name: &str) {
-        self.documents.write().unwrap().remove(name);
+    pub fn remove_document(&self, uri: &Uri) {
+        self.documents.write().unwrap().remove(uri);
     }
 
-    pub fn update_content(&self, name: &str, text: &str) {
+    pub fn update_content(&self, uri: Uri, text: &str) {
         let mut lock = self.documents.write().unwrap();
-        let doc = lock.entry(name.into()).or_insert(Document::default());
+        let doc = lock.entry(uri.clone()).or_insert(Document::default());
 
-        doc.filename = name.to_string();
+        doc.filename = uri.as_str().into();
 
         doc.content = text.into();
 
-        let new_ast = self.ast_generator.update_ast(name, &doc.content);
+        let new_ast = self.ast_generator.update_ast(uri.as_str(), &doc.content);
         match new_ast {
             Ok(ast) => {
                 doc.ast = Some(ast);
@@ -85,8 +86,8 @@ impl<G: ASTGenerator> Cache<G> {
         }
     }
 
-    pub fn get_document(&self, name: &str) -> Result<Document<G::Node>, LSPError> {
-        match self.documents.read().unwrap().get(name) {
+    pub fn get_document(&self, uri: &Uri) -> Result<Document<G::Node>, LSPError> {
+        match self.documents.read().unwrap().get(uri) {
             Some(val) => Ok(val.clone()),
             None => Err(LSPError {
                 error_code: ErrorCode::RequestFailed as i32,

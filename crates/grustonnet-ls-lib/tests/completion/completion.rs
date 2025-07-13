@@ -6,7 +6,10 @@ use std::{
 };
 
 use grustonnet_ls_lib::server::{config::Configuration, jsonnet::JsonnetServer};
-use language_server::{server::LSPServer, utils::rope::RopeHelper};
+use language_server::{
+    server::LSPServer,
+    utils::{UriHelper, rope::RopeHelper},
+};
 use lsp_types::{
     CompletionList, PartialResultParams, Range, TextDocumentContentChangeEvent,
     TextDocumentIdentifier, TextDocumentPositionParams, Uri, WorkDoneProgressParams,
@@ -45,7 +48,7 @@ impl CompletionTestCase {
         setup();
         let server = self.create_server();
         let file_content = read_to_string(&self.filename).unwrap();
-        let file_uri = Uri::from_str(&self.filename).unwrap();
+        let file_uri = Uri::from_path(&self.filename).unwrap();
         server.configuration.write().unwrap().jsonnet.ext_code = self.ext_code.clone();
         server
             .cache

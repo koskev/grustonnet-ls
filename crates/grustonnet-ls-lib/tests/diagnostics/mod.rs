@@ -1,6 +1,6 @@
-use language_server::server::LSPServer;
+use language_server::{server::LSPServer, utils::UriHelper};
 use pretty_assertions::assert_eq;
-use std::{fs::read_to_string, str::FromStr};
+use std::fs::read_to_string;
 
 use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 use lsp_types::{Diagnostic, Uri};
@@ -24,7 +24,7 @@ impl DiagnosticTestCase {
     pub(crate) fn check(&self) {
         let server = self.create_server();
         let file_content = read_to_string(&self.filename).unwrap();
-        let file_uri = Uri::from_str(&self.filename).unwrap();
+        let file_uri = Uri::from_path(&self.filename).unwrap();
         server
             .configuration
             .write()
@@ -48,7 +48,7 @@ impl DiagnosticTestCase {
             })
             .unwrap();
 
-        let mut diagnositcs = server.get_diagnostics(&self.filename);
+        let mut diagnositcs = server.get_diagnostics(&Uri::from_path(&self.filename).unwrap());
 
         diagnositcs
             .iter_mut()

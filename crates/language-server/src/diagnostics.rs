@@ -1,5 +1,5 @@
-use lsp_types::Diagnostic;
+use lsp_types::{Diagnostic, Uri};
 
 pub trait Diagnostics {
-    fn diagnostics(&self, filename: &str) -> Vec<Diagnostic>;
+    fn diagnostics(&self, uri: &Uri) -> Vec<Diagnostic>;
 }

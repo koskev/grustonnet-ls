@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use language_server::{cache::Cache, diagnostics::Diagnostics};
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
@@ -16,8 +14,8 @@ impl<'a> EvalDiagnostics<'a> {
 }
 
 impl<'a> Diagnostics for EvalDiagnostics<'a> {
-    fn diagnostics(&self, filename: &str) -> Vec<lsp_types::Diagnostic> {
-        let doc = self.cache.get_document(filename).unwrap();
+    fn diagnostics(&self, uri: &Uri) -> Vec<lsp_types::Diagnostic> {
+        let doc = self.cache.get_document(uri).unwrap();
         let res = self
             .cache
             .ast_generator
@@ -31,9 +29,7 @@ impl<'a> Diagnostics for EvalDiagnostics<'a> {
                     end: diag_err.end.into(),
                 },
                 message: diag_err.message,
-                code_description: Some(CodeDescription {
-                    href: Uri::from_str(filename).unwrap(),
-                }),
+                code_description: Some(CodeDescription { href: uri.clone() }),
                 severity: Some(DiagnosticSeverity::ERROR),
                 ..Default::default()
             }];

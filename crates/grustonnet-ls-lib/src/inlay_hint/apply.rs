@@ -1,6 +1,6 @@
 use anyhow::Result;
 use language_server::cache::Cache;
-use lsp_types::InlayHint;
+use lsp_types::{InlayHint, Uri};
 
 use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay, node::types::node_kind::NodeKind};
 
@@ -17,8 +17,8 @@ impl<'a> ApplyInlay<'a> {
 // TODO: Like goto definition: Resolve everything except the last node. Resolve the last node until
 // function
 impl<'a> Inlay for ApplyInlay<'a> {
-    fn inlay(&self, filename: &str) -> Result<Vec<InlayHint>> {
-        let doc = self.cache.get_document(filename)?;
+    fn inlay(&self, uri: &Uri) -> Result<Vec<InlayHint>> {
+        let doc = self.cache.get_document(uri)?;
         let ast = doc.get_ast()?;
         let doc_stack = doc.get_ast()?.get_complete_stack();
         let hints: Vec<InlayHint> = doc_stack

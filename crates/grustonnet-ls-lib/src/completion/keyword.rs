@@ -2,7 +2,7 @@ use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemKind, CompletionList, Position};
+use lsp_types::{CompletionItem, CompletionItemKind, CompletionList, Position, Uri};
 
 use crate::{cache::JsonnetASTGenerator, node::types::node_kind::NodeKind};
 
@@ -17,8 +17,8 @@ impl<'a> KeywordCompletion<'a> {
 }
 
 impl<'a> Completion for KeywordCompletion<'a> {
-    fn complete(&self, location: Position, filename: &str) -> CompletionResult {
-        let doc = self.cache.get_document(filename).unwrap();
+    fn complete(&self, location: Position, uri: &Uri) -> CompletionResult {
+        let doc = self.cache.get_document(uri).unwrap();
 
         let stack = doc.get_ast()?.get_stack_by_position(&location.into());
 
