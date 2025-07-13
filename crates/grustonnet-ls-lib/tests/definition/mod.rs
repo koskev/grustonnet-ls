@@ -95,6 +95,23 @@ fn simple() {
 }
 
 #[test]
+fn simple_same_var() {
+    DefinitionTestCase {
+        filename: "testdata/definition/simple.jsonnet".into(),
+        source: Position {
+            line: 1,
+            character: 9,
+        },
+        target: Position {
+            line: 1,
+            character: 6,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
 fn object() {
     DefinitionTestCase {
         filename: "testdata/definition/object.jsonnet".into(),

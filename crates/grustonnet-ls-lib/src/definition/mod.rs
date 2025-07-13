@@ -48,6 +48,14 @@ impl<'a> DefinitionProvider<'a> {
                     .loc_range
                     .clone(),
             ),
+            NodeKind::Local(local) => {
+                index_name = local.get_name().unwrap_or_default();
+                if let Some(first_bind) = local.binds.first() {
+                    Some(first_bind.loc_range.clone())
+                } else {
+                    None
+                }
+            }
             _ => None,
         }
         .ok_or(anyhow!(
