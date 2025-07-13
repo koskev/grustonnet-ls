@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -9,7 +11,7 @@ use crate::node::{
 #[serde(rename_all = "PascalCase")]
 pub struct LocalBind {
     pub var_fodder: Option<Fodder>,
-    pub body: Option<Node>,
+    pub body: Option<Arc<Node>>,
     pub eq_fodder: Option<Fodder>,
     pub variable: Identifier,
     pub close_fodder: Option<Fodder>,

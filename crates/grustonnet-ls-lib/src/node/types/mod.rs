@@ -11,6 +11,8 @@ pub mod node;
 pub mod node_kind;
 pub mod var;
 
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::node::types::{fodder::Fodder, local_bind::LocalBind, node::Node};
@@ -18,7 +20,7 @@ use crate::node::types::{fodder::Fodder, local_bind::LocalBind, node::Node};
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct CommaSeparatedExpr {
-    pub expr: Node,
+    pub expr: Arc<Node>,
     pub comma_fodder: Option<Fodder>,
 }
 
@@ -38,7 +40,7 @@ pub struct Identifier(pub String);
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Local {
     pub binds: Vec<LocalBind>,
-    pub body: Option<Node>,
+    pub body: Option<Arc<Node>>,
 }
 
 impl Local {
@@ -50,13 +52,13 @@ impl Local {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Import {
-    pub file: Node,
+    pub file: Arc<Node>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Error {
-    expr: Node,
+    expr: Arc<Node>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

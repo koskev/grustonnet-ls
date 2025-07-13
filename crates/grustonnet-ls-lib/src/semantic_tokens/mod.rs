@@ -157,13 +157,13 @@ pub fn get_tokens(root: &Node) -> SemanticTokens {
     let mut tokens = SemanticDataList::default();
 
     while let Some(current_node) = search_stack.stack.pop() {
-        let location = current_node.node_base.loc_range;
+        let location = &current_node.node_base.loc_range;
         match current_node.node_kind.as_ref() {
             NodeKind::Var(var) => {
                 let mut data = SemanticData {
                     length: var.id.clone().unwrap_or_default().0.len() as u32,
                     node_type: SemanticToken::Variable,
-                    location,
+                    location: location.clone(),
                     ..Default::default()
                 };
                 if let Some(var_node) = var.resolve(&document_stack) {

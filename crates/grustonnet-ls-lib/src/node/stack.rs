@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, sync::Arc};
 
 use anyhow::{Result, anyhow};
 use language_server::cache::Cache;
@@ -37,10 +37,10 @@ where
     }
 }
 
-pub type NodeStack = NodeStackG<Node>;
+pub type NodeStack = NodeStackG<Arc<Node>>;
 
-impl NodeStackG<Node> {
-    pub fn generate_stack_for_node(&self, node: &Node) -> NodeStackG<Node> {
+impl NodeStack {
+    pub fn generate_stack_for_node(&self, node: &Node) -> NodeStack {
         self.stack
             .clone()
             .into_iter()
@@ -53,7 +53,10 @@ impl NodeStackG<Node> {
             .collect()
     }
 
-    pub fn get_last_unbuilt_node(&mut self, cache: &Cache<JsonnetASTGenerator>) -> Result<Node> {
+    pub fn get_last_unbuilt_node(
+        &mut self,
+        cache: &Cache<JsonnetASTGenerator>,
+    ) -> Result<Arc<Node>> {
         let (last_node, built_node) = self.build_except_last(cache)?;
         let last_node_body = match built_node.node_kind.as_ref() {
             NodeKind::DesugaredObject(obj) => {
@@ -74,7 +77,7 @@ impl NodeStackG<Node> {
     pub fn build_except_last(
         &mut self,
         cache: &Cache<JsonnetASTGenerator>,
-    ) -> Result<(Option<Node>, Node)> {
+    ) -> Result<(Option<Arc<Node>>, Arc<Node>)> {
         let mut call_stack = self
             .peek()
             .ok_or(anyhow!("document stack is empty"))?
@@ -110,22 +113,22 @@ impl Display for NodeStack {
     }
 }
 
-impl FromIterator<Node> for NodeStack {
-    fn from_iter<T: IntoIterator<Item = Node>>(iter: T) -> Self {
-        let list: Vec<Node> = iter.into_iter().collect();
+impl FromIterator<Arc<Node>> for NodeStack {
+    fn from_iter<T: IntoIterator<Item = Arc<Node>>>(iter: T) -> Self {
+        let list: Vec<Arc<Node>> = iter.into_iter().collect();
         list.into()
     }
 }
 
 impl FromIterator<NodeStack> for NodeStack {
     fn from_iter<T: IntoIterator<Item = NodeStack>>(iter: T) -> Self {
-        let flat_vec: Vec<Node> = iter.into_iter().flat_map(|stack| stack.stack).collect();
+        let flat_vec: Vec<Arc<Node>> = iter.into_iter().flat_map(|stack| stack.stack).collect();
         flat_vec.into()
     }
 }
 
-impl From<Vec<Node>> for NodeStack {
-    fn from(value: Vec<Node>) -> Self {
+impl From<Vec<Arc<Node>>> for NodeStack {
+    fn from(value: Vec<Arc<Node>>) -> Self {
         Self { stack: value }
     }
 }

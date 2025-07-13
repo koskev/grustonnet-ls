@@ -1,4 +1,7 @@
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt::{Display, Formatter},
+    sync::Arc,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -10,8 +13,8 @@ use crate::node::{
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct DesugaredObjectField {
-    pub name: Node,
-    pub body: Node,
+    pub name: Arc<Node>,
+    pub body: Arc<Node>,
     pub loc_range: LocationRange,
     pub hide: i32,
     pub plus_super: bool,
@@ -45,12 +48,12 @@ impl Display for DesugaredObject {
 }
 
 impl DesugaredObject {
-    pub fn merge(&self, other: DesugaredObject) -> DesugaredObject {
+    pub fn merge(&self, other: &DesugaredObject) -> DesugaredObject {
         let mut new_object = self.clone();
         log::debug!("Merging {} and {}", self, other);
-        new_object.asserts.extend(other.asserts);
-        new_object.fields.extend(other.fields);
-        new_object.locals.extend(other.locals);
+        new_object.asserts.extend(other.asserts.clone());
+        new_object.fields.extend(other.fields.clone());
+        new_object.locals.extend(other.locals.clone());
 
         new_object
     }

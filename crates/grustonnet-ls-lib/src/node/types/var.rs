@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -45,18 +47,18 @@ impl Var {
             })
     }
 
-    pub fn resolve(&self, document_stack: &NodeStack) -> Option<Node> {
+    pub fn resolve(&self, document_stack: &NodeStack) -> Option<Arc<Node>> {
         let Some(id) = &self.id else {
             return None;
         };
-        let get_node_with_id = |binds: &Vec<LocalBind>| -> Option<Node> {
+        let get_node_with_id = |binds: &Vec<LocalBind>| -> Option<Arc<Node>> {
             let bind = binds.iter().find(|local| local.variable.0 == id.0);
             bind?.body.clone()
         };
         document_stack
             .stack
             .iter()
-            .find_map(|node| match &(*node.node_kind) {
+            .find_map(|node| match node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
                 NodeKind::Function(func) => func.parameters.as_ref()?.iter().find_map(|p| {

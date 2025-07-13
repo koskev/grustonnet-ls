@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{sync::Arc, time::Instant};
 
 use anyhow::{Result, anyhow};
 use language_server::{
@@ -37,15 +37,15 @@ pub struct ResolveNodeIter<'a> {
 
     // TODO: Use a proper solution inside the binary case. Maybe a recursive Iterator?
     /// DesugaredObject to merge (should all be from a binary)
-    merge_nodes: Vec<Node>,
+    merge_nodes: Vec<Arc<Node>>,
 
     /// Nodes to search with priority (used if a node returns multiple nodes. e.g. a binary)
-    next_nodes: Vec<Node>,
+    next_nodes: Vec<Arc<Node>>,
 }
 
 impl<'a> ResolveNodeIter<'a> {
     pub fn new(
-        node: Node,
+        node: Arc<Node>,
         document_stack: &'a mut NodeStack,
         cache: &'a Cache<JsonnetASTGenerator>,
     ) -> Self {
@@ -62,7 +62,7 @@ impl<'a> ResolveNodeIter<'a> {
 }
 
 impl<'a> ResolveNodeIter<'a> {
-    fn handle_extvar(&mut self, current_node: &Node, apply: &Apply) -> Option<Node> {
+    fn handle_extvar(&mut self, current_node: &Node, apply: &Apply) -> Option<Arc<Node>> {
         let conf = self.cache.ast_generator.jsonnet.get_config();
         let arg_node = apply.arguments.get_argument(0)?;
         if let NodeKind::LiteralString(name_node) = arg_node.node_kind.as_ref() {
@@ -74,7 +74,7 @@ impl<'a> ResolveNodeIter<'a> {
                 .jsonnet
                 .get_ast_snippet(&current_node.node_base.loc_range.file_name, val)
                 .ok()?;
-            let ext_node = serde_json::from_str::<Node>(&ext_ast).ok()?;
+            let ext_node = Arc::new(serde_json::from_str::<Node>(&ext_ast).ok()?);
             self.search_stack.push(ext_node.clone());
             Some(ext_node)
         } else {
@@ -84,7 +84,7 @@ impl<'a> ResolveNodeIter<'a> {
 }
 
 impl<'a> ResolveNodeIter<'a> {
-    fn handle_self_super(&mut self, current_node: &Node, is_super: bool) -> Option<Node> {
+    fn handle_self_super(&mut self, current_node: &Node, is_super: bool) -> Option<Arc<Node>> {
         // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
         // current object instead of the var object
         let self_stack = self.document_stack.generate_stack_for_node(&current_node);
@@ -122,11 +122,11 @@ impl<'a> ResolveNodeIter<'a> {
                 log::error!("BUG: Binary is not there");
                 return None;
             };
-            let mut nodes: Vec<Node> = binary
+            let mut nodes: Vec<Arc<Node>> = binary
                 .flatten()
                 .iter()
                 // Filter out self to avoid an endless loop
-                .filter(|n| **n != current_node)
+                .filter(|n| ***n != *current_node)
                 .map(|n| (*n).clone())
                 .rev()
                 .collect();
@@ -134,7 +134,7 @@ impl<'a> ResolveNodeIter<'a> {
             self.search_stack.push(first_node.clone());
             if let Some(node) = nodes.pop() {
                 self.next_nodes.append(&mut nodes);
-                self.search_stack.push(node.clone());
+                self.search_stack.push(node);
             }
             return Some(first_node);
         }
@@ -144,7 +144,7 @@ impl<'a> ResolveNodeIter<'a> {
 }
 
 impl<'a> Iterator for ResolveNodeIter<'a> {
-    type Item = Node;
+    type Item = Arc<Node>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(next_node) = self.next_nodes.pop() {
@@ -156,19 +156,21 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 "Search stack is empty. Checking if there are nodes to merge. Len {}",
                 self.merge_nodes.len()
             );
-            let mut merged_node = self.merge_nodes.pop()?;
+            let top_node = self.merge_nodes.pop()?;
+            let mut merged_node = (*top_node).clone();
+
             let NodeKind::DesugaredObject(mut merged_object) =
                 merged_node.node_kind.as_ref().clone()
             else {
                 return None;
             };
             while let Some(other_node) = self.merge_nodes.pop() {
-                if let NodeKind::DesugaredObject(obj) = *other_node.node_kind {
+                if let NodeKind::DesugaredObject(obj) = other_node.node_kind.as_ref() {
                     merged_object = merged_object.merge(obj);
                 }
             }
             merged_node.node_kind = Box::new(NodeKind::DesugaredObject(merged_object));
-            return Some(merged_node);
+            return Some(merged_node.into());
         };
         log::debug!("Looking at {}", current_node.node_kind);
         self.document_stack.push(current_node.clone());
@@ -220,12 +222,13 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                         .import_ast(&current_node.node_base.loc_range.file_name, &file.value);
                     match imported {
                         Ok(imported_node) => {
+                            let imported_node = Arc::new(imported_node);
                             log::debug!(
                                 "pushing import node {}",
                                 imported_node.node_kind.variant_name()
                             );
                             self.search_stack.push(imported_node.clone());
-                            Some(imported_node.clone())
+                            Some(imported_node)
                         }
                         Err(e) => {
                             log::error!("Failed to import node: {}", e);
@@ -277,7 +280,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                     if let Some(bindings) = func.get_bind_for_arguments(&apply_node.arguments) {
                         log::debug!("Found correct bindings");
                         for binding in bindings {
-                            self.document_stack.push(binding);
+                            self.document_stack.push(binding.into());
                         }
                         //document_stack.stack.extend(bindings);
                     } else {
@@ -314,7 +317,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
 
 pub struct CallStackIter<'a> {
     pub call_stack: NodeStack,
-    pub base_object: Option<Node>,
+    pub base_object: Option<Arc<Node>>,
 
     pub document_stack: &'a mut NodeStack,
     pub cache: &'a Cache<JsonnetASTGenerator>,
@@ -351,7 +354,7 @@ impl<'a> CallStackIter<'a> {
 
 // This iterator resolves one of a.b.c.d in every iteration
 impl<'a> Iterator for CallStackIter<'a> {
-    type Item = Node;
+    type Item = Arc<Node>;
     fn next(&mut self) -> Option<Self::Item> {
         let call_node = self.call_stack.stack.pop()?;
         // Get the next object to complete. If we don't have a base object: Just use the call node
@@ -392,8 +395,8 @@ impl<'a> LocalCompletion<'a> {
         &self,
         mut call_stack: NodeStack,
         mut document_stack: &mut NodeStack,
-    ) -> Result<Node> {
-        let mut base_object: Option<Node> = None;
+    ) -> Result<Arc<Node>> {
+        let mut base_object: Option<Arc<Node>> = None;
 
         while let Some(call_node) = call_stack.stack.pop() {
             let to_complete_object = match base_object {
@@ -431,7 +434,7 @@ impl<'a> LocalCompletion<'a> {
         Ok(base_object.ok_or(anyhow!("no object found"))?)
     }
 
-    pub fn build_node(&self, document_stack: NodeStack) -> Result<Node> {
+    pub fn build_node(&self, document_stack: NodeStack) -> Result<Arc<Node>> {
         let mut document_stack = document_stack;
         let iter = CallStackIter::new(self.cache, &mut document_stack)
             .ok_or(anyhow!("Could not create callstack iter"))?;

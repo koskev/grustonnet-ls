@@ -34,10 +34,10 @@ impl<'a> Inlay for ApplyInlay<'a> {
                     ast.get_stack_by_position(&apply_node.target.node_base.loc_range.end);
                 let last_node = temp_stack.get_last_unbuilt_node(self.cache).ok()?;
                 // TODO: build the last node?
-                let NodeKind::Function(found_function) = *last_node.node_kind else {
+                let NodeKind::Function(found_function) = last_node.node_kind.as_ref() else {
                     return None;
                 };
-                let params = found_function.parameters?;
+                let params = found_function.parameters.as_ref()?;
                 let names: Vec<&String> = params.iter().map(|p| &p.name.0).collect();
 
                 Some(

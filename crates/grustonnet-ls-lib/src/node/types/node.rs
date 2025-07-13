@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use language_server::cache::ASTNode;
 use log::error;
 use serde::{Deserialize, Serialize};
@@ -23,7 +25,8 @@ impl Node {
         let mut call_stack = NodeStack::new();
         let mut search_stack = NodeStack::new();
 
-        search_stack.push(self.clone());
+        // TODO: duplicate?
+        search_stack.push(Arc::new(self.clone()));
 
         while let Some(current_node) = search_stack.stack.pop() {
             match &(*current_node.node_kind) {
@@ -63,7 +66,7 @@ impl Node {
             .iter()
             .map(|child: &Node| child.get_complete_stack())
             .collect();
-        stack.push_front(self.clone());
+        stack.push_front(Arc::new(self.clone()));
 
         stack
     }
@@ -77,7 +80,7 @@ impl Node {
             })
             .map(|child: &Node| child.get_stack_by_position(pos))
             .collect();
-        stack.push_front(self.clone());
+        stack.push_front(Arc::new(self.clone()));
 
         stack
     }
@@ -132,12 +135,12 @@ impl<'a> Iterator for NodeIter<'a> {
             NodeKind::Local(loc) => {
                 if self.index == 0 {
                     self.index += 1;
-                    return loc.body.as_ref();
+                    return loc.body.as_ref().map(|v| &**v);
                 }
                 match loc.binds.get(self.index - 1) {
                     Some(bind) => {
                         self.index += 1;
-                        return bind.body.as_ref();
+                        return bind.body.as_ref().map(|v| &**v);
                     }
                     None => return None,
                 }

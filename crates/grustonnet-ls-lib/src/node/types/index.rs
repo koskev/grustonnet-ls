@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::node::types::{Identifier, fodder::Fodder, node::Node, node_kind::NodeKind};
@@ -5,8 +7,8 @@ use crate::node::types::{Identifier, fodder::Fodder, node::Node, node_kind::Node
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Index {
-    pub target: Node,
-    pub index: Node,
+    pub target: Arc<Node>,
+    pub index: Arc<Node>,
     pub right_bracket_fodder: Option<Fodder>,
     pub left_bracket_fodder: Option<Fodder>,
     pub id: Option<Identifier>,

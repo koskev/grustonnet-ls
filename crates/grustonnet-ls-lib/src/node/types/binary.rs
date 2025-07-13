@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::node::types::{fodder::Fodder, node::Node, node_kind::NodeKind};
@@ -35,24 +37,24 @@ pub enum BinaryOp {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Binary {
-    pub left: Node,
-    pub right: Node,
+    pub left: Arc<Node>,
+    pub right: Arc<Node>,
     pub op_fodder: Option<Fodder>,
     pub op: i32,
 }
 
 impl Binary {
-    pub fn flatten(&self) -> Vec<&Node> {
+    pub fn flatten(&self) -> Vec<Arc<Node>> {
         let mut nodes = vec![];
         if let NodeKind::Binary(left) = self.left.node_kind.as_ref() {
             nodes.extend(left.flatten());
         } else {
-            nodes.push(&self.left);
+            nodes.push(self.left.clone());
         }
         if let NodeKind::Binary(right) = self.right.node_kind.as_ref() {
             nodes.extend(right.flatten());
         } else {
-            nodes.push(&self.right);
+            nodes.push(self.right.clone());
         }
 
         nodes

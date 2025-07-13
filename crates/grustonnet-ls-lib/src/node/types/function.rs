@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -14,14 +16,14 @@ pub struct NamedArgument {
     pub name_fodder: Option<Fodder>,
     pub name: Identifier,
     pub eq_fodder: Option<Fodder>,
-    pub arg: Node,
+    pub arg: Arc<Node>,
     pub comma_fodder: Option<Fodder>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct Apply {
-    pub target: Node,
+    pub target: Arc<Node>,
     pub fodder_left: Option<Fodder>,
     pub arguments: Arguments,
     pub fodder_right: Option<Fodder>,
@@ -38,7 +40,7 @@ pub struct Parameter {
     pub name: Identifier,
     pub comma_fodder: Option<Fodder>,
     pub eq_fodder: Option<Fodder>,
-    pub default_arg: Option<Node>,
+    pub default_arg: Option<Arc<Node>>,
     pub loc_range: LocationRange,
 }
 
@@ -47,7 +49,7 @@ pub struct Parameter {
 pub struct Function {
     pub paren_left_fodder: Option<Fodder>,
     pub paren_right_fodder: Option<Fodder>,
-    pub body: Node,
+    pub body: Arc<Node>,
     pub parameters: Option<Vec<Parameter>>,
     // Always false if there were no parameters.
     pub trailing_comma: bool,
@@ -113,7 +115,7 @@ impl Function {
 }
 
 impl Arguments {
-    pub fn get_argument(&self, pos: usize) -> Option<Node> {
+    pub fn get_argument(&self, pos: usize) -> Option<Arc<Node>> {
         if let Some(arg) = self.positional.get(pos) {
             Some(arg.expr.clone())
         } else {
