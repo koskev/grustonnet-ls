@@ -63,12 +63,11 @@ fn super_binary_multiple() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn super_binary_nested() {
     CompletionTestCase {
         filename: "testdata/complete/super/nested_binary.jsonnet".into(),
         replace_string: "c: super.a".into(),
-        replace_by_string: "b: super.".into(),
+        replace_by_string: "c: super.".into(),
         expected: CompletionList {
             is_incomplete: false,
             items: vec![

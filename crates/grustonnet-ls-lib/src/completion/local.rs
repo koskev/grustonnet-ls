@@ -80,8 +80,72 @@ impl<'a> ResolveNodeIter<'a> {
         }
     }
 }
+
+impl<'a> ResolveNodeIter<'a> {
+    fn handle_self_super(&mut self, current_node: Node, is_super: bool) -> Option<Node> {
+        // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
+        // current object instead of the var object
+        let self_stack = self
+            .document_stack
+            .generate_stack_for_node(current_node.clone());
+
+        let mut stack_iter = self_stack.stack.iter().rev();
+        // Find the object the self node belongs to
+        let found_object = stack_iter.find(|n| {
+            if let NodeKind::DesugaredObject(_) = n.node_kind.as_ref() {
+                true
+            } else {
+                false
+            }
+        })?;
+
+        // The next node is a binary
+        // TODO: Check with weird examples if this is correct and we won't find an
+        // unrelated binary or not the one we are searching for
+        if let Some(next_item) = stack_iter.next()
+            && matches!(*next_item.node_kind, NodeKind::Binary(_))
+        {
+            // Find all binaries in a row and keep the top one
+            let binary_pos = if is_super {
+                self_stack
+                    .stack
+                    .iter()
+                    .rposition(|n| matches!(*n.node_kind, NodeKind::Binary(_)))
+            } else {
+                self_stack
+                    .stack
+                    .iter()
+                    .position(|n| matches!(*n.node_kind, NodeKind::Binary(_)))
+            }
+            .unwrap_or(0);
+            let NodeKind::Binary(binary) = self_stack.stack[binary_pos].node_kind.as_ref() else {
+                log::error!("BUG: Binary is not there");
+                return None;
+            };
+            let mut nodes: Vec<Node> = binary
+                .flatten()
+                .iter()
+                // Filter out self to avoid an endless loop
+                .filter(|n| **n != &current_node)
+                .map(|n| (*n).clone())
+                .rev()
+                .collect();
+            let first_node = nodes.pop()?;
+            self.search_stack.push(first_node.clone());
+            if let Some(node) = nodes.pop() {
+                self.next_nodes.append(&mut nodes);
+                self.search_stack.push(node.clone());
+            }
+            return Some(first_node);
+        }
+        self.search_stack.push(found_object.clone());
+        Some(found_object.clone())
+    }
+}
+
 impl<'a> Iterator for ResolveNodeIter<'a> {
     type Item = Node;
+
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(next_node) = self.next_nodes.pop() {
             self.search_stack.push(next_node.clone());
@@ -231,108 +295,8 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 self.search_stack.push(binary.right.clone());
                 Some(binary.right.clone())
             }
-            NodeKind::SuperIndex => {
-                // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
-                // current object instead of the var object
-                let self_stack = self
-                    .document_stack
-                    .generate_stack_for_node(current_node.clone());
-
-                // The next node is a binary
-                // TODO: Check with weird examples if this is correct and we won't find an
-                // unrelated binary or not the one we are searching for
-                if matches!(
-                    *self_stack.stack.iter().next().unwrap().node_kind,
-                    NodeKind::Binary(_)
-                ) {
-                    // Find the next binary
-                    let binary_pos = self_stack
-                        .stack
-                        .iter()
-                        .rposition(|n| matches!(*n.node_kind, NodeKind::Binary(_)));
-                    let binary_pos = match binary_pos {
-                        Some(pos) => pos,
-                        None => 0,
-                    };
-                    let NodeKind::Binary(binary) = self_stack.stack[binary_pos].node_kind.as_ref()
-                    else {
-                        log::error!("BUG: Binary is not there");
-                        return None;
-                    };
-                    let mut nodes: Vec<Node> = binary
-                        .flatten()
-                        .iter()
-                        // Filter out self to avoid an endless loop
-                        .filter(|n| **n != &current_node)
-                        .map(|n| (*n).clone())
-                        .rev()
-                        .collect();
-                    let first_node = nodes.pop()?;
-                    self.search_stack.push(first_node.clone());
-                    if let Some(node) = nodes.pop() {
-                        self.next_nodes.append(&mut nodes);
-                        self.search_stack.push(node.clone());
-                    }
-                    return Some(first_node);
-                } else {
-                    return None;
-                }
-            }
-            NodeKind::SelfNode => {
-                // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
-                // current object instead of the var object
-                let self_stack = self
-                    .document_stack
-                    .generate_stack_for_node(current_node.clone());
-
-                // The next node is a binary
-                // TODO: Check with weird examples if this is correct and we won't find an
-                // unrelated binary or not the one we are searching for
-                if matches!(
-                    *self_stack.stack.iter().next().unwrap().node_kind,
-                    NodeKind::Binary(_)
-                ) {
-                    // Find all binaries in a row and keep the top one
-                    let binary_pos = self_stack
-                        .stack
-                        .iter()
-                        .position(|n| matches!(*n.node_kind, NodeKind::Binary(_)));
-                    let binary_pos = match binary_pos {
-                        Some(pos) => pos,
-                        None => 0,
-                    };
-                    let NodeKind::Binary(binary) = self_stack.stack[binary_pos].node_kind.as_ref()
-                    else {
-                        log::error!("BUG: Binary is not there");
-                        return None;
-                    };
-                    let mut nodes: Vec<Node> = binary
-                        .flatten()
-                        .iter()
-                        // Filter out self to avoid an endless loop
-                        .filter(|n| **n != &current_node)
-                        .map(|n| (*n).clone())
-                        .rev()
-                        .collect();
-                    let first_node = nodes.pop()?;
-                    self.search_stack.push(first_node.clone());
-                    if let Some(node) = nodes.pop() {
-                        self.next_nodes.append(&mut nodes);
-                        self.search_stack.push(node.clone());
-                    }
-                    return Some(first_node);
-                }
-                // Find the object the self node belongs to
-                let found_object = self_stack.stack.into_iter().rfind(|n| {
-                    if let NodeKind::DesugaredObject(_) = n.node_kind.as_ref() {
-                        true
-                    } else {
-                        false
-                    }
-                })?;
-                self.search_stack.push(found_object.clone());
-                Some(found_object.clone())
-            }
+            NodeKind::SuperIndex => self.handle_self_super(current_node, true),
+            NodeKind::SelfNode => self.handle_self_super(current_node, false),
             NodeKind::Conditional(cond) => {
                 let resolved = cond.resolve().clone();
                 self.search_stack.push(resolved.clone());

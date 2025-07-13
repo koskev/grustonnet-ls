@@ -134,6 +134,35 @@ fn self_binary() {
 }
 
 #[test]
+fn self_binary_nested() {
+    CompletionTestCase {
+        filename: "testdata/complete/self/nested_binary.jsonnet".into(),
+        replace_string: "b:: self.a".into(),
+        replace_by_string: "b:: self.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "a".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "b".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "c".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
 fn self_imported() {
     CompletionTestCase {
         filename: "testdata/complete/self/import.jsonnet".into(),
