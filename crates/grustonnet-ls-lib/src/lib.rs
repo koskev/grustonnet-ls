@@ -6,5 +6,6 @@ pub mod definition;
 pub mod diagnostics;
 pub mod inlay_hint;
 pub mod node;
+pub mod references;
 pub mod semantic_tokens;
 pub mod server;

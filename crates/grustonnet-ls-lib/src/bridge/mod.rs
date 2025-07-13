@@ -168,9 +168,9 @@ impl Error for EvaluateError {}
 
 #[derive(Default, Debug, Clone)]
 pub struct GoJsonnet {
-    root_dir: Arc<RwLock<String>>,
+    pub root_dir: Arc<RwLock<String>>,
     config: Arc<RwLock<JsonnetConfig>>,
-    params: Arc<RwLock<EvaluateParams>>,
+    pub params: Arc<RwLock<EvaluateParams>>,
 }
 
 fn find_upwards(cwd: &str, suffix: &str) -> HashMap<String, String> {

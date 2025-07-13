@@ -26,6 +26,7 @@ use crate::{
     definition::DefinitionProvider,
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay},
+    references::ReferenceProvider,
     semantic_tokens::{self},
     server::config::Configuration,
 };
@@ -93,6 +94,7 @@ impl LSPServer for JsonnetServer {
                     ..Default::default()
                 }),
             ),
+            references_provider: Some(OneOf::Left(true)),
             ..Default::default()
         }
     }
@@ -272,5 +274,35 @@ impl LSPServer for JsonnetServer {
         let doc = self.cache.get_document(&params.text_document.uri)?;
         let root = doc.get_ast().unwrap();
         Ok(semantic_tokens::get_tokens(root).into())
+    }
+
+    fn references(
+        &self,
+        params: <lsp_types::request::References as lsp_types::request::Request>::Params,
+    ) -> Result<LSPResponse, LSPError> {
+        let mut search_paths = self
+            .cache
+            .ast_generator
+            .jsonnet
+            .params
+            .read()
+            .unwrap()
+            .jpaths
+            .clone();
+        search_paths.push(
+            self.cache
+                .ast_generator
+                .jsonnet
+                .root_dir
+                .read()
+                .unwrap()
+                .clone(),
+        );
+        let references = ReferenceProvider::new(&self.cache, &search_paths).references(
+            params.text_document_position.position.into(),
+            &params.text_document_position.text_document.uri,
+        )?;
+
+        Ok(references.into())
     }
 }
