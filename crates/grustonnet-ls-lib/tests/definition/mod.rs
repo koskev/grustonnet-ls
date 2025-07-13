@@ -180,6 +180,24 @@ fn object_nested_inner() {
 }
 
 #[test]
+#[ignore = "not implemented"]
+fn object_nested_inner_field() {
+    DefinitionTestCase {
+        filename: "testdata/definition/object_nested.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 8,
+        },
+        target: Position {
+            line: 2,
+            character: 4,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
 fn import_simple() {
     DefinitionTestCase {
         filename: "testdata/definition/import_simple.jsonnet".into(),
