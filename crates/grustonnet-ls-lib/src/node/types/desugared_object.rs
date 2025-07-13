@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
-    location::LocationRange,
+    location::{Location, LocationRange},
     types::{local_bind::LocalBind, node::Node, node_kind::NodeKind},
 };
 
@@ -53,6 +53,16 @@ impl DesugaredObject {
         new_object.locals.extend(other.locals);
 
         new_object
+    }
+
+    pub fn get_name_at(&self, pos: &Location) -> Option<String> {
+        self.fields.iter().find_map(|field| {
+            if field.loc_range.in_range(&pos) {
+                field.get_name()
+            } else {
+                None
+            }
+        })
     }
 
     pub fn get_field(&self, name: &str) -> Option<&DesugaredObjectField> {

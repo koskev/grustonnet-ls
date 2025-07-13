@@ -89,6 +89,13 @@ impl Node {
         }
     }
 
+    /// Additionally searches objects at the given position to find field names
+    pub fn get_name_at_pos(&self, pos: &Location) -> String {
+        match self.node_kind.as_ref() {
+            NodeKind::DesugaredObject(obj) => obj.get_name_at(pos).unwrap_or_default(),
+            _ => self.get_name(),
+        }
+    }
     pub fn get_name(&self) -> String {
         match self.node_kind.as_ref() {
             NodeKind::Var(var) => var.id.clone().unwrap_or_default().0,

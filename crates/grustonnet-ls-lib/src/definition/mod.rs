@@ -28,11 +28,13 @@ impl<'a> DefinitionProvider<'a> {
     pub fn definition(&self, uri: &Uri, pos: Location) -> Result<DefinitinInfo> {
         let doc = self.cache.get_document(uri)?;
 
-        let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.into()));
+        let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.clone().into()));
 
         let (last_node, built_node) = document_stack.build_except_last(&self.cache)?;
 
-        let index_name = last_node.unwrap_or(built_node.clone()).get_name();
+        let index_name = last_node
+            .unwrap_or(built_node.clone())
+            .get_name_at_pos(&pos);
 
         let location: LocationRange = match built_node.node_kind.as_ref() {
             NodeKind::Var(var) => Some(

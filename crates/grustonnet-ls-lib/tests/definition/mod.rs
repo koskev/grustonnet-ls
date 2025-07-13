@@ -180,7 +180,6 @@ fn object_nested_inner() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn object_nested_inner_field() {
     DefinitionTestCase {
         filename: "testdata/definition/object_nested.jsonnet".into(),

@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
     fs::read_to_string,
-    str::FromStr,
     sync::{Arc, Once, RwLock},
 };
 

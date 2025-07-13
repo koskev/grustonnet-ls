@@ -24,11 +24,13 @@ impl<'a> RenameProvider<'a> {
             .references(
                 params.text_document_position.position.into(),
                 &params.text_document_position.text_document.uri,
+                true,
             )?
             .ok_or(anyhow!("No references found"))?;
 
         // Rename all references
         let edits = references.into_iter().fold(HashMap::new(), |mut acc, loc| {
+            log::debug!("Renaming at {:?}", loc.range);
             acc.entry(loc.uri.clone()).or_insert(vec![]).push(TextEdit {
                 range: loc.range,
                 new_text: params.new_name.clone(),

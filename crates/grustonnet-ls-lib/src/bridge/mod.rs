@@ -4,7 +4,6 @@ use std::{
     fmt::{Debug, Display},
     fs,
     path::Path,
-    str::FromStr,
     sync::{Arc, RwLock},
 };
 

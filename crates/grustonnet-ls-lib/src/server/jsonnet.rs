@@ -303,6 +303,7 @@ impl LSPServer for JsonnetServer {
         let references = ReferenceProvider::new(&self.cache, &search_paths).references(
             params.text_document_position.position.into(),
             &params.text_document_position.text_document.uri,
+            params.context.include_declaration,
         )?;
 
         Ok(references.into())
