@@ -1,7 +1,6 @@
 use super::*;
 
 #[test]
-#[ignore = "not implemented"]
 fn super_binary_simple() {
     CompletionTestCase {
         filename: "testdata/complete/super/binary.jsonnet".into(),
@@ -27,12 +26,11 @@ fn super_binary_simple() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn super_binary_multiple() {
     CompletionTestCase {
         filename: "testdata/complete/super/multiple_binary.jsonnet".into(),
-        replace_string: "c: super.a".into(),
-        replace_by_string: "b: super.".into(),
+        replace_string: "e: super.a".into(),
+        replace_by_string: "e: super.".into(),
         expected: CompletionList {
             is_incomplete: false,
             items: vec![
@@ -46,6 +44,14 @@ fn super_binary_multiple() {
                 },
                 CompletionItem {
                     label: "c".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "d".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "e".to_string(),
                     ..Default::default()
                 },
             ],
