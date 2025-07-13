@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use anyhow::{Result, anyhow};
 use language_server::{
     cache::Cache,
@@ -82,12 +84,10 @@ impl<'a> ResolveNodeIter<'a> {
 }
 
 impl<'a> ResolveNodeIter<'a> {
-    fn handle_self_super(&mut self, current_node: Node, is_super: bool) -> Option<Node> {
+    fn handle_self_super(&mut self, current_node: &Node, is_super: bool) -> Option<Node> {
         // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
         // current object instead of the var object
-        let self_stack = self
-            .document_stack
-            .generate_stack_for_node(current_node.clone());
+        let self_stack = self.document_stack.generate_stack_for_node(&current_node);
 
         let mut stack_iter = self_stack.stack.iter().rev();
         // Find the object the self node belongs to
@@ -126,7 +126,7 @@ impl<'a> ResolveNodeIter<'a> {
                 .flatten()
                 .iter()
                 // Filter out self to avoid an endless loop
-                .filter(|n| **n != &current_node)
+                .filter(|n| **n != current_node)
                 .map(|n| (*n).clone())
                 .rev()
                 .collect();
@@ -277,7 +277,6 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                     if let Some(bindings) = func.get_bind_for_arguments(&apply_node.arguments) {
                         log::debug!("Found correct bindings");
                         for binding in bindings {
-                            log::error!("Pushing to document stack {:?}", binding);
                             self.document_stack.push(binding);
                         }
                         //document_stack.stack.extend(bindings);
@@ -295,8 +294,8 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 self.search_stack.push(binary.right.clone());
                 Some(binary.right.clone())
             }
-            NodeKind::SuperIndex => self.handle_self_super(current_node, true),
-            NodeKind::SelfNode => self.handle_self_super(current_node, false),
+            NodeKind::SuperIndex => self.handle_self_super(&current_node, true),
+            NodeKind::SelfNode => self.handle_self_super(&current_node, false),
             NodeKind::Conditional(cond) => {
                 let resolved = cond.resolve().clone();
                 self.search_stack.push(resolved.clone());
@@ -443,6 +442,7 @@ impl<'a> LocalCompletion<'a> {
 
 impl<'a> Completion for LocalCompletion<'a> {
     fn complete(&self, location: Position, uri: &Uri) -> CompletionResult {
+        let start = Instant::now();
         let doc = self.cache.get_document(uri).unwrap();
 
         let stack = doc.get_ast()?.get_stack_by_position(&location.into());
@@ -485,6 +485,9 @@ impl<'a> Completion for LocalCompletion<'a> {
                 vec![]
             }
         };
+
+        let dur = start.elapsed();
+        log::info!("Local completion took {:?}", dur);
 
         Ok(CompletionList {
             items,

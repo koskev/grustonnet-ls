@@ -5,6 +5,7 @@ use std::{
     fs,
     path::Path,
     sync::{Arc, RwLock},
+    time::Instant,
 };
 
 use anyhow::Result;
@@ -307,7 +308,10 @@ impl GenerateAST for GoJsonnet {
     }
 
     fn get_ast_snippet(&self, source_file: &str, snippet: &str) -> Result<String, EvaluateError> {
+        let start = Instant::now();
         let res = ASTBridgeImpl::get_ast_snippet(source_file.to_string(), snippet.to_string());
+        let dur = start.elapsed();
+        log::info!("Ast evaluation took {:?}", dur);
         if res.error_data.len() > 0 {
             return Err(EvaluateError::from(res.error_data));
         }

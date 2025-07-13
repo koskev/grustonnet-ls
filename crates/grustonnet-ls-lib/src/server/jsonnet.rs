@@ -205,6 +205,7 @@ impl LSPServer for JsonnetServer {
                 .collect(),
             is_incomplete,
         };
+
         Ok(CompletionResponse::List(completion_list).into())
     }
 

@@ -40,7 +40,7 @@ where
 pub type NodeStack = NodeStackG<Node>;
 
 impl NodeStackG<Node> {
-    pub fn generate_stack_for_node(&self, node: Node) -> NodeStackG<Node> {
+    pub fn generate_stack_for_node(&self, node: &Node) -> NodeStackG<Node> {
         self.stack
             .clone()
             .into_iter()

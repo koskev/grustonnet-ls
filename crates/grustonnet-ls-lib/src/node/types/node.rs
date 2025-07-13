@@ -196,6 +196,11 @@ impl<'a> Iterator for NodeIter<'a> {
                 }
                 return None;
             }
+            NodeKind::LiteralString(_)
+            | NodeKind::LiteralNumber(_)
+            | NodeKind::LiteralBoolean(_)
+            | NodeKind::LiteralNull
+            | NodeKind::Import(_) => (),
             _ => {
                 error!(
                     "Unhandled type {} while searching for children",
