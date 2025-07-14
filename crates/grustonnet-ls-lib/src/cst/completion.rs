@@ -66,7 +66,9 @@ impl<'a> CompletionInfo<'a> {
                 break;
             }
         }
-        if let Some(dot_node) = nodes
+        if current_node.is_inside_import().unwrap_or(false) {
+            info.completion_type = CompletionType::Import;
+        } else if let Some(dot_node) = nodes
             .iter()
             .find(|node| NodeType::from(**node) == NodeType::NodeDot)
         {

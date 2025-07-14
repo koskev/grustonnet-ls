@@ -21,7 +21,10 @@ use lsp_types::{
 use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
-    completion::{global::GlobalCompletion, keyword::KeywordCompletion, local::LocalCompletion},
+    completion::{
+        global::GlobalCompletion, import::ImportCompletion, keyword::KeywordCompletion,
+        local::LocalCompletion,
+    },
     cst::completion::{CompletionInfo, CompletionType},
     definition::DefinitionProvider,
     diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
@@ -171,6 +174,10 @@ impl LSPServer for JsonnetServer {
                     let local_completion = LocalCompletion::new(&self.cache);
                     completion_list.push(Box::new(local_completion));
                 }
+            }
+            CompletionType::Import => {
+                let import_completion = ImportCompletion::new(&self.cache);
+                completion_list.push(Box::new(import_completion));
             }
             _ => (),
         }

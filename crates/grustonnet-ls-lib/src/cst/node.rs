@@ -8,6 +8,8 @@ pub trait JsonnetNode {
     // Get the previous node in the tree
 
     fn get_node_at(&self, point: Point) -> Option<Node>;
+
+    fn is_inside_import(&self) -> Option<bool>;
 }
 
 impl<'a> JsonnetNode for Node<'a> {
@@ -28,5 +30,19 @@ impl<'a> JsonnetNode for Node<'a> {
         }
 
         self.descendant_for_point_range(start_pos, end_pos)
+    }
+
+    fn is_inside_import(&self) -> Option<bool> {
+        let node = if NodeType::from(*self) == NodeType::NodeStringStart {
+            self.next_sibling()?
+        } else {
+            *self
+        };
+        let import_node = node.parent()?.parent()?;
+        if NodeType::from(import_node) != NodeType::NodeImport {
+            return None;
+        };
+
+        Some(true)
     }
 }

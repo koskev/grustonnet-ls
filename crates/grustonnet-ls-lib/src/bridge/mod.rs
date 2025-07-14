@@ -273,7 +273,7 @@ impl GoJsonnet {
         }
     }
 
-    fn get_evaluate_params(&self, filepath: &str) -> EvaluateParams {
+    pub fn get_evaluate_params(&self, filepath: &str) -> EvaluateParams {
         let mut params = self.params.read().unwrap().clone();
         // TODO: the uri part is a mess. Just use uri everywhere?
         let uri = Uri::from_path(filepath).unwrap();

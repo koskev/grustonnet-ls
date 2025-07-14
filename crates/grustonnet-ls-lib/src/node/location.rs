@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
 pub struct LocationRange {
+    // We don't need this and it is stupidly large
+    #[serde(skip)]
     pub file: Option<Source>,
     pub file_name: String,
     pub begin: Location,
