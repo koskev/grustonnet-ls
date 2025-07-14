@@ -130,12 +130,13 @@ impl Into<lsp_types::SemanticTokens> for SemanticDataList {
 
             tokens.data.push(lsp_types::SemanticToken {
                 delta_line: (data.location.begin.line - prev_token.location.begin.line) as u32,
-                // FIXME: Why is -1 needed?
                 delta_start: if data.location.begin.line != prev_token.location.begin.line {
-                    data.location.begin.column as u32
+                    // Location starts at 1. As this is the only absolute value, we only need to
+                    // substract 1 here
+                    data.location.begin.column as u32 - 1
                 } else {
                     (data.location.begin.column - prev_token.location.begin.column) as u32
-                } - 1,
+                },
                 length: data.length,
                 token_type: data.node_type.to_int(),
                 token_modifiers_bitset: data
@@ -166,15 +167,15 @@ pub fn get_tokens(root: &Node) -> SemanticTokens {
                     location: location.clone(),
                     ..Default::default()
                 };
-                if let Some(var_node) = var.resolve(&document_stack) {
+                if var.id.clone().unwrap_or_default().0 == "std" {
+                    data.node_modifier = vec![SemanticModifier::DefaultLibrary];
+                } else if let Some(var_node) = var.resolve(&document_stack) {
                     match var_node.node_kind.as_ref() {
                         NodeKind::SelfNode => {
                             data.node_modifier = vec![SemanticModifier::DefaultLibrary];
-                            tokens.data.push(data);
                         }
                         NodeKind::Import(_import) => {
                             data.node_type = SemanticToken::Namespace;
-                            tokens.data.push(data);
                         }
                         _ => (),
                     }
@@ -182,8 +183,8 @@ pub fn get_tokens(root: &Node) -> SemanticTokens {
                     // We'll just assume all vars we can't resolve are params
                     // TODO: Get params on the stack
                     data.node_type = SemanticToken::Parameter;
-                    tokens.data.push(data);
                 }
+                tokens.data.push(data);
             }
 
             _ => (),
