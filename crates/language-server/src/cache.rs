@@ -131,7 +131,7 @@ impl<G: ASTGenerator> Cache<G> {
             None => {
                 log::debug!("Loading new file {}", uri.path().as_str());
                 let mut doc = Document {
-                    filename: uri.as_str().into(),
+                    filename: uri.path().as_str().to_string(),
                     manually_loaded_at: Some(SystemTime::UNIX_EPOCH),
                     ..Default::default()
                 };
