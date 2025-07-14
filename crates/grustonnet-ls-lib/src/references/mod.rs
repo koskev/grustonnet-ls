@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 
 use anyhow::{Result, anyhow};
 use itertools::Itertools;
@@ -102,12 +102,7 @@ impl<'a> ReferenceProvider<'a> {
             .filter_map(|f| Uri::from_path(f.to_str().unwrap_or_default()).ok())
             .filter_map(|uri| {
                 // Check if in cache
-                let content = if let Ok(doc) = self.cache.get_document(&uri) {
-                    Some(doc.content)
-                } else {
-                    // If not load file
-                    fs::read_to_string(uri.path().as_str()).ok()
-                }?;
+                let content = self.cache.get_document(&uri).ok()?.content;
                 // Check for name in file and get locations
                 let locations: Vec<lsp_types::Location> = content
                     .match_indices(&identifier)

@@ -172,7 +172,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             merged_node.node_kind = Box::new(NodeKind::DesugaredObject(merged_object));
             return Some(merged_node.into());
         };
-        log::debug!("Looking at {}", current_node.node_kind);
+        log::trace!("Looking at {}", current_node.node_kind);
         self.document_stack.push(current_node.clone());
         match &(*current_node.node_kind) {
             NodeKind::Other(other) => {
@@ -260,14 +260,14 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 }
 
                 self.search_stack.push(apply.target.clone());
-                log::debug!("Got apply {}", apply.target.node_kind);
+                log::trace!("Got apply {}", apply.target.node_kind);
                 // TODO: find function
                 // get names of positional arguments and push them to the document stack
 
                 Some(apply.target.clone())
             }
             NodeKind::Function(func) => {
-                log::debug!("Got function. Stack: {}", self.document_stack);
+                log::trace!("Got function. Stack: {}", self.document_stack);
                 if let Some(apply_node) = self.document_stack.stack.iter().find_map(|n| {
                     if let NodeKind::Apply(apply) = n.node_kind.as_ref() {
                         Some(apply)
@@ -329,7 +329,7 @@ impl<'a> CallStackIter<'a> {
         document_stack: &'a mut NodeStack,
     ) -> Option<Self> {
         let call_stack = document_stack.peek()?.get_call_stack();
-        log::debug!("New callstack iter with stack {}", call_stack);
+        log::trace!("New callstack iter with stack {}", call_stack);
         Some(Self {
             cache,
             base_object: None,
@@ -380,7 +380,7 @@ impl<'a> Iterator for CallStackIter<'a> {
         // Actually resolve the object
         let new_object =
             ResolveNodeIter::new(to_complete_object, self.document_stack, self.cache).last()?;
-        log::debug!(
+        log::trace!(
             "New object: {} Stack: {}",
             new_object.node_kind,
             self.document_stack
