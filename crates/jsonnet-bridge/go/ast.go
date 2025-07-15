@@ -35,8 +35,13 @@ func get_vm(params *EvaluateParams) *jsonnet.VM {
 	return vm
 }
 
-func (GoAst) get_ast(filename *string) ASTInfo {
-	info := ASTInfo{}
+func (GoAst) get_ast(filename *string) (info ASTInfo) {
+	info = ASTInfo{}
+	defer func() {
+		if r := recover(); r != nil {
+			info.error_data = fmt.Sprintf("GO Error: %v", r)
+		}
+	}()
 	node, _, err := jsonnet.MakeVM().ImportAST("", *filename)
 	if err != nil {
 		info.error_data = err.Error()
@@ -52,8 +57,13 @@ func (GoAst) get_ast(filename *string) ASTInfo {
 	return info
 }
 
-func (GoAst) get_ast_snippet(source_file *string, snippet *string) ASTInfo {
-	info := ASTInfo{}
+func (GoAst) get_ast_snippet(source_file *string, snippet *string) (info ASTInfo) {
+	info = ASTInfo{}
+	defer func() {
+		if r := recover(); r != nil {
+			info.error_data = fmt.Sprintf("GO Error: %v", r)
+		}
+	}()
 	node, err := jsonnet.SnippetToAST(*source_file, *snippet)
 	if err != nil {
 		// Since go is stupid we are not able to get the underlying error type and thus are forced to just use the string
@@ -69,8 +79,13 @@ func (GoAst) get_ast_snippet(source_file *string, snippet *string) ASTInfo {
 	return info
 }
 
-func (GoAst) import_ast(source_file *string, filename *string, params *EvaluateParams) ASTInfo {
-	info := ASTInfo{}
+func (GoAst) import_ast(source_file *string, filename *string, params *EvaluateParams) (info ASTInfo) {
+	info = ASTInfo{}
+	defer func() {
+		if r := recover(); r != nil {
+			info.error_data = fmt.Sprintf("GO Error: %v", r)
+		}
+	}()
 	vm := get_vm(params)
 	node, _, err := vm.ImportAST(*source_file, *filename)
 	if err != nil {
@@ -88,8 +103,13 @@ func (GoAst) import_ast(source_file *string, filename *string, params *EvaluateP
 	return info
 }
 
-func (GoAst) evaluate_ast(astString *string, params *EvaluateParams) ASTInfo {
-	info := ASTInfo{}
+func (GoAst) evaluate_ast(astString *string, params *EvaluateParams) (info ASTInfo) {
+	info = ASTInfo{}
+	defer func() {
+		if r := recover(); r != nil {
+			info.error_data = fmt.Sprintf("GO Error: %v", r)
+		}
+	}()
 	node, err := Unmarshal_ast[ast.Node](*astString)
 	if err != nil {
 		info.error_data = err.Error()
@@ -107,8 +127,13 @@ func (GoAst) evaluate_ast(astString *string, params *EvaluateParams) ASTInfo {
 	return info
 }
 
-func (GoAst) evaluate_snippet(filename *string, snippet *string, params *EvaluateParams) ASTInfo {
-	info := ASTInfo{}
+func (GoAst) evaluate_snippet(filename *string, snippet *string, params *EvaluateParams) (info ASTInfo) {
+	info = ASTInfo{}
+	defer func() {
+		if r := recover(); r != nil {
+			info.error_data = fmt.Sprintf("GO Error: %v", r)
+		}
+	}()
 	vm := get_vm(params)
 	res, err := vm.EvaluateAnonymousSnippet(*filename, *snippet)
 	if err != nil {
@@ -120,8 +145,15 @@ func (GoAst) evaluate_snippet(filename *string, snippet *string, params *Evaluat
 	return info
 }
 
-func (GoAst) lint_snippet(filename *string, snippet *string, params *EvaluateParams) ASTInfo {
-	info := ASTInfo{}
+func (GoAst) lint_snippet(filename *string, snippet *string, params *EvaluateParams) (info ASTInfo) {
+	info = ASTInfo{}
+
+	defer func() {
+		if r := recover(); r != nil {
+			info.error_data = fmt.Sprintf("GO Error: %v", r)
+		}
+	}()
+
 	vm := get_vm(params)
 	buf := &bytes.Buffer{}
 	hasErr := linter.LintSnippet(vm, buf, []linter.Snippet{

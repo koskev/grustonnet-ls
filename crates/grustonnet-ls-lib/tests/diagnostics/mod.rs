@@ -2,10 +2,12 @@ use language_server::{server::LSPServer, utils::UriHelper};
 use pretty_assertions::assert_eq;
 use std::fs::read_to_string;
 
+pub use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Uri};
+
 use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
-use lsp_types::{Diagnostic, Uri};
 
 pub mod empty;
+pub mod error;
 pub mod runtime;
 pub mod r#static;
 
