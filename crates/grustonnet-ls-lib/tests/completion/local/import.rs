@@ -56,3 +56,97 @@ fn import_chained() {
     }
     .check();
 }
+
+#[test]
+fn import_chained_long_start() {
+    CompletionTestCase {
+        filename: "testdata/complete/import/long_chain.jsonnet".into(),
+        replace_string: "x: next1".into(),
+        replace_by_string: "x: next1.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "one".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "one_local".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn import_chained_long_one_direct() {
+    CompletionTestCase {
+        filename: "testdata/complete/import/long_chain.jsonnet".into(),
+        replace_string: "x: next1".into(),
+        replace_by_string: "x: next1.one.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "two".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "two_local".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn import_chained_long_five_direct() {
+    CompletionTestCase {
+        filename: "testdata/complete/import/long_chain.jsonnet".into(),
+        replace_string: "x: next1".into(),
+        replace_by_string: "x: next1.one.two.three.four.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "five".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn import_chained_long_two_local() {
+    CompletionTestCase {
+        filename: "testdata/complete/import/long_chain.jsonnet".into(),
+        replace_string: "x: next1".into(),
+        replace_by_string: "x: next1.one_local.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "two".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "two_local".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
