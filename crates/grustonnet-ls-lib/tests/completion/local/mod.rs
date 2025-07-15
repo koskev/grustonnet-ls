@@ -24,4 +24,5 @@ pub mod extcode;
 pub mod import;
 pub mod local;
 pub mod selfnode;
+pub mod shadow;
 pub mod superindex;

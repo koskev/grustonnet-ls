@@ -48,8 +48,8 @@ impl Display for NodeKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}: ", self.variant_name())?;
         match self {
-            Self::Local(_local) => {
-                write!(f, "Binds:")?;
+            Self::Local(local) => {
+                write!(f, "Binds: {:?}", local.get_name())?;
             }
             Self::LiteralString(s) => {
                 write!(f, "{}", s.value)?;
