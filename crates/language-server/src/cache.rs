@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, hash_map::Entry},
     fmt::Debug,
     fs,
     sync::{Arc, RwLock},
@@ -118,17 +118,17 @@ impl<G: ASTGenerator> Cache<G> {
 
     pub fn get_document(&self, uri: &Uri) -> Result<Document<G>, LSPError> {
         // TODO: lock write only after we want to manually load
-        match self.documents.write().unwrap().get_mut(uri) {
-            Some(val) => {
+        match self.documents.write().unwrap().entry(uri.clone()) {
+            Entry::Occupied(mut val) => {
                 // TODO: TEST!!
                 log::debug!("Loaded from cache {}", uri.path().as_str());
-                if val.manually_loaded_at.is_some() {
-                    val.update_content_if_needed()?;
+                if val.get().manually_loaded_at.is_some() {
+                    val.get_mut().update_content_if_needed()?;
                 }
-                Ok(val.clone())
+                return Ok(val.get().clone());
             }
-            // load into cache with flag
-            None => {
+            Entry::Vacant(key) => {
+                // load into cache with flag
                 log::debug!("Loading new file {}", uri.path().as_str());
                 let mut doc = Document {
                     filename: uri.path().as_str().to_string(),
@@ -136,7 +136,8 @@ impl<G: ASTGenerator> Cache<G> {
                     ..Default::default()
                 };
                 doc.update_content_if_needed()?;
-                Ok(doc)
+                key.insert(doc.clone());
+                return Ok(doc);
             }
         }
     }
