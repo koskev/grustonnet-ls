@@ -4,6 +4,7 @@ use std::{
     fmt::{Debug, Display},
     fs,
     path::Path,
+    str::FromStr,
     sync::{Arc, RwLock},
     time::Instant,
 };
@@ -275,14 +276,22 @@ impl GoJsonnet {
 
     pub fn get_evaluate_params(&self, filepath: &str) -> EvaluateParams {
         let mut params = self.params.read().unwrap().clone();
-        // TODO: the uri part is a mess. Just use uri everywhere?
-        let uri = Uri::from_path(filepath).unwrap();
-        let mut p = Path::new(uri.path().as_str());
         // Add the current path of the file to the jpaths
-        if p.is_file() {
-            p = p.parent().unwrap()
+        if let Ok(p) = fs::canonicalize(filepath)
+            && p.is_file()
+            && let Some(parent) = p.parent()
+            && let Some(parent_str) = parent.to_str()
+        {
+            params.jpaths.push(parent_str.into());
         }
-        params.jpaths.push(p.to_str().unwrap().to_string());
+        // Add environment Variables
+        if let Ok(jpath_env) = std::env::var("JSONNET_PATH") {
+            let parts = jpath_env
+                .split(':')
+                .filter_map(|s| fs::canonicalize(s).ok())
+                .filter_map(|p| Some(p.to_str()?.to_string()));
+            params.jpaths.extend(parts);
+        }
         params
     }
 }

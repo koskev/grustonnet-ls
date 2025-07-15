@@ -107,7 +107,7 @@ impl<G: ASTGenerator> Cache<G> {
     pub fn update_content(&self, uri: Uri, text: &str) {
         let mut lock = self.documents.write().unwrap();
         let doc = lock.entry(uri.clone()).or_insert(Document {
-            filename: uri.as_str().into(),
+            filename: uri.path().as_str().into(),
             ..Default::default()
         });
 
