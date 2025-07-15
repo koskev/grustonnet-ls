@@ -94,7 +94,6 @@ impl<'a> CompletionInfo<'a> {
                     }
                 }
 
-                log::error!("Prev node {:?}", prev_node.start_position());
                 info.pos = prev_node.start_position().into();
                 info.pos.column += 1;
             }

@@ -85,3 +85,63 @@ fn function_args() {
     }
     .check();
 }
+
+#[test]
+fn inside_array_top() {
+    CompletionTestCase {
+        filename: "testdata/complete/array/inside_array.jsonnet".into(),
+        replace_string: "// 1".into(),
+        replace_by_string: "my".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "myVar".to_string(),
+                kind: Some(CompletionItemKind::VARIABLE),
+                ..Default::default()
+            }],
+        },
+        config: global_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn inside_array_middle() {
+    CompletionTestCase {
+        filename: "testdata/complete/array/inside_array.jsonnet".into(),
+        replace_string: "// 2".into(),
+        replace_by_string: "my".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "myVar".to_string(),
+                kind: Some(CompletionItemKind::VARIABLE),
+                ..Default::default()
+            }],
+        },
+        config: global_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn inside_array_bottom() {
+    CompletionTestCase {
+        filename: "testdata/complete/array/inside_array.jsonnet".into(),
+        replace_string: "// 3".into(),
+        replace_by_string: "my".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "myVar".to_string(),
+                kind: Some(CompletionItemKind::VARIABLE),
+                ..Default::default()
+            }],
+        },
+        config: global_config(),
+        ..Default::default()
+    }
+    .check();
+}
