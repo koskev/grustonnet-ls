@@ -43,6 +43,13 @@ pub struct Local {
     pub body: Option<Arc<Node>>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
+pub struct Unary {
+    pub expr: Arc<Node>,
+    pub op: i32,
+}
+
 impl Local {
     pub fn get_name(&self) -> Option<String> {
         Some(self.binds.first()?.variable.0.clone())

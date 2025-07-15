@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::node::types::{
-    Array, Error, Import, Local,
+    Array, Error, Import, Local, Unary,
     binary::Binary,
     conditional::Conditional,
     desugared_object::DesugaredObject,
@@ -33,10 +33,12 @@ pub enum NodeKind {
     Import(Import),
     Conditional(Conditional),
     Error(Error),
+    Unary(Unary),
 
     #[serde(alias = "Self")]
     SelfNode,
     SuperIndex,
+    Dollar,
 
     // Leftover nodes. Most likely something is broken
     Other(serde_json::Value),

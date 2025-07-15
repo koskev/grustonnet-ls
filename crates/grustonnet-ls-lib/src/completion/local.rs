@@ -193,6 +193,14 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 if var.is_std() {
                     return Some(current_node);
                 }
+                if var.is_dollar() {
+                    let dollar_node = Arc::new(Node {
+                        node_base: current_node.node_base.clone(),
+                        node_kind: Box::new(NodeKind::Dollar),
+                    });
+                    self.search_stack.push(dollar_node.clone());
+                    return Some(dollar_node);
+                }
 
                 if let Some(resolved) = var.resolve(&self.document_stack) {
                     log::debug!("Resolved to {:?}", resolved.node_kind.variant_name());
@@ -303,6 +311,24 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 let resolved = cond.resolve().clone();
                 self.search_stack.push(resolved.clone());
                 Some(resolved)
+            }
+            NodeKind::Dollar => {
+                // Get the outer most object
+                if let Some(first_node) = self
+                    .document_stack
+                    .stack
+                    .iter()
+                    .find(|n| matches!(*n.node_kind, NodeKind::DesugaredObject(_)))
+                {
+                    // TODO: support for binary
+                    match first_node.node_kind.as_ref() {
+                        NodeKind::DesugaredObject(_obj) => Some(first_node.clone()),
+                        NodeKind::Binary(_binary) => None,
+                        _ => None,
+                    }
+                } else {
+                    None
+                }
             }
             _ => {
                 log::warn!(

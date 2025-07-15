@@ -1,0 +1,51 @@
+use super::*;
+
+#[test]
+fn dollar_simple() {
+    CompletionTestCase {
+        filename: "testdata/complete/dollar/simple.jsonnet".into(),
+        replace_string: "x:: 1".into(),
+        replace_by_string: "x:: $.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "x".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "y".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn dollar_nested() {
+    CompletionTestCase {
+        filename: "testdata/complete/dollar/nested.jsonnet".into(),
+        replace_string: "x: 1".into(),
+        replace_by_string: "x: $.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "outer".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "y".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}

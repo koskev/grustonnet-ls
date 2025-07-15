@@ -14,19 +14,24 @@ pub struct Var {
 }
 
 impl Var {
-    // TODO: resolve before is vars
-    pub fn is_std(&self) -> bool {
+    fn is_name(&self, name: &str) -> bool {
         if let Some(id) = &self.id {
-            return id.0 == "std";
+            return id.0 == name;
         }
         return false;
     }
 
+    // TODO: resolve before is vars
+    pub fn is_std(&self) -> bool {
+        self.is_name("std")
+    }
+
     pub fn is_self(&self) -> bool {
-        if let Some(id) = &self.id {
-            return id.0 == "self";
-        }
-        return false;
+        self.is_name("self")
+    }
+
+    pub fn is_dollar(&self) -> bool {
+        self.is_name("$")
     }
 
     pub fn resolve_bind<'a>(&self, document_stack: &'a NodeStack) -> Option<&'a LocalBind> {
