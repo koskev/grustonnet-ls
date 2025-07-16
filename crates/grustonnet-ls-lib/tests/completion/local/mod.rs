@@ -16,7 +16,6 @@ fn local_config() -> Configuration {
 
 use crate::completion::completion::CompletionTestCase;
 
-pub mod assert;
 pub mod binary;
 pub mod builder;
 pub mod dollar;
