@@ -144,7 +144,6 @@ fn builder_simple_with_arg_chain() {
 
 
 #[test]
-#[ignore = "not implemented"]
 fn builder_simple_mixed_arg_chain() {
     CompletionTestCase {
         filename: "testdata/complete/builder/simple.jsonnet".into(),
@@ -155,11 +154,11 @@ fn builder_simple_mixed_arg_chain() {
             is_incomplete: false,
             items: vec![
                 CompletionItem {
-                    label: "key".to_string(),
+                    label: "noArg".to_string(),
                     ..Default::default()
                 },
                 CompletionItem {
-                    label: "noArg".to_string(),
+                    label: "key".to_string(),
                     ..Default::default()
                 },
                 
