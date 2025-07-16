@@ -1,7 +1,6 @@
 use super::*;
 
 #[test]
-#[ignore = "todo"]
 fn shadow_first() {
     CompletionTestCase {
         filename: "testdata/complete/local/shadow.jsonnet".into(),
@@ -21,7 +20,6 @@ fn shadow_first() {
 }
 
 #[test]
-#[ignore = "todo"]
 fn shadow_nested() {
     CompletionTestCase {
         filename: "testdata/complete/local/shadow.jsonnet".into(),
