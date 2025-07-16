@@ -1,5 +1,5 @@
-local params = std.extVar("PARAMS");
+local params = std.extVar('PARAMS');
 
 {
-	x: params
+  x: params,
 }

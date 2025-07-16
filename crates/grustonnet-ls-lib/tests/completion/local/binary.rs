@@ -26,7 +26,6 @@ fn binary_simple() {
 }
 
 #[test]
-#[ignore = "Currently unsupported"]
 fn binary_override_single() {
     CompletionTestCase {
         filename: "testdata/complete/binary/override.jsonnet".into(),

@@ -3,6 +3,7 @@ use std::{
     sync::Arc,
 };
 
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -53,6 +54,13 @@ impl DesugaredObject {
         log::debug!("Merging {} and {}", self, other);
         new_object.asserts.extend(other.asserts.clone());
         new_object.fields.extend(other.fields.clone());
+        new_object.fields = new_object
+            .fields
+            .iter()
+            .chain(other.fields.iter())
+            .unique_by(|o| o.get_name())
+            .cloned()
+            .collect();
         new_object.locals.extend(other.locals.clone());
 
         new_object
