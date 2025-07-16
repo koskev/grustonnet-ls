@@ -176,6 +176,7 @@ impl LSPServer for JsonnetServer {
                 }
             }
             CompletionType::Import => {
+                log::info!("Import completion");
                 let import_completion = ImportCompletion::new(&self.cache);
                 completion_list.push(Box::new(import_completion));
             }

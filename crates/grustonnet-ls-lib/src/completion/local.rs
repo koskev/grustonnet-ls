@@ -184,7 +184,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 Some(idx.target.clone())
             }
             NodeKind::DesugaredObject(_obj) => {
-                log::debug!("Found desugared!");
+                log::debug!("Found desugared! {}", current_node.node_kind);
                 self.merge_nodes.push(current_node.clone());
                 Some(current_node)
             }
@@ -232,8 +232,9 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                         Ok(imported_node) => {
                             let imported_node = Arc::new(imported_node);
                             log::debug!(
-                                "pushing import node {}",
-                                imported_node.node_kind.variant_name()
+                                "pushing import node {} for {}",
+                                imported_node.node_kind,
+                                file.value,
                             );
                             self.search_stack.push(imported_node.clone());
                             Some(imported_node)
@@ -333,7 +334,9 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                     "Unhandled node in completion iterator: {}",
                     current_node.node_kind.variant_name(),
                 );
-                None
+                // Return the current node as the result to avoid getting the result for the
+                // previous index e.g. foo.bar.bar.bar
+                Some(current_node)
             }
         }
     }
@@ -484,6 +487,7 @@ impl<'a> Completion for LocalCompletion<'a> {
         // use the second one as a filter
         // TODO: Resolve the complete call stack
         let node = self.build_node(stack)?;
+        log::trace!("Built node {}", node.node_kind);
         let items = match node.node_kind.as_ref() {
             NodeKind::DesugaredObject(obj) => obj
                 .fields

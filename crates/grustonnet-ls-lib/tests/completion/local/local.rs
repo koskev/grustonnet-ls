@@ -650,3 +650,19 @@ fn ext_code_simple() {
     }
     .check();
 }
+
+#[test]
+fn end() {
+    CompletionTestCase {
+        filename: "testdata/complete/end.jsonnet".into(),
+        replace_string: "x: myVar.key.keytwo".into(),
+        replace_by_string: "x: myVar.key.keytwo.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
