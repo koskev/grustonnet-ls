@@ -52,7 +52,7 @@ impl Var {
             })
     }
 
-    pub fn resolve(&self, document_stack: &NodeStack) -> Option<Arc<Node>> {
+    pub fn resolve(&self, document_stack: &mut NodeStack) -> Option<Arc<Node>> {
         let Some(id) = &self.id else {
             return None;
         };
@@ -60,10 +60,8 @@ impl Var {
             let bind = binds.iter().find(|local| local.variable.0 == id.0);
             bind?.body.clone()
         };
-        document_stack
-            .stack
-            .iter()
-            .find_map(|node| match node.node_kind.as_ref() {
+        while let Some(next_node) = document_stack.stack.pop() {
+            if let Some(found) = match next_node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
                 NodeKind::Function(func) => func.parameters.as_ref()?.iter().find_map(|p| {
@@ -74,6 +72,12 @@ impl Var {
                     }
                 }),
                 _ => None,
-            })
+            } {
+                // Push the found node back
+                document_stack.push(next_node);
+                return Some(found);
+            }
+        }
+        None
     }
 }

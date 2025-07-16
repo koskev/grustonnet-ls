@@ -87,9 +87,8 @@ impl<'a> ResolveNodeIter<'a> {
     fn handle_self_super(&mut self, current_node: &Node, is_super: bool) -> Option<Arc<Node>> {
         // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
         // current object instead of the var object
-        let self_stack = self.document_stack.generate_stack_for_node(&current_node);
 
-        let mut stack_iter = self_stack.stack.iter().rev();
+        let mut stack_iter = self.document_stack.stack.iter().rev();
         // Find the object the self node belongs to
         let found_object = stack_iter.find(|n| {
             if let NodeKind::DesugaredObject(_) = n.node_kind.as_ref() {
@@ -107,18 +106,19 @@ impl<'a> ResolveNodeIter<'a> {
         {
             // Find all binaries in a row and keep the top one
             let binary_pos = if is_super {
-                self_stack
+                self.document_stack
                     .stack
                     .iter()
                     .rposition(|n| matches!(*n.node_kind, NodeKind::Binary(_)))
             } else {
-                self_stack
+                self.document_stack
                     .stack
                     .iter()
                     .position(|n| matches!(*n.node_kind, NodeKind::Binary(_)))
             }
             .unwrap_or(0);
-            let NodeKind::Binary(binary) = self_stack.stack[binary_pos].node_kind.as_ref() else {
+            let NodeKind::Binary(binary) = self.document_stack.stack[binary_pos].node_kind.as_ref()
+            else {
                 log::error!("BUG: Binary is not there");
                 return None;
             };
@@ -202,7 +202,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                     return Some(dollar_node);
                 }
 
-                if let Some(resolved) = var.resolve(&self.document_stack) {
+                if let Some(resolved) = var.resolve(&mut self.document_stack) {
                     log::debug!("Resolved to {:?}", resolved.node_kind.variant_name());
                     self.search_stack.push(resolved.clone());
                     Some(resolved.clone())

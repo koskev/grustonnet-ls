@@ -152,7 +152,7 @@ impl Into<lsp_types::SemanticTokens> for SemanticDataList {
 }
 
 pub fn get_tokens(root: &Node) -> SemanticTokens {
-    let document_stack = root.get_complete_stack();
+    let mut document_stack = root.get_complete_stack();
 
     let mut search_stack = document_stack.clone();
     let mut tokens = SemanticDataList::default();
@@ -169,7 +169,7 @@ pub fn get_tokens(root: &Node) -> SemanticTokens {
                 };
                 if var.id.clone().unwrap_or_default().0 == "std" {
                     data.node_modifier = vec![SemanticModifier::DefaultLibrary];
-                } else if let Some(var_node) = var.resolve(&document_stack) {
+                } else if let Some(var_node) = var.resolve(&mut document_stack) {
                     match var_node.node_kind.as_ref() {
                         NodeKind::SelfNode => {
                             data.node_modifier = vec![SemanticModifier::DefaultLibrary];
