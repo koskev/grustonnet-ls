@@ -53,6 +53,26 @@ impl NodeStack {
             .collect()
     }
 
+    pub fn find_last_and_skip<F>(&mut self, kind: F) -> Option<Arc<Node>>
+    where
+        F: Fn(&NodeKind) -> bool,
+    {
+        let found_pos = self.stack.iter().position(|n| kind(&n.node_kind))?;
+
+        self.stack.truncate(found_pos + 1);
+        Some(self.stack[found_pos].clone())
+    }
+
+    pub fn find_next_and_skip<F>(&mut self, kind: F) -> Option<Arc<Node>>
+    where
+        F: Fn(&NodeKind) -> bool,
+    {
+        let found_pos = self.stack.iter().rposition(|n| kind(&n.node_kind))?;
+
+        self.stack.truncate(found_pos + 1);
+        Some(self.stack[found_pos].clone())
+    }
+
     pub fn get_last_unbuilt_node(
         &mut self,
         cache: &Cache<JsonnetASTGenerator>,

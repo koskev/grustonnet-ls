@@ -316,9 +316,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 // Get the outer most object
                 if let Some(first_node) = self
                     .document_stack
-                    .stack
-                    .iter()
-                    .find(|n| matches!(*n.node_kind, NodeKind::DesugaredObject(_)))
+                    .find_last_and_skip(|n| matches!(n, NodeKind::DesugaredObject(_)))
                 {
                     // TODO: support for binary
                     match first_node.node_kind.as_ref() {
