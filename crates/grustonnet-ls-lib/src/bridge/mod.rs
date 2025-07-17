@@ -4,16 +4,14 @@ use std::{
     fmt::{Debug, Display},
     fs,
     path::Path,
-    str::FromStr,
     sync::{Arc, RwLock},
     time::Instant,
 };
 
 use anyhow::Result;
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue, FormatOptions};
-use language_server::{server::LSPError, utils::UriHelper};
+use language_server::server::LSPError;
 use lsp_server::ErrorCode;
-use lsp_types::Uri;
 use name_variant::NamedVariant;
 use regex::Regex;
 

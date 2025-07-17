@@ -89,3 +89,15 @@ impl Default for NodeKind {
         return Self::Other(json!(null));
     }
 }
+
+impl NodeKind {
+    pub fn get_value(&self) -> Option<String> {
+        match self {
+            Self::LiteralString(litstr) => Some(litstr.value.clone()),
+            Self::LiteralNumber(litnum) => Some(litnum.original_string.clone()),
+            Self::LiteralBoolean(litbool) => Some(litbool.value.to_string()),
+            Self::DesugaredObject(obj) => Some(obj.to_string()),
+            _ => None,
+        }
+    }
+}

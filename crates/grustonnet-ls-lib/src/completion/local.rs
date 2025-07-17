@@ -1,12 +1,5 @@
 use std::{sync::Arc, time::Instant};
 
-use anyhow::{Result, anyhow};
-use language_server::{
-    cache::Cache,
-    completion::{Completion, CompletionResult},
-};
-use lsp_types::{CompletionItem, CompletionList, Position, Uri};
-
 use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
@@ -16,6 +9,12 @@ use crate::{
         types::{function::Apply, node::Node, node_kind::NodeKind},
     },
 };
+use anyhow::{Result, anyhow};
+use language_server::{
+    cache::Cache,
+    completion::{Completion, CompletionResult},
+};
+use lsp_types::{CompletionItem, CompletionItemKind, CompletionList, Position, Uri};
 
 pub struct LocalCompletion<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -492,12 +491,13 @@ impl<'a> Completion for LocalCompletion<'a> {
             NodeKind::DesugaredObject(obj) => obj
                 .fields
                 .iter()
-                .filter_map(|field| match &(*field.name.node_kind) {
-                    NodeKind::LiteralString(name) => Some(CompletionItem {
-                        label: name.value.clone(),
+                .filter_map(|field| {
+                    Some(CompletionItem {
+                        label: field.get_name()?,
+                        detail: field.body.node_kind.get_value(),
+                        kind: Some(CompletionItemKind::FIELD),
                         ..Default::default()
-                    }),
-                    _ => None,
+                    })
                 })
                 .collect(),
             NodeKind::Var(var) => {

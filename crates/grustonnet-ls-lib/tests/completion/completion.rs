@@ -106,8 +106,16 @@ impl CompletionTestCase {
         let mut completion_list: CompletionList =
             serde_json::from_value(completion_list.0).unwrap();
 
-        for item in completion_list.items.iter_mut() {
+        for (item, expected) in completion_list
+            .items
+            .iter_mut()
+            .zip(self.expected.items.iter())
+        {
             item.detail = None;
+            // If kind was not set in the test we don't test it
+            if expected.kind.is_none() {
+                item.kind = None;
+            }
         }
 
         assert_eq!(

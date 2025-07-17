@@ -39,12 +39,19 @@ impl DesugaredObjectField {
 
 impl Display for DesugaredObject {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let names: String = self
+        let body = self
             .fields
             .iter()
-            .map(|f| format!("field {}", f.name.node_kind))
-            .collect();
-        write!(f, "{}", names)
+            .map(|f| {
+                format!(
+                    "{} : {}",
+                    f.get_name().unwrap_or_default(),
+                    f.body.node_kind.get_value().unwrap_or_default()
+                )
+            })
+            .collect::<String>();
+
+        write!(f, "{{ {} }}", body)
     }
 }
 
