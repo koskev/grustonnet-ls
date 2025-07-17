@@ -133,9 +133,15 @@ impl Into<lsp_types::SemanticTokens> for SemanticDataList {
                 delta_start: if data.location.begin.line != prev_token.location.begin.line {
                     // Location starts at 1. As this is the only absolute value, we only need to
                     // substract 1 here
-                    data.location.begin.column as u32 - 1
+                    (data.location.begin.column as u32)
+                        .checked_sub(1)
+                        .unwrap_or_default()
                 } else {
-                    (data.location.begin.column - prev_token.location.begin.column) as u32
+                    data.location
+                        .begin
+                        .column
+                        .checked_sub(prev_token.location.begin.column)
+                        .unwrap_or_default() as u32
                 },
                 length: data.length,
                 token_type: data.node_type.to_int(),
