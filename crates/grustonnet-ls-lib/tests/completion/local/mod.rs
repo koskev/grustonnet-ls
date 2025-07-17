@@ -20,6 +20,7 @@ pub mod binary;
 pub mod builder;
 pub mod dollar;
 pub mod extcode;
+pub mod function;
 pub mod import;
 pub mod local;
 pub mod selfnode;

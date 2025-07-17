@@ -173,6 +173,16 @@ impl<'a> Iterator for NodeIter<'a> {
                     self.index += 1;
                     return Some(&apply.target);
                 }
+                let mut offset = 1;
+                if let Some(arg) = apply.arguments.positional.get(self.index - offset) {
+                    self.index += 1;
+                    return Some(&arg.expr);
+                }
+                offset = offset + apply.arguments.positional.len();
+                if let Some(arg) = apply.arguments.named.get(self.index - offset) {
+                    self.index += 1;
+                    return Some(&arg.arg);
+                }
                 return None;
             }
             NodeKind::Binary(binary) => {
