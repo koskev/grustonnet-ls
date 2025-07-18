@@ -209,10 +209,19 @@ impl<'a> Iterator for NodeIter<'a> {
                 }
                 return None;
             }
+            NodeKind::Unary(un) => {
+                if self.index == 0 {
+                    self.index += 1;
+                    return Some(&un.expr);
+                }
+                return None;
+            }
             NodeKind::LiteralString(_)
             | NodeKind::LiteralNumber(_)
             | NodeKind::LiteralBoolean(_)
             | NodeKind::LiteralNull
+            | NodeKind::SuperIndex
+            | NodeKind::SelfNode
             | NodeKind::Import(_) => (),
             _ => {
                 error!(

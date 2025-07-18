@@ -1,4 +1,7 @@
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt::{Display, Formatter},
+    sync::Arc,
+};
 
 use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
@@ -9,11 +12,21 @@ use crate::node::types::{
     binary::Binary,
     conditional::Conditional,
     desugared_object::DesugaredObject,
+    fodder::Fodder,
     function::{Apply, Function},
     index::Index,
     literals::{LiteralBoolean, LiteralNumber, LiteralString},
+    node::Node,
     var::Var,
 };
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
+pub struct InSuper {
+    index: Arc<Node>,
+    in_fodder: Option<Fodder>,
+    super_fodder: Option<Fodder>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
@@ -36,6 +49,7 @@ pub enum NodeKind {
     Conditional(Conditional),
     Error(Error),
     Unary(Unary),
+    InSuper(InSuper),
 
     #[serde(alias = "Self")]
     SelfNode,
