@@ -361,9 +361,13 @@ pub trait LSPServer {
             } else {
                 rope = Rope::from_str(&current_text.content);
             }
+            let start = Instant::now();
             self.cache()
                 .update_content(params.text_document.uri.clone(), rope.to_string().as_str());
+            log::info!("Updating content took {:?}", start.elapsed());
+            let start = Instant::now();
             self.publish_diagnostics(params.text_document.uri.clone());
+            log::info!("Publishing diagnostics took {:?}", start.elapsed());
         }
         Ok(())
     }

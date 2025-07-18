@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use anyhow::{Result, anyhow};
 use language_server::{cache::ASTGenerator, utils::rope::RopeHelper};
 use ropey::Rope;
@@ -33,7 +35,9 @@ impl ASTGenerator for JsonnetASTGenerator {
                 .get_ast_snippet(source_file, &current_content.to_string());
             match json_data {
                 Ok(json_data) => {
+                    let start = Instant::now();
                     let node_data = serde_json::from_str::<Node>(&json_data)?;
+                    log::info!("Deserializing took {:?}", start.elapsed());
                     log::debug!("Got valid ast!");
                     return Ok(node_data);
                 }
