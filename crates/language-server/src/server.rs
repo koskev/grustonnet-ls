@@ -2,6 +2,7 @@ use std::{
     error::Error,
     fmt::Display,
     sync::{Arc, Mutex},
+    time::Instant,
 };
 
 use anyhow::Result;
@@ -47,7 +48,9 @@ macro_rules! lsp_handle_request {
     ($server: expr, $name:ident, $param:ty, $req: expr) => {
         match cast_req::<$param>($req) {
             Ok((_id, params)) => {
+                let start = Instant::now();
                 let resp = $server.$name(params);
+                log::info!("Request {} took {:?}", stringify!($name), start.elapsed());
                 return resp;
             }
             Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
@@ -60,10 +63,16 @@ macro_rules! lsp_handle_notification {
     ($server: expr, $name:ident, $param:ty, $req: expr) => {
         match cast_notification::<$param>($req) {
             Ok(params) => {
+                let start = Instant::now();
                 match $server.$name(params) {
                     Ok(_) => (),
                     Err(e) => log::error!("Notification failed: {:?}", e),
                 };
+                log::info!(
+                    "Notification {} took {:?}",
+                    stringify!($name),
+                    start.elapsed()
+                );
                 return Ok(());
             }
             Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),

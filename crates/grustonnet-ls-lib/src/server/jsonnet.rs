@@ -1,4 +1,7 @@
-use std::sync::{Arc, RwLock};
+use std::{
+    sync::{Arc, RwLock},
+    time::Instant,
+};
 
 use anyhow::Result;
 use bevy_tasks::TaskPool;
@@ -282,15 +285,19 @@ impl LSPServer for JsonnetServer {
         &self,
         params: <lsp_types::request::SemanticTokensFullRequest as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
+        let start = Instant::now();
         let doc = self.cache.get_document(&params.text_document.uri)?;
         let root = doc.get_ast()?;
-        Ok(semantic_tokens::get_tokens(root).into())
+        let tokens = semantic_tokens::get_tokens(root);
+        log::info!("Getting semantic tokens took {:?}", start.elapsed());
+        Ok(tokens.into())
     }
 
     fn references(
         &self,
         params: <lsp_types::request::References as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
+        let start = Instant::now();
         let mut search_paths = self
             .cache
             .ast_generator
@@ -314,6 +321,7 @@ impl LSPServer for JsonnetServer {
             &params.text_document_position.text_document.uri,
             params.context.include_declaration,
         )?;
+        log::info!("Finding references took {:?}", start.elapsed());
 
         Ok(references.into())
     }
