@@ -213,3 +213,20 @@ fn import_simple() {
     }
     .check();
 }
+
+#[test]
+fn local_function() {
+    DefinitionTestCase {
+        filename: "testdata/definition/local_function.jsonnet".into(),
+        source: Position {
+            line: 4,
+            character: 7,
+        },
+        target: Position {
+            line: 0,
+            character: 6,
+        },
+        ..Default::default()
+    }
+    .check();
+}

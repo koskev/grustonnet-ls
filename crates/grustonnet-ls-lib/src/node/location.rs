@@ -78,6 +78,14 @@ impl LocationRange {
 
         return true;
     }
+
+    pub fn is_valid(&self) -> bool {
+        return self.begin.line != 0
+            && self.begin.column != 0
+            && self.end.line != 0
+            && self.end.column != 0
+            && self.file_name.len() != 0;
+    }
 }
 
 #[cfg(test)]

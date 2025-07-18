@@ -36,13 +36,30 @@ impl<'a> DefinitionProvider<'a> {
             .unwrap_or(built_node.clone())
             .get_name_at_pos(&pos);
 
+        log::trace!(
+            "Searching definition for {} in {}",
+            index_name,
+            built_node.node_kind
+        );
         let location: LocationRange = match built_node.node_kind.as_ref() {
-            NodeKind::Var(var) => Some(
-                var.resolve_bind(&document_stack)
-                    .ok_or(anyhow!("unable to resolve var"))?
-                    .loc_range
-                    .clone(),
-            ),
+            NodeKind::Var(var) => {
+                let bind = var
+                    .resolve_bind(&document_stack)
+                    .ok_or(anyhow!("unable to resolve var"))?;
+                // If the bind is empty, we'll try the body which most likely has a valid location
+                if bind.loc_range.is_valid() {
+                    Some(bind.loc_range.clone())
+                } else {
+                    Some(
+                        bind.clone()
+                            .body
+                            .ok_or(anyhow!("Bind does not have a body"))?
+                            .node_base
+                            .loc_range
+                            .clone(),
+                    )
+                }
+            }
             NodeKind::DesugaredObject(obj) => Some(
                 obj.get_field(&index_name)
                     .ok_or(anyhow!("unable to get object field {}", index_name))?
@@ -62,6 +79,7 @@ impl<'a> DefinitionProvider<'a> {
             "Could not resolve location of {}",
             built_node.node_kind
         ))?;
+        log::trace!("Location: {:?}", location);
         Ok(DefinitinInfo {
             name: index_name,
             location: lsp_types::Location {

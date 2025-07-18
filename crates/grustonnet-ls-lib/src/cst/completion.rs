@@ -93,6 +93,11 @@ impl<'a> CompletionInfo<'a> {
                         }
                     }
                 }
+                log::trace!(
+                    "Got cst node at {:?} with type {}",
+                    prev_node.start_position(),
+                    prev_node.grammar_name()
+                );
 
                 info.pos = prev_node.start_position().into();
                 info.pos.column += 1;

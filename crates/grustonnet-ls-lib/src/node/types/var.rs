@@ -45,7 +45,7 @@ impl Var {
         document_stack
             .stack
             .iter()
-            .find_map(|node| match &(*node.node_kind) {
+            .find_map(|node| match node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
                 _ => None,
@@ -68,6 +68,7 @@ impl Var {
                     if p.name == *id {
                         p.default_arg.clone()
                     } else {
+                        log::trace!("Could not resolve func var");
                         None
                     }
                 }),
@@ -78,6 +79,7 @@ impl Var {
                 return Some(found);
             }
         }
+        log::trace!("Unable to find var in stack");
         None
     }
 }
