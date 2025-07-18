@@ -31,6 +31,8 @@ pub enum NodeKind {
     Index(Index),
     Var(Var),
     Import(Import),
+    ImportStr(Import),
+    ImportBin(Import),
     Conditional(Conditional),
     Error(Error),
     Unary(Unary),
