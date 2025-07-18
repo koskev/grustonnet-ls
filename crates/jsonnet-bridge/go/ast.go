@@ -258,7 +258,9 @@ func tagged_marshal(val any) map[string]any {
 				data[field_type.Name] = tagged_marshal(field_val.Interface())
 			}
 		case reflect.Pointer:
-			if field_val.Elem().Kind() == reflect.Struct {
+			// XXX: Filter out *Source pointers as they contain the whole file. Which would mean every node has a copy of the whole file
+			if field_val.Elem().Kind() == reflect.Struct &&
+				reflect.TypeOf(field_val.Elem().Interface()) != reflect.TypeFor[ast.Source]() {
 				data[field_type.Name] = tagged_marshal(field_val.Elem().Interface())
 			}
 		default:
