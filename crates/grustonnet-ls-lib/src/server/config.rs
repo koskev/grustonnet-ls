@@ -40,7 +40,7 @@ pub struct JsonnetConfig {
     pub jpaths: Vec<String>,
 
     /// Paths relative to the root dir to add to the jpath
-    #[default(vec!["lib".into(), "vendor".into()])]
+    #[default(vec!["lib".into(), "vendor".into(), ".".into()])]
     pub default_root_jpaths: Vec<String>,
 
     #[default = true]
