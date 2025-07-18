@@ -114,13 +114,15 @@ struct SemanticDataList {
 impl Into<lsp_types::SemanticTokens> for SemanticDataList {
     fn into(mut self) -> lsp_types::SemanticTokens {
         let mut tokens = SemanticTokens::default();
+        // Sort all the data by the line and then the column
         self.data.sort_by(|a, b| {
             let order = a.location.begin.line.cmp(&b.location.begin.line);
             if !order.is_eq() {
                 return order;
             }
-            a.location.begin.column.cmp(&b.location.begin.line)
+            a.location.begin.column.cmp(&b.location.begin.column)
         });
+        log::trace!("DATA: {:#?}", self.data);
         for (i, data) in self.data.iter().enumerate() {
             let prev_token = if i == 0 {
                 SemanticData::default()
@@ -129,19 +131,19 @@ impl Into<lsp_types::SemanticTokens> for SemanticDataList {
             };
 
             tokens.data.push(lsp_types::SemanticToken {
-                delta_line: (data.location.begin.line - prev_token.location.begin.line) as u32,
+                delta_line: data.location.begin.line as u32 - prev_token.location.begin.line as u32,
                 delta_start: if data.location.begin.line != prev_token.location.begin.line {
                     // Location starts at 1. As this is the only absolute value, we only need to
                     // substract 1 here
-                    (data.location.begin.column as u32)
-                        .checked_sub(1)
-                        .unwrap_or_default()
+                    log::trace!("Diff line start {}", data.location.begin.column);
+                    data.location.begin.column as u32 - 1
                 } else {
-                    data.location
-                        .begin
-                        .column
-                        .checked_sub(prev_token.location.begin.column)
-                        .unwrap_or_default() as u32
+                    log::trace!(
+                        "same line start {} {}",
+                        data.location.begin.column,
+                        prev_token.location.begin.column
+                    );
+                    data.location.begin.column as u32 - prev_token.location.begin.column as u32
                 },
                 length: data.length,
                 token_type: data.node_type.to_int(),
@@ -151,6 +153,7 @@ impl Into<lsp_types::SemanticTokens> for SemanticDataList {
                     .fold(0, |acc, val| acc | (1 << val.to_int())),
                 ..Default::default()
             });
+            log::trace!("Prev: {:?}", tokens.data.last());
         }
 
         tokens
@@ -158,15 +161,22 @@ impl Into<lsp_types::SemanticTokens> for SemanticDataList {
 }
 
 pub fn get_tokens(root: &Node) -> SemanticTokens {
-    let mut document_stack = root.get_complete_stack();
+    let document_stack = root.get_complete_stack();
 
     let mut search_stack = document_stack.clone();
     let mut tokens = SemanticDataList::default();
 
     while let Some(current_node) = search_stack.stack.pop() {
         let location = &current_node.node_base.loc_range;
+        if location.begin.line == 0 || location.begin.column == 0 {
+            // Skip special $std without a valid location
+            continue;
+        }
         match current_node.node_kind.as_ref() {
             NodeKind::Var(var) => {
+                if var.id.is_none() {
+                    continue;
+                }
                 let mut data = SemanticData {
                     length: var.id.clone().unwrap_or_default().0.len() as u32,
                     node_type: SemanticToken::Variable,
@@ -175,7 +185,9 @@ pub fn get_tokens(root: &Node) -> SemanticTokens {
                 };
                 if var.id.clone().unwrap_or_default().0 == "std" {
                     data.node_modifier = vec![SemanticModifier::DefaultLibrary];
-                } else if let Some(var_node) = var.resolve(&mut document_stack) {
+                    log::trace!("Var is std");
+                } else if let Some(var_node) = var.resolve(&mut document_stack.clone()) {
+                    log::trace!("Var {:?} resolved to {}", var.id, var_node.node_kind);
                     match var_node.node_kind.as_ref() {
                         NodeKind::SelfNode => {
                             data.node_modifier = vec![SemanticModifier::DefaultLibrary];
@@ -186,6 +198,7 @@ pub fn get_tokens(root: &Node) -> SemanticTokens {
                         _ => (),
                     }
                 } else {
+                    log::trace!("Unable to resolve {:?}", var.id);
                     // We'll just assume all vars we can't resolve are params
                     // TODO: Get params on the stack
                     data.node_type = SemanticToken::Parameter;
