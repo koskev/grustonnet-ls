@@ -7,6 +7,7 @@ use language_server::{
     utils::{UriHelper, rope::RopeHelper},
 };
 use lsp_types::{Range, Uri};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use ropey::Rope;
 #[cfg(feature = "tracing")]
 use tracy_client::{secondary_frame_mark, set_thread_name, span};
@@ -107,7 +108,7 @@ impl<'a> ReferenceProvider<'a> {
         // Get potential positions for references
         // Open each file and searcb for the identifier and add it to the list
         let reference_locations: Vec<lsp_types::Location> = files
-            .iter()
+            .into_par_iter()
             .filter_map(|f| Uri::from_path(f.to_str().unwrap_or_default()).ok())
             .filter_map(|uri| {
                 #[cfg(feature = "tracing")]
