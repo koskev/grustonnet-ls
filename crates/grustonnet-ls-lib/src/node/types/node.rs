@@ -123,7 +123,12 @@ pub struct NodeIter<'a> {
 impl<'a> Iterator for NodeIter<'a> {
     type Item = &'a Node;
     fn next(&mut self) -> Option<Self::Item> {
-        match &(*self.root_node.node_kind) {
+        log::trace!(
+            "Next item {} at {:?}",
+            self.root_node.node_kind,
+            self.root_node.node_base.loc_range.begin
+        );
+        match self.root_node.node_kind.as_ref() {
             NodeKind::Array(arr) => {
                 if let Some(elements) = &arr.elements {
                     if let Some(element) = elements.get(self.index) {
@@ -155,7 +160,14 @@ impl<'a> Iterator for NodeIter<'a> {
             NodeKind::DesugaredObject(obj) => {
                 if let Some(field) = obj.fields.get(self.index) {
                     self.index += 1;
-                    return Some(&field.body);
+                    // TODO: The function does not have a valid location. Therefore we just add
+                    // the function body as a child. But we probably need to fix it another way to
+                    // get the parameters?
+                    if let NodeKind::Function(func) = field.body.node_kind.as_ref() {
+                        return Some(&func.body);
+                    } else {
+                        return Some(&field.body);
+                    }
                 }
             }
             // Var has no children

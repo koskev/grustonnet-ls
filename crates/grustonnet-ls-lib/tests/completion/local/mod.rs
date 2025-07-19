@@ -23,6 +23,7 @@ pub mod extcode;
 pub mod function;
 pub mod import;
 pub mod local;
+pub mod object;
 pub mod selfnode;
 pub mod shadow;
 pub mod superindex;
