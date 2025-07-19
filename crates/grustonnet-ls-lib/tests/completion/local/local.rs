@@ -668,7 +668,6 @@ fn end() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn indirect_index_zero() {
     CompletionTestCase {
         filename: "testdata/complete/local/indirect_index.jsonnet".into(),
@@ -677,7 +676,7 @@ fn indirect_index_zero() {
         expected: CompletionList {
             is_incomplete: false,
             items: vec![CompletionItem {
-                label: "second".to_string(),
+                label: "first".to_string(),
                 ..Default::default()
             }],
         },
@@ -688,7 +687,6 @@ fn indirect_index_zero() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn indirect_index_one() {
     CompletionTestCase {
         filename: "testdata/complete/local/indirect_index.jsonnet".into(),
@@ -708,7 +706,6 @@ fn indirect_index_one() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn indirect_index_two() {
     CompletionTestCase {
         filename: "testdata/complete/local/indirect_index.jsonnet".into(),

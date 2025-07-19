@@ -173,14 +173,16 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
         };
         log::trace!("Looking at {}", current_node.node_kind);
         self.document_stack.push(current_node.clone());
-        match &(*current_node.node_kind) {
+        match current_node.node_kind.as_ref() {
             NodeKind::Other(other) => {
                 log::error!("Got invalid node {:#?}", other);
                 None
             }
-            NodeKind::Index(idx) => {
-                self.search_stack.push(idx.target.clone());
-                Some(idx.target.clone())
+            NodeKind::Index(_idx) => {
+                let compiled_index: Arc<Node> =
+                    CallStackIter::new(self.cache, &mut self.document_stack)?.last()?;
+                self.search_stack.push(compiled_index.clone());
+                Some(compiled_index)
             }
             NodeKind::DesugaredObject(_obj) => {
                 log::debug!("Found desugared! {}", current_node.node_kind);
