@@ -56,6 +56,8 @@ impl TryInto<Uri> for &ImportFolder {
 impl<'a> Completion for ImportCompletion<'a> {
     fn complete(&self, _pos: Position, uri: &Uri) -> CompletionResult {
         let extensions = ["jsonnet", "libsonnet", "json"];
+        // Allow jsonpkg imports
+        let prefixes = ["@"];
         let paths = self
             .cache
             .ast_generator
@@ -78,7 +80,7 @@ impl<'a> Completion for ImportCompletion<'a> {
                                 .extension()
                                 .and_then(OsStr::to_str)
                                 .unwrap_or_default(),
-                        )
+                        ) || prefixes.iter().any(|p| e.path().starts_with(p))
                     })
                     .filter_map(move |dir| {
                         Some(ImportFolder::new(
