@@ -1,11 +1,13 @@
 use anyhow::Result;
 use language_server::cache::Cache;
-use lsp_types::{InlayHint, Uri};
-use rayon::iter::{
-    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
-};
+use lsp_types::{InlayHint, Range, Uri};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay, node::types::node_kind::NodeKind};
+use crate::{
+    cache::JsonnetASTGenerator,
+    inlay_hint::Inlay,
+    node::{location::LocationRange, types::node_kind::NodeKind},
+};
 
 pub struct ApplyInlay<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -18,13 +20,20 @@ impl<'a> ApplyInlay<'a> {
 }
 
 impl<'a> Inlay for ApplyInlay<'a> {
-    fn inlay(&self, uri: &Uri) -> Result<Vec<InlayHint>> {
+    fn inlay(&self, uri: &Uri, range: Range) -> Result<Vec<InlayHint>> {
         let doc = self.cache.get_document(uri)?;
         let ast = doc.get_ast()?;
         let doc_stack = doc.get_ast()?.get_complete_stack();
+        let loc_range = LocationRange {
+            file_name: uri.path().as_str().to_string(),
+            begin: range.start.into(),
+            end: range.end.into(),
+            ..Default::default()
+        };
         let hints: Vec<InlayHint> = doc_stack
             .stack
             .into_par_iter()
+            .filter(|n| loc_range.in_range(&n.node_base.loc_range.begin))
             // For every apply node: Complete the node until we find an apply
             // First find the node in the document and get its stack
             .filter_map(|n| {

@@ -271,11 +271,13 @@ impl LSPServer for JsonnetServer {
         let mut hints: Vec<InlayHint> = vec![];
 
         if self.configuration.read().unwrap().inlay.enable_debug {
-            let debug_hints = DebugInlay::new(&self.cache).inlay(&params.text_document.uri)?;
+            let debug_hints =
+                DebugInlay::new(&self.cache).inlay(&params.text_document.uri, params.range)?;
             hints.extend(debug_hints);
         }
 
-        let argument_hints = ApplyInlay::new(&self.cache).inlay(&params.text_document.uri)?;
+        let argument_hints =
+            ApplyInlay::new(&self.cache).inlay(&params.text_document.uri, params.range)?;
         hints.extend(argument_hints);
 
         Ok(hints.into())
