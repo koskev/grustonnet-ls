@@ -232,7 +232,6 @@ fn local_function() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn local_function_arg() {
     DefinitionTestCase {
         filename: "testdata/definition/local_function.jsonnet".into(),

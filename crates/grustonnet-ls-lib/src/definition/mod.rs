@@ -42,24 +42,7 @@ impl<'a> DefinitionProvider<'a> {
             built_node.node_kind
         );
         let location: LocationRange = match built_node.node_kind.as_ref() {
-            NodeKind::Var(var) => {
-                let bind = var
-                    .resolve_bind(&document_stack)
-                    .ok_or(anyhow!("unable to resolve var"))?;
-                // If the bind is empty, we'll try the body which most likely has a valid location
-                if bind.loc_range.is_valid() {
-                    Some(bind.loc_range.clone())
-                } else {
-                    Some(
-                        bind.clone()
-                            .body
-                            .ok_or(anyhow!("Bind does not have a body"))?
-                            .node_base
-                            .loc_range
-                            .clone(),
-                    )
-                }
-            }
+            NodeKind::Var(var) => var.resolve_location(&document_stack),
             NodeKind::DesugaredObject(obj) => Some(
                 obj.get_field(&index_name)
                     .ok_or(anyhow!("unable to get object field {}", index_name))?

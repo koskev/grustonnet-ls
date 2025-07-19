@@ -3,6 +3,7 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
+    location::LocationRange,
     stack::NodeStack,
     types::{Identifier, local_bind::LocalBind, node::Node, node_kind::NodeKind},
 };
@@ -34,13 +35,18 @@ impl Var {
         self.is_name("$")
     }
 
-    pub fn resolve_bind<'a>(&self, document_stack: &'a NodeStack) -> Option<&'a LocalBind> {
+    pub fn resolve_location<'a>(&self, document_stack: &'a NodeStack) -> Option<LocationRange> {
         let Some(id) = &self.id else {
             return None;
         };
-        let get_node_with_id = |binds: &'a Vec<LocalBind>| -> Option<&'a LocalBind> {
-            let bind = binds.iter().find(|local| local.variable.0 == id.0);
-            bind
+        let get_node_with_id = |binds: &'a Vec<LocalBind>| -> Option<LocationRange> {
+            let bind = binds.iter().find(|local| local.variable.0 == id.0)?;
+            // If the bind is empty, we'll try the body which most likely has a valid location
+            if bind.loc_range.is_valid() {
+                Some(bind.loc_range.clone())
+            } else {
+                Some(bind.clone().body?.node_base.loc_range.clone())
+            }
         };
         document_stack
             .stack
@@ -48,6 +54,15 @@ impl Var {
             .find_map(|node| match node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
+                NodeKind::Function(func) => func.parameters.as_ref()?.iter().find_map(|param| {
+                    if let Some(name) = self.id.as_ref()
+                        && param.name == *name
+                    {
+                        Some(param.loc_range.clone())
+                    } else {
+                        None
+                    }
+                }),
                 _ => None,
             })
     }
