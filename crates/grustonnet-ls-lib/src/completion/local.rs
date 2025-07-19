@@ -326,6 +326,9 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             NodeKind::Conditional(cond) => {
                 let resolved = cond.resolve().clone();
                 self.search_stack.push(resolved.clone());
+                // TODO: this breaks outer assert. Is it even needed?
+                //self.next_nodes.push(cond.cond.clone());
+                self.next_nodes.push(cond.branch_false.clone());
                 Some(resolved)
             }
             NodeKind::Dollar => {

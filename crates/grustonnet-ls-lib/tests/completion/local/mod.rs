@@ -19,6 +19,7 @@ use crate::completion::completion::CompletionTestCase;
 
 pub mod binary;
 pub mod builder;
+pub mod conditional;
 pub mod dollar;
 pub mod extcode;
 pub mod function;

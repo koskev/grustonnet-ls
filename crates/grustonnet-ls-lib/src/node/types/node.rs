@@ -211,6 +211,7 @@ impl<'a> Iterator for NodeIter<'a> {
                 return match self.index {
                     1 => Some(&cond.branch_true),
                     2 => Some(&cond.branch_false),
+                    3 => Some(&cond.cond),
                     _ => None,
                 };
             }
