@@ -9,6 +9,7 @@ fn global_config() -> Configuration {
             enable_keywords: false,
             enable_global: true,
             enable_local: false,
+            ..Default::default()
         },
         ..Default::default()
     }

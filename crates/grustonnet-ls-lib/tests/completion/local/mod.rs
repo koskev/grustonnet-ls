@@ -9,6 +9,7 @@ fn local_config() -> Configuration {
             enable_keywords: false,
             enable_global: false,
             enable_local: true,
+            ..Default::default()
         },
         ..Default::default()
     }

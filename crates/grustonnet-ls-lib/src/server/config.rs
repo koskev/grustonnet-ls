@@ -10,26 +10,37 @@ use smart_default::SmartDefault;
 #[serde(default)]
 pub struct CompletionConfig {
     #[default = true]
+    /// Enable completion of keywords. E.g. import, local, etc.
     pub enable_keywords: bool,
     #[default = true]
+    /// Enable global completion. E.g. variables etc.
     pub enable_global: bool,
     #[default = true]
+    /// Enables the local completion. E.g. foo._bar_
     pub enable_local: bool,
+    #[default = true]
+    /// Hides the docsonnet member in objects
+    pub hide_docsonnet_members: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
 pub struct DiagnosticConfig {
     #[default = true]
+    /// Enable diagnostics by evaluating the jsonnet file
     pub enable_eval: bool,
     #[default = true]
+    /// Enable diagnostics by using jsonnet-lint (mainly gives unused variables)
     pub enable_lint: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
 pub struct InlayConfig {
+    /// Enable debug inlay hints to show the ast types
     pub enable_debug: bool,
+    /// Enable function parameter inlay hints (might cause some delays)
+    pub enable_function_parameters: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
@@ -44,10 +55,11 @@ pub struct JsonnetConfig {
     pub default_root_jpaths: Vec<String>,
 
     #[default = true]
-    // Searches from the root directory upwards for
-    // <name>.extcode.libsonnet and
-    // <name>.extvars.libsonnet
+    /// Searches from the root directory upwards for
+    /// <name>.extcode.libsonnet and
+    /// <name>.extvars.libsonnet
     pub find_upwards: bool,
+
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]

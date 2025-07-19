@@ -253,7 +253,9 @@ impl LSPServer for JsonnetServer {
             items: succeeded
                 .into_iter()
                 .flat_map(|list| list.items.clone())
-                .filter(|item| !item.label.starts_with("#"))
+                .filter(|item| {
+                    !config.completion.hide_docsonnet_members || !item.label.starts_with("#")
+                })
                 .collect(),
             is_incomplete,
         };
@@ -302,9 +304,17 @@ impl LSPServer for JsonnetServer {
             hints.extend(debug_hints);
         }
 
-        let argument_hints =
-            ApplyInlay::new(&self.cache).inlay(&params.text_document.uri, params.range)?;
-        hints.extend(argument_hints);
+        if self
+            .configuration
+            .read()
+            .unwrap()
+            .inlay
+            .enable_function_parameters
+        {
+            let argument_hints =
+                ApplyInlay::new(&self.cache).inlay(&params.text_document.uri, params.range)?;
+            hints.extend(argument_hints);
+        }
 
         Ok(hints.into())
     }
