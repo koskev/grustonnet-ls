@@ -10,3 +10,4 @@ pub mod references;
 pub mod rename;
 pub mod semantic_tokens;
 pub mod server;
+pub mod utils;

@@ -36,6 +36,7 @@ use crate::{
     rename::RenameProvider,
     semantic_tokens::{self},
     server::config::Configuration,
+    utils,
 };
 
 #[derive(Default)]
@@ -161,13 +162,27 @@ impl LSPServer for JsonnetServer {
             }
         };
 
-        // TODO: revisit config architecture
+        // TODO: revisit config architecture. this is so cursed
         self.cache
             .ast_generator
             .jsonnet
             .set_config(&new_config.jsonnet);
 
-        *self.configuration.write().unwrap() = new_config;
+        *self.configuration.write().unwrap() = new_config.clone();
+
+        if new_config.jsonnet.preload_files {
+            let eval_params = self.cache.ast_generator.jsonnet.get_evaluate_params(".");
+            let all_files = utils::files::get_all_jsonnnet_files(&eval_params.jpaths);
+            let cache = self.cache.clone();
+            bevy_tasks::ComputeTaskPool::get_or_init(bevy_tasks::TaskPool::default)
+                .spawn(async move {
+                    for uri in all_files {
+                        let _ = cache.get_document(&uri);
+                    }
+                })
+                .detach();
+        }
+
         Ok(())
     }
 

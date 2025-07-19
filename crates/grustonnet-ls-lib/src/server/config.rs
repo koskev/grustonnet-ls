@@ -60,6 +60,9 @@ pub struct JsonnetConfig {
     /// <name>.extvars.libsonnet
     pub find_upwards: bool,
 
+    #[default = true]
+    /// Preload all jsonnet files in all jpaths to allow for faster cross file search
+    pub preload_files: bool,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]

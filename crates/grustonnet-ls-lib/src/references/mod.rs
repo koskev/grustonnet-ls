@@ -1,22 +1,18 @@
-use std::{path::PathBuf, time::Instant};
+use std::time::Instant;
 
 use anyhow::{Result, anyhow};
-use itertools::Itertools;
-use language_server::{
-    cache::Cache,
-    utils::{UriHelper, rope::RopeHelper},
-};
+use language_server::{cache::Cache, utils::rope::RopeHelper};
 use lsp_types::{Range, Uri};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use ropey::Rope;
 #[cfg(feature = "tracing")]
 use tracy_client::{secondary_frame_mark, set_thread_name, span};
-use walkdir::WalkDir;
 
 use crate::{
     cache::JsonnetASTGenerator,
     definition::DefinitionProvider,
     node::{location::Location, types::node_kind::NodeKind},
+    utils,
 };
 pub struct ReferenceProvider<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,
@@ -81,24 +77,7 @@ impl<'a> ReferenceProvider<'a> {
         // Search for in all caches and files and get all potential positions
         // Get all jsonnet and libsonnet files in the search paths
         let start = Instant::now();
-        let files: Vec<PathBuf> = self
-            .search_paths
-            .iter()
-            .flat_map(|p| {
-                WalkDir::new(p)
-                    .into_iter()
-                    .filter_map(|r| r.ok())
-                    .filter(|f| {
-                        f.path().is_file()
-                            && f.path()
-                                .extension()
-                                .map(|e| e == "jsonnet" || e == "libsonnet")
-                                .unwrap_or(false)
-                    })
-                    .map(|f| f.into_path())
-            })
-            .unique()
-            .collect();
+        let files = utils::files::get_all_jsonnnet_files(self.search_paths);
         log::info!("Getting all files took {:?}", start.elapsed());
         let start = Instant::now();
         #[cfg(feature = "tracing")]
@@ -109,7 +88,6 @@ impl<'a> ReferenceProvider<'a> {
         // Open each file and searcb for the identifier and add it to the list
         let reference_locations: Vec<lsp_types::Location> = files
             .into_par_iter()
-            .filter_map(|f| Uri::from_path(f.to_str().unwrap_or_default()).ok())
             .filter_map(|uri| {
                 #[cfg(feature = "tracing")]
                 set_thread_name!("Reference thread");
