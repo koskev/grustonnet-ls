@@ -16,6 +16,8 @@ struct Args {
 
 #[tokio::main]
 async fn main() {
+    #[cfg(feature = "tracing")]
+    tracy_client::Client::start();
     let args = Args::parse();
 
     if args.export_config_schema {

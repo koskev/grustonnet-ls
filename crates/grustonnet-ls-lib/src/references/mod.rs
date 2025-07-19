@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Instant};
 
 use anyhow::{Result, anyhow};
 use itertools::Itertools;
@@ -8,6 +8,8 @@ use language_server::{
 };
 use lsp_types::{Range, Uri};
 use ropey::Rope;
+#[cfg(feature = "tracing")]
+use tracy_client::{secondary_frame_mark, set_thread_name, span};
 use walkdir::WalkDir;
 
 use crate::{
@@ -77,6 +79,7 @@ impl<'a> ReferenceProvider<'a> {
             .ok_or(anyhow!("Unable to find identifier"))?;
         // Search for in all caches and files and get all potential positions
         // Get all jsonnet and libsonnet files in the search paths
+        let start = Instant::now();
         let files: Vec<PathBuf> = self
             .search_paths
             .iter()
@@ -95,12 +98,20 @@ impl<'a> ReferenceProvider<'a> {
             })
             .unique()
             .collect();
+        log::info!("Getting all files took {:?}", start.elapsed());
+        let start = Instant::now();
+        #[cfg(feature = "tracing")]
+        let zone = span!("Reference calc");
+        #[cfg(feature = "tracing")]
+        zone.emit_text("Calculating references");
         // Get potential positions for references
         // Open each file and searcb for the identifier and add it to the list
         let reference_locations: Vec<lsp_types::Location> = files
             .iter()
             .filter_map(|f| Uri::from_path(f.to_str().unwrap_or_default()).ok())
             .filter_map(|uri| {
+                #[cfg(feature = "tracing")]
+                set_thread_name!("Reference thread");
                 // Check if in cache
                 let content = self.cache.get_document(&uri).ok()?.content;
                 // Check for name in file and get locations
@@ -136,6 +147,8 @@ impl<'a> ReferenceProvider<'a> {
                 potential_location.location == target_info.location
             })
             .collect();
+
+        log::info!("Calculating references took {:?}", start.elapsed());
 
         if reference_locations.is_empty() {
             Ok(None)
