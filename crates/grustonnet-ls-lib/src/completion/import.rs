@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, hash_map::Entry},
+    ffi::OsStr,
     path::{Path, PathBuf},
     rc::Rc,
 };
@@ -54,6 +55,7 @@ impl TryInto<Uri> for &ImportFolder {
 // parts before the slash
 impl<'a> Completion for ImportCompletion<'a> {
     fn complete(&self, _pos: Position, uri: &Uri) -> CompletionResult {
+        let extensions = ["jsonnet", "libsonnet", "json"];
         let paths = self
             .cache
             .ast_generator
@@ -70,6 +72,14 @@ impl<'a> Completion for ImportCompletion<'a> {
                     .into_iter()
                     .filter_map(|e| e.ok())
                     .filter(|e| e.path().is_file())
+                    .filter(|e| {
+                        extensions.contains(
+                            &e.path()
+                                .extension()
+                                .and_then(OsStr::to_str)
+                                .unwrap_or_default(),
+                        )
+                    })
                     .filter_map(move |dir| {
                         Some(ImportFolder::new(
                             path_rc.clone(),
@@ -102,7 +112,12 @@ impl<'a> Completion for ImportCompletion<'a> {
                 let uri: Uri = path.try_into().ok()?;
                 Some(CompletionItem {
                     label: path.file.to_str()?.to_string().clone(),
-                    detail: Some(self.cache.get_document(&uri).unwrap_or_default().content),
+                    detail: Some(
+                        self.cache
+                            .get_document_with_option(&uri, false)
+                            .ok()?
+                            .content,
+                    ),
                     kind: Some(CompletionItemKind::FILE),
                     ..Default::default()
                 })
