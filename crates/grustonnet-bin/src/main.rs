@@ -26,15 +26,13 @@ async fn main() {
         return;
     }
     env_logger::Builder::from_env(Env::default().default_filter_or("warn")).init();
+    let connection = if let Some(port) = args.port {
+        LSPConnection::new_network(port)
+    } else {
+        LSPConnection::default()
+    };
     let server = LSPServerManager {
-        server: JsonnetServer {
-            connection: if let Some(port) = args.port {
-                LSPConnection::new_network(port)
-            } else {
-                LSPConnection::default()
-            },
-            ..Default::default()
-        },
+        server: JsonnetServer::new(connection),
     };
     server.run().unwrap();
 }

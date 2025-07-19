@@ -3,17 +3,17 @@ use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
 use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
 
-pub struct EvalDiagnostics<'a> {
-    cache: &'a Cache<JsonnetASTGenerator>,
+pub struct EvalDiagnostics {
+    cache: Cache<JsonnetASTGenerator>,
 }
 
-impl<'a> EvalDiagnostics<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
+impl EvalDiagnostics {
+    pub fn new(cache: Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 }
 
-impl<'a> Diagnostics for EvalDiagnostics<'a> {
+impl Diagnostics for EvalDiagnostics {
     fn diagnostics(&self, uri: &Uri) -> Vec<lsp_types::Diagnostic> {
         let doc = self.cache.get_document(uri).unwrap();
         let res = self

@@ -8,7 +8,7 @@ use bevy_tasks::TaskPool;
 use language_server::{
     cache::Cache,
     completion::Completion,
-    diagnostics::Diagnostics,
+    diagnostics::{Diagnostics, DiagnosticsQueue},
     server::{LSPConnection, LSPError, LSPResponse, LSPServer, get_response_error},
     utils::diff,
 };
@@ -45,13 +45,39 @@ pub struct JsonnetServer {
     pub connection: LSPConnection,
 
     pub configuration: Arc<RwLock<Configuration>>,
+
+    pub diagnostics_queue: Option<DiagnosticsQueue>,
 }
 
 impl JsonnetServer {
-    pub fn new() -> Self {
+    pub fn new(connection: LSPConnection) -> Self {
+        let diagnostics_queue = DiagnosticsQueue::new(connection.connection.sender.clone());
+        let task_queue = diagnostics_queue.clone();
+        bevy_tasks::ComputeTaskPool::get_or_init(bevy_tasks::TaskPool::default)
+            .spawn(async move {
+                task_queue.run();
+            })
+            .detach();
         Self {
+            diagnostics_queue: Some(diagnostics_queue),
+            connection,
             ..Default::default()
         }
+    }
+
+    pub fn get_diagnostics(&self, uri: &Uri) -> Vec<Diagnostic> {
+        let mut items = vec![];
+        let config = self.configuration.read().unwrap().clone();
+        if config.diagnostics.enable_eval {
+            let diags = EvalDiagnostics::new(self.cache.clone()).diagnostics(uri);
+            items.extend(diags);
+        }
+        if config.diagnostics.enable_lint {
+            let diags = LintDiagnostics::new(self.cache.clone()).diagnostics(uri);
+            items.extend(diags);
+        }
+        // TODO: Filter messages with the same target but different severity
+        return items;
     }
 }
 
@@ -59,6 +85,20 @@ impl LSPServer for JsonnetServer {
     type AstGenerator = JsonnetASTGenerator;
     fn connection(&self) -> &LSPConnection {
         &self.connection
+    }
+
+    fn queue_diagnostics(&self, uri: &Uri) {
+        let config = self.configuration.read().unwrap().clone();
+        let mut diags: Vec<Box<dyn Diagnostics>> = vec![];
+        if config.diagnostics.enable_eval {
+            diags.push(Box::new(EvalDiagnostics::new(self.cache.clone())));
+        }
+        if config.diagnostics.enable_lint {
+            diags.push(Box::new(LintDiagnostics::new(self.cache.clone())));
+        }
+        if let Some(queue) = self.diagnostics_queue.as_ref() {
+            queue.queue(uri.clone(), diags);
+        }
     }
 
     fn handle_init_parameters(&self, params: InitializeParams) {
@@ -213,26 +253,12 @@ impl LSPServer for JsonnetServer {
             items: succeeded
                 .into_iter()
                 .flat_map(|list| list.items.clone())
+                //.filter(|item| !item.label.starts_with("#"))
                 .collect(),
             is_incomplete,
         };
 
         Ok(CompletionResponse::List(completion_list).into())
-    }
-
-    fn get_diagnostics(&self, uri: &Uri) -> Vec<Diagnostic> {
-        let mut items = vec![];
-        let config = self.configuration.read().unwrap().clone();
-        if config.diagnostics.enable_eval {
-            let diags = EvalDiagnostics::new(&self.cache).diagnostics(uri);
-            items.extend(diags);
-        }
-        if config.diagnostics.enable_lint {
-            let diags = LintDiagnostics::new(&self.cache).diagnostics(uri);
-            items.extend(diags);
-        }
-        // TODO: Filter messages with the same target but different severity
-        return items;
     }
 
     fn formatting(

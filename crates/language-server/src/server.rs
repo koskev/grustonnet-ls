@@ -161,11 +161,17 @@ pub fn get_response_error(message: String) -> LSPError {
     }
 }
 
-pub struct LSPServerManager<S: LSPServer> {
+pub struct LSPServerManager<S>
+where
+    S: LSPServer,
+{
     pub server: S,
 }
 
-impl<S: LSPServer> LSPServerManager<S> {
+impl<S> LSPServerManager<S>
+where
+    S: LSPServer,
+{
     pub fn run(&self) -> Result<()> {
         let server_capabilities = serde_json::to_value(self.server.get_capabilities()).unwrap();
         let params = self
@@ -313,18 +319,18 @@ pub trait LSPServer {
 
     lsp_function_not!(did_change_configuration, DidChangeConfiguration);
 
-    fn get_diagnostics(&self, uri: &Uri) -> Vec<Diagnostic>;
-
     fn did_close(&self, params: DidCloseTextDocumentParams) -> Result<()> {
         self.cache().remove_document(&params.text_document.uri);
 
         Ok(())
     }
 
+    fn queue_diagnostics(&self, uri: &Uri);
+
     fn did_open(&self, params: DidOpenTextDocumentParams) -> Result<()> {
         self.cache()
             .update_content(params.text_document.uri.clone(), &params.text_document.text);
-        self.publish_diagnostics(params.text_document.uri.clone());
+        self.queue_diagnostics(&params.text_document.uri);
 
         Ok(())
     }
@@ -366,23 +372,9 @@ pub trait LSPServer {
                 .update_content(params.text_document.uri.clone(), rope.to_string().as_str());
             log::info!("Updating content took {:?}", start.elapsed());
             let start = Instant::now();
-            self.publish_diagnostics(params.text_document.uri.clone());
+            self.queue_diagnostics(&params.text_document.uri);
             log::info!("Publishing diagnostics took {:?}", start.elapsed());
         }
         Ok(())
-    }
-
-    fn publish_diagnostics(&self, uri: Uri) {
-        self.connection()
-            .send(Message::Notification(Notification {
-                method: PublishDiagnostics::METHOD.to_string(),
-                params: serde_json::to_value(PublishDiagnosticsParams {
-                    uri: uri.clone(),
-                    diagnostics: self.get_diagnostics(&uri),
-                    version: None,
-                })
-                .unwrap(),
-            }))
-            .unwrap();
     }
 }

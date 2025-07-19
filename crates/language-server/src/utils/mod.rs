@@ -5,6 +5,7 @@ use lsp_types::Uri;
 
 pub mod cst;
 pub mod diff;
+pub mod hashqueue;
 pub mod rope;
 
 pub trait UriHelper {

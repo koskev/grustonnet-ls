@@ -79,7 +79,7 @@ impl<G: ASTGenerator> Document<G> {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Cache<G>
 where
     G: ASTGenerator,
