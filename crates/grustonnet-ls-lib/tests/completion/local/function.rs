@@ -170,3 +170,118 @@ fn complete_in_args_named_positiona_mixed() {
     }
     .check();
 }
+
+#[test]
+fn function_default_arg_direct_import() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults_from_import.jsonnet".into(),
+        replace_string: "x: argone".into(),
+        replace_by_string: "x: argone.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "libkey".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "libobject".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn function_default_arg_direct_val() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults_from_import.jsonnet".into(),
+        replace_string: "y: argtwo".into(),
+        replace_by_string: "x: argtwo.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "argkey".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn function_default_arg_var_import() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults_from_import.jsonnet".into(),
+        replace_string: "z: argthree".into(),
+        replace_by_string: "z: argthree.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "libkey".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "libobject".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "not implemented"]
+fn function_default_arg_var_import_index() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults_from_import.jsonnet".into(),
+        replace_string: "a: argfour".into(),
+        replace_by_string: "a: argfour.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "innerKey".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "not implemented"]
+fn function_default_arg_completion() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults_from_import.jsonnet".into(),
+        replace_string: "argthree=myimport".into(),
+        replace_by_string: "argthree=myimport.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "libkey".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "libobject".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}

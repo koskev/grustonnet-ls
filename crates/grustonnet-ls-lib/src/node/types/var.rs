@@ -68,7 +68,6 @@ impl Var {
                     if p.name == *id {
                         p.default_arg.clone()
                     } else {
-                        log::trace!("Could not resolve func var");
                         None
                     }
                 }),

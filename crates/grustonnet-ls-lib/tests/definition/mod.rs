@@ -230,3 +230,21 @@ fn local_function() {
     }
     .check();
 }
+
+#[test]
+#[ignore = "not implemented"]
+fn local_function_arg() {
+    DefinitionTestCase {
+        filename: "testdata/definition/local_function.jsonnet".into(),
+        source: Position {
+            line: 1,
+            character: 8,
+        },
+        target: Position {
+            line: 0,
+            character: 13,
+        },
+        ..Default::default()
+    }
+    .check();
+}

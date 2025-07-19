@@ -666,3 +666,63 @@ fn end() {
     }
     .check();
 }
+
+#[test]
+#[ignore = "not implemented"]
+fn indirect_index_zero() {
+    CompletionTestCase {
+        filename: "testdata/complete/local/indirect_index.jsonnet".into(),
+        replace_string: "myObj.first".into(),
+        replace_by_string: "myObj.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "second".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "not implemented"]
+fn indirect_index_one() {
+    CompletionTestCase {
+        filename: "testdata/complete/local/indirect_index.jsonnet".into(),
+        replace_string: "one.second".into(),
+        replace_by_string: "one.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "second".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "not implemented"]
+fn indirect_index_two() {
+    CompletionTestCase {
+        filename: "testdata/complete/local/indirect_index.jsonnet".into(),
+        replace_string: "two.third".into(),
+        replace_by_string: "two.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "third".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
