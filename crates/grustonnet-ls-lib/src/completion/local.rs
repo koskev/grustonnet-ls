@@ -40,6 +40,9 @@ pub struct ResolveNodeIter<'a> {
 
     /// Nodes to search with priority (used if a node returns multiple nodes. e.g. a binary)
     next_nodes: Vec<Arc<Node>>,
+
+    /// The number of max iterations to avoid endless loops not considered in the code
+    pub iterations_left: u32,
 }
 
 impl<'a> ResolveNodeIter<'a> {
@@ -56,6 +59,7 @@ impl<'a> ResolveNodeIter<'a> {
             cache,
             merge_nodes: vec![],
             next_nodes: vec![],
+            iterations_left: 100_000,
         }
     }
 }
@@ -146,6 +150,10 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
     type Item = Arc<Node>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.iterations_left == 0 {
+            return None;
+        }
+        self.iterations_left -= 1;
         if let Some(next_node) = self.next_nodes.pop() {
             self.search_stack.push(next_node.clone());
             return Some(next_node);
@@ -204,7 +212,13 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 }
 
                 if let Some(resolved) = var.resolve(&mut self.document_stack) {
-                    log::debug!("Resolved to {:?}", resolved.node_kind.variant_name());
+                    log::debug!(
+                        "{} Resolved to {:?} at {}:{:?}",
+                        var.id.clone().unwrap_or_default().0,
+                        resolved.node_kind.variant_name(),
+                        resolved.node_base.loc_range.file_name,
+                        resolved.node_base.loc_range.begin,
+                    );
                     self.search_stack.push(resolved.clone());
                     Some(resolved.clone())
                 } else {
