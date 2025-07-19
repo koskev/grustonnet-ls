@@ -11,12 +11,11 @@ use lsp_server::{
     Response, ResponseError,
 };
 use lsp_types::{
-    Diagnostic, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
-    InitializeParams, PublishDiagnosticsParams, ServerCapabilities, TextDocumentSyncCapability,
-    TextDocumentSyncKind, Uri,
+    DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+    InitializeParams, ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind, Uri,
     notification::{
         DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument,
-        Notification as NotificationTrait, PublishDiagnostics,
+        Notification as NotificationTrait,
     },
     request::{
         Completion, DocumentDiagnosticRequest, Formatting, GotoDefinition, InlayHintRequest,

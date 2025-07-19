@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{sync::Arc, time::Instant};
 
 use anyhow::{Result, anyhow};
 use language_server::{cache::ASTGenerator, utils::rope::RopeHelper};
@@ -25,7 +25,7 @@ impl JsonnetASTGenerator {
 impl ASTGenerator for JsonnetASTGenerator {
     type Node = Node;
     // BIG TODO: How to handle the modifications? AST and Editor will be out of sync
-    fn update_ast(&self, source_file: &str, new_content: &str) -> Result<Self::Node> {
+    fn update_ast(&self, source_file: &str, new_content: &str) -> Result<Arc<Self::Node>> {
         let mut current_content = Rope::from_str(new_content);
         // Give up after 100 tries
         for _ in 0..100 {
@@ -39,7 +39,7 @@ impl ASTGenerator for JsonnetASTGenerator {
                     let node_data = serde_json::from_str::<Node>(&json_data)?;
                     log::info!("Deserializing took {:?}", start.elapsed());
                     log::debug!("Got valid ast!");
-                    return Ok(node_data);
+                    return Ok(node_data.into());
                 }
                 Err(e) => {
                     log::warn!("Error type: {}", e.error_type.variant_name());

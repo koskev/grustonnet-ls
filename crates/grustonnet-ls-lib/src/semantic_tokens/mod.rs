@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use lsp_types::{SemanticTokenModifier, SemanticTokenType, SemanticTokens, SemanticTokensLegend};
 use name_variant::NamedVariant;
 use strum::{EnumDiscriminants, EnumIter, IntoEnumIterator};
@@ -160,7 +162,7 @@ impl Into<lsp_types::SemanticTokens> for SemanticDataList {
     }
 }
 
-pub fn get_tokens(root: &Node) -> SemanticTokens {
+pub fn get_tokens(root: Arc<Node>) -> SemanticTokens {
     let document_stack = root.get_complete_stack();
 
     let mut search_stack = document_stack.clone();

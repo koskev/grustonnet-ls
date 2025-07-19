@@ -17,29 +17,39 @@ where
     Self::Node: ASTNode,
 {
     type Node;
-    fn update_ast(&self, source_file: &str, new_content: &str) -> Result<Self::Node>;
+    fn update_ast(&self, source_file: &str, new_content: &str) -> Result<Arc<Self::Node>>;
 }
 
 pub trait ASTNode: Clone + Default + Debug {}
 
 #[derive(Default, Debug, Clone)]
+pub enum ASTState {
+    Clean,
+    /// The ast and content do not match due to an invalid file
+    Dirty,
+    #[default]
+    NotLoaded,
+}
+
+#[derive(Default, Debug, Clone)]
 pub struct Document<G: ASTGenerator> {
     pub content: String,
-    pub ast: Option<G::Node>,
+
+    pub ast: Option<Arc<G::Node>>,
+    pub state: ASTState,
 
     ast_generator: Arc<G>,
 
     pub filename: String,
-    // If false the ast and content match. Otherwise the ast may be old
-    pub is_dirty: bool,
 
     /// If the file was not opened by the lsp, we'll need to check if we need to update the content
     pub manually_loaded_at: Option<SystemTime>,
 }
 
 impl<G: ASTGenerator> Document<G> {
-    pub fn get_ast(&self) -> Result<&G::Node, LSPError> {
-        self.ast.as_ref().ok_or(LSPError {
+    /// Gets the current ast
+    pub fn get_ast(&self) -> Result<Arc<G::Node>, LSPError> {
+        self.ast.clone().ok_or(LSPError {
             error_code: ErrorCode::ParseError as i32,
             message:
                 "The document was never parsed. Please fix all errors to get proper completion"
@@ -47,7 +57,7 @@ impl<G: ASTGenerator> Document<G> {
         })
     }
 
-    pub fn update_content_if_needed(&mut self) -> Result<()> {
+    pub fn update_content_if_needed(&mut self, load_ast: bool) -> Result<()> {
         // Get file metadata
         let modified = fs::metadata(&self.filename)?.modified()?;
 
@@ -58,7 +68,12 @@ impl<G: ASTGenerator> Document<G> {
         {
             self.content = fs::read_to_string(&self.filename)?;
             self.manually_loaded_at = Some(modified);
-            self.update_ast();
+        }
+        if load_ast {
+            match self.state {
+                ASTState::NotLoaded => self.update_ast(),
+                _ => (),
+            }
         }
 
         Ok(())
@@ -69,11 +84,11 @@ impl<G: ASTGenerator> Document<G> {
         match new_ast {
             Ok(ast) => {
                 self.ast = Some(ast);
-                self.is_dirty = false;
+                self.state = ASTState::Clean;
             }
             Err(e) => {
                 log::error!("Failed to parse ast: {e}");
-                self.is_dirty = true;
+                self.state = ASTState::Dirty;
             }
         }
     }
@@ -116,14 +131,20 @@ impl<G: ASTGenerator> Cache<G> {
         doc.update_ast();
     }
 
-    pub fn get_document(&self, uri: &Uri) -> Result<Document<G>, LSPError> {
+    /// Loads the document with additional options
+    /// load_ast sets if the ast should be loaded for non lsp documents
+    pub fn get_document_with_option(
+        &self,
+        uri: &Uri,
+        load_ast: bool,
+    ) -> Result<Document<G>, LSPError> {
         // TODO: lock write only after we want to manually load
         match self.documents.write().unwrap().entry(uri.clone()) {
             Entry::Occupied(mut val) => {
                 // TODO: TEST!!
                 log::debug!("Loaded from cache {}", uri.path().as_str());
                 if val.get().manually_loaded_at.is_some() {
-                    val.get_mut().update_content_if_needed()?;
+                    val.get_mut().update_content_if_needed(load_ast)?;
                 }
                 return Ok(val.get().clone());
             }
@@ -135,10 +156,15 @@ impl<G: ASTGenerator> Cache<G> {
                     manually_loaded_at: Some(SystemTime::UNIX_EPOCH),
                     ..Default::default()
                 };
-                doc.update_content_if_needed()?;
+                doc.update_content_if_needed(load_ast)?;
                 key.insert(doc.clone());
                 return Ok(doc);
             }
         }
+    }
+
+    /// Returns the document for the given uri and loads the ast if it was never loaded
+    pub fn get_document(&self, uri: &Uri) -> Result<Document<G>, LSPError> {
+        self.get_document_with_option(uri, true)
     }
 }

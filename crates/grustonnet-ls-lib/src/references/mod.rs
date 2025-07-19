@@ -114,7 +114,11 @@ impl<'a> ReferenceProvider<'a> {
                 #[cfg(feature = "tracing")]
                 set_thread_name!("Reference thread");
                 // Check if in cache
-                let content = self.cache.get_document(&uri).ok()?.content;
+                let content = self
+                    .cache
+                    .get_document_with_option(&uri, false)
+                    .ok()?
+                    .content;
                 // Check for name in file and get locations
                 let locations: Vec<lsp_types::Location> = content
                     .match_indices(&identifier)
