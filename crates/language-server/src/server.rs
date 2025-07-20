@@ -18,8 +18,8 @@ use lsp_types::{
         Notification as NotificationTrait,
     },
     request::{
-        Completion, DocumentDiagnosticRequest, Formatting, GotoDefinition, InlayHintRequest,
-        References, Rename, Request as RequestTrait, SemanticTokensFullRequest,
+        Completion, DocumentDiagnosticRequest, ExecuteCommand, Formatting, GotoDefinition,
+        InlayHintRequest, References, Rename, Request as RequestTrait, SemanticTokensFullRequest,
     },
 };
 use ropey::Rope;
@@ -223,6 +223,7 @@ where
         req = lsp_handle_request!(self.server, references, References, req);
         req = lsp_handle_request!(self.server, rename, Rename, req);
         req = lsp_handle_request!(self.server, semantic_tokens, SemanticTokensFullRequest, req);
+        req = lsp_handle_request!(self.server, execute_command, ExecuteCommand, req);
 
         Err(LSPError {
             error_code: ErrorCode::MethodNotFound as i32,
@@ -295,7 +296,7 @@ where
     not.extract(R::METHOD)
 }
 
-// TODO: Do Generic magic?
+// TODO: Use Rust magic to automatically implement handling the requests and notifications
 #[allow(unused_variables)]
 pub trait LSPServer {
     type AstGenerator: ASTGenerator;
@@ -313,6 +314,7 @@ pub trait LSPServer {
     lsp_function_req!(references, References);
     lsp_function_req!(rename, Rename);
     lsp_function_req!(semantic_tokens, SemanticTokensFullRequest);
+    lsp_function_req!(execute_command, ExecuteCommand);
 
     // Notifications
 

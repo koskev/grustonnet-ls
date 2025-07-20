@@ -34,24 +34,38 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
 * [x] Semantic tokens
 * [-] Inlay Hints
     * [x] Function parameters
+        * [ ] Only update if needed
     * [ ] Indices
 * [x] Goto definition
-    * Can go everywhere we can complete
+    * [ ] Goto file from import string
+    * Can go everything we can complete
 * [x] Find reference
     * Can find references for everything we can goto
 * [x] Rename
     * Can rename everything we can find the reference
 * [ ] Signature Help
 * [ ] Docsonnet support
+    * [ ] How to handle the license issues? Docsonnet does not have an open source license
     * [ ] Handle the stdlib the same as docsonnet?
 * [-] AST repair
-* [ ] Code actions
+* [ ] Commands
+    * [x] Evaluate file
+* [ ] Missing LSP features
+    * [ ] Code actions
+    * [ ] Code Lense?
+    * [ ] Hover
+    * [ ] Document highlight
+    * [ ] Document/Workspace symbols
+    * [ ] Folding
+    * [ ] Call hierachie
+    * [ ] File operation support for automatic refactoring (like renaming imports)
 * [ ] Improve performance
     * [ ] Test rust2go mem
     * [ ] More multithreading
 * [ ] More tests
     * [ ] Fix ignored tests
-* [ ] Code cleanup
+* [ ] (Major) Code cleanup
+    * Once the prototyping phase is over
 
 ## Known Issues
 

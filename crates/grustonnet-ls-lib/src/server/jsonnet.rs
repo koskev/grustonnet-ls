@@ -15,8 +15,8 @@ use language_server::{
 use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
-    GotoDefinitionParams, GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams,
-    OneOf, RelatedFullDocumentDiagnosticReport, SemanticTokensOptions,
+    ExecuteCommandOptions, GotoDefinitionParams, GotoDefinitionResponse, InitializeParams,
+    InlayHint, InlayHintParams, OneOf, RelatedFullDocumentDiagnosticReport, SemanticTokensOptions,
     SemanticTokensServerCapabilities, ServerCapabilities, TextDocumentSyncKind,
     TextDocumentSyncOptions, Uri,
 };
@@ -24,6 +24,7 @@ use lsp_types::{
 use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
+    command::handle_command,
     completion::{
         global::GlobalCompletion, import::ImportCompletion, keyword::KeywordCompletion,
         local::LocalCompletion,
@@ -144,6 +145,10 @@ impl LSPServer for JsonnetServer {
             ),
             references_provider: Some(OneOf::Left(true)),
             rename_provider: Some(OneOf::Left(true)),
+            execute_command_provider: Some(ExecuteCommandOptions {
+                commands: vec!["jsonnet.evalFile".into()],
+                ..Default::default()
+            }),
             ..Default::default()
         }
     }
@@ -405,5 +410,12 @@ impl LSPServer for JsonnetServer {
         Ok(RenameProvider::new(&self.cache)
             .rename(params, &search_paths)?
             .into())
+    }
+
+    fn execute_command(
+        &self,
+        params: <lsp_types::request::ExecuteCommand as lsp_types::request::Request>::Params,
+    ) -> Result<LSPResponse, LSPError> {
+        handle_command(&self.cache, params)
     }
 }
