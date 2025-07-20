@@ -4,6 +4,7 @@ use std::{
     hash::Hash,
 };
 
+#[derive(Default)]
 pub struct HashQueue<K, V>
 where
     K: Eq + Hash,

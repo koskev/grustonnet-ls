@@ -75,10 +75,7 @@ impl Node {
     pub fn get_stack_by_position(&self, pos: &Location) -> NodeStack {
         let mut stack: NodeStack = self
             .iter()
-            .filter(|child| {
-                let in_range = child.node_base.loc_range.in_range(pos);
-                in_range
-            })
+            .filter(|child| child.node_base.loc_range.in_range(pos))
             .map(|child: &Node| child.get_stack_by_position(pos))
             .collect();
         stack.push_front(Arc::new(self.clone()));
@@ -141,12 +138,12 @@ impl<'a> Iterator for NodeIter<'a> {
             NodeKind::Local(loc) => {
                 if self.index == 0 {
                     self.index += 1;
-                    return loc.body.as_ref().map(|v| &**v);
+                    return loc.body.as_deref();
                 }
                 match loc.binds.get(self.index - 1) {
                     Some(bind) => {
                         self.index += 1;
-                        return bind.body.as_ref().map(|v| &**v);
+                        return bind.body.as_deref();
                     }
                     None => return None,
                 }
@@ -191,7 +188,7 @@ impl<'a> Iterator for NodeIter<'a> {
                     self.index += 1;
                     return Some(&arg.expr);
                 }
-                offset = offset + apply.arguments.positional.len();
+                offset += apply.arguments.positional.len();
                 if let Some(arg) = apply.arguments.named.get(self.index - offset) {
                     self.index += 1;
                     return Some(&arg.arg);
@@ -251,6 +248,6 @@ impl<'a> Iterator for NodeIter<'a> {
                 error!("Found other in children: {:?}", other)
             }
         };
-        return None;
+        None
     }
 }

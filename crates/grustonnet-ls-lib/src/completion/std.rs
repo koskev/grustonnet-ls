@@ -2,8 +2,9 @@ use jsonnet_std_docs::StdFunctions;
 use language_server::completion::{Completion, CompletionResult};
 use lsp_types::{CompletionItem, CompletionList, Documentation, Position, Uri};
 
-const STDLIB_DEFINITIONS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
+const STDLIB_DEFINITIONS: &str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
 
+#[derive(Default)]
 pub struct StdCompletion;
 
 impl StdCompletion {
@@ -19,8 +20,8 @@ impl Completion for StdCompletion {
         let functions = StdFunctions::generate(STDLIB_DEFINITIONS);
         let items = functions
             .functions
-            .iter()
-            .map(|(_name, func)| {
+            .values()
+            .map(|func| {
                 let param_string = match &func.params {
                     Some(list) => format!("({})", list.join(", ")),
                     None => "".to_string(),

@@ -22,8 +22,8 @@ impl<'a> JsonnetNode for Node<'a> {
     }
 
     fn get_node_at(&self, point: Point) -> Option<Node> {
-        let mut start_pos = point.clone();
-        let end_pos = point.clone();
+        let mut start_pos = point;
+        let end_pos = point;
 
         if start_pos.column > 0 {
             start_pos.column -= 1;

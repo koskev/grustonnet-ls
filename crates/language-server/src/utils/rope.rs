@@ -35,10 +35,10 @@ impl RopeHelper for Rope {
         })
     }
     fn replace_get_end(&mut self, old: &str, new: &str) -> Option<Position> {
-        let string_begin = self.to_string().find(&old)?;
+        let string_begin = self.to_string().find(old)?;
         let string_end = string_begin + old.len();
         self.remove(string_begin..string_end);
-        self.insert(string_begin, &new);
+        self.insert(string_begin, new);
         let line = self.char_to_line(string_begin);
         let char = string_begin - self.line_to_char(line) + new.len();
 

@@ -22,13 +22,10 @@ impl<'a> Completion for KeywordCompletion<'a> {
 
         let stack = doc.get_ast()?.get_stack_by_position(&location.into());
 
-        let show_self = stack.stack.iter().any(|node| {
-            if let NodeKind::DesugaredObject(_) = *node.node_kind {
-                true
-            } else {
-                false
-            }
-        });
+        let show_self = stack
+            .stack
+            .iter()
+            .any(|node| matches!(*node.node_kind, NodeKind::DesugaredObject(_)));
         // TODO: check if keywords are really usable
         let mut keywords = vec!["local", "import", "importstr", "super"];
         if show_self {

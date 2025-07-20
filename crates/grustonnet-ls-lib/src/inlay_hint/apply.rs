@@ -72,6 +72,6 @@ impl<'a> Inlay for ApplyInlay<'a> {
             })
             .flatten()
             .collect();
-        Ok(hints.into())
+        Ok(hints)
     }
 }

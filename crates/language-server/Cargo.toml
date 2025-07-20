@@ -3,6 +3,11 @@ name = "language-server"
 version = "0.1.0"
 edition = "2024"
 
+# TODO: why do I need this? This is already specified in the root Cargo.toml
+[lints.clippy]
+uninlined_format_args = "allow"
+needless_update = "allow"
+
 [dependencies]
 anyhow = "1.0.98"
 lsp-server = "0.7.8"

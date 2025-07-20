@@ -34,7 +34,7 @@ impl<'a> ReferenceProvider<'a> {
         let top_node = doc
             .get_ast()
             .ok()?
-            .get_stack_by_position(&(pos.clone().into()))
+            .get_stack_by_position(&pos.clone())
             .peek()?;
 
         Some(match top_node.node_kind.as_ref() {

@@ -50,7 +50,7 @@ impl DefinitionTestCase {
             .goto_definition(GotoDefinitionParams {
                 text_document_position_params: TextDocumentPositionParams {
                     text_document: TextDocumentIdentifier { uri: file_uri },
-                    position: self.source.clone(),
+                    position: self.source,
                 },
                 work_done_progress_params: WorkDoneProgressParams::default(),
                 partial_result_params: PartialResultParams::default(),
@@ -72,7 +72,7 @@ impl DefinitionTestCase {
                 );
                 assert_eq!(loc.range.start, self.target);
             }
-            _ => assert!(false, "Not supported"),
+            _ => panic!("Not supported"),
         }
     }
 }

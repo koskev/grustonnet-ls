@@ -15,6 +15,7 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
         * [ ] Function parameters e.g. std.map
     * [ ] Complete Loops
     * [x] All jsonnet imports
+        * [ ] Properly handle completion if "/" is already in the string
     * [x] self
     * [x] super
         * [ ]  Fix super not working if it never had an index
@@ -24,7 +25,7 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
     * [-] Conditionals
         * [ ] Actually evaluate the condition
     * [x] Default parameters
-    * [-] Builder pattern
+    * [x] Builder pattern
         * [ ] Check extremely complex patterns
     * [x] Array access
     * [ ] Unused function arguments
@@ -52,7 +53,7 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
 
 ## Known Issues
 
-* Jsonnet bug: If you import `foo.libsonnet` and there is also a `foo.libsonnet` in the current working directory, evaluating the snippet will result in a diagnostic error
- * To reproduce `cat mydir/bar.jsonnet | jsonnet --jpath mydir -`
-* Jsonnet bug:
- * If there is a circular dependency go-jsonnet emits a strange error
+* (Go)-Jsonnet bugs
+    * If you import `foo.libsonnet` and there is also a `foo.libsonnet` in the current working directory, evaluating the snippet will result in a diagnostic error
+        * To reproduce `cat mydir/bar.jsonnet | jsonnet --jpath mydir -`
+    * If there is a circular dependency go-jsonnet emits a strange error

@@ -66,10 +66,10 @@ impl<'a> Completion for GlobalCompletion<'a> {
                     _ => Some(CompletionItem {
                         label: bind.variable.0.clone(),
                         kind: Some(kind),
-                        detail: match &bind.body {
-                            Some(body) => Some(body.node_kind.variant_name().to_string()),
-                            None => None,
-                        },
+                        detail: bind
+                            .body
+                            .as_ref()
+                            .map(|body| body.node_kind.variant_name().to_string()),
                         ..Default::default()
                     }),
                 }

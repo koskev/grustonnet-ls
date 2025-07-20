@@ -78,7 +78,7 @@ impl JsonnetServer {
             items.extend(diags);
         }
         // TODO: Filter messages with the same target but different severity
-        return items;
+        items
     }
 }
 
@@ -105,7 +105,7 @@ impl LSPServer for JsonnetServer {
     fn handle_init_parameters(&self, params: InitializeParams) {
         let workspaces = params.workspace_folders.unwrap_or_default();
 
-        if workspaces.len() > 0 {
+        if !workspaces.is_empty() {
             self.cache
                 .ast_generator
                 .jsonnet
@@ -254,7 +254,7 @@ impl LSPServer for JsonnetServer {
         let succeeded: Vec<&CompletionList> =
             lists.iter().filter_map(|res| res.as_ref().ok()).collect();
 
-        if succeeded.len() == 0 && failed.len() > 0 {
+        if succeeded.is_empty() && !failed.is_empty() {
             let first_err = *failed.first().unwrap();
             return Err(first_err.into());
         }
@@ -288,7 +288,7 @@ impl LSPServer for JsonnetServer {
         let formatted = match self.cache.ast_generator.jsonnet.format_snippet(
             uri.as_str(),
             &doc.content,
-            &options,
+            options,
         ) {
             Ok(res) => res,
             Err(e) => return Err(e.into()),

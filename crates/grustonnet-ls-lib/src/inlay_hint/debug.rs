@@ -40,6 +40,6 @@ impl<'a> Inlay for DebugInlay<'a> {
                 data: None,
             })
             .collect();
-        Ok(hints.into())
+        Ok(hints)
     }
 }

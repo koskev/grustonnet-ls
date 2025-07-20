@@ -75,7 +75,7 @@ impl DesugaredObject {
 
     pub fn get_name_at(&self, pos: &Location) -> Option<String> {
         self.fields.iter().find_map(|field| {
-            if field.loc_range.in_range(&pos) {
+            if field.loc_range.in_range(pos) {
                 field.get_name()
             } else {
                 None

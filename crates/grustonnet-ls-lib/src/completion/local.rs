@@ -93,13 +93,8 @@ impl<'a> ResolveNodeIter<'a> {
 
         let mut stack_iter = self.document_stack.stack.iter().rev();
         // Find the object the self node belongs to
-        let found_object = stack_iter.find(|n| {
-            if let NodeKind::DesugaredObject(_) = n.node_kind.as_ref() {
-                true
-            } else {
-                false
-            }
-        })?;
+        let found_object =
+            stack_iter.find(|n| matches!(n.node_kind.as_ref(), NodeKind::DesugaredObject(_)))?;
 
         // The next node is a binary
         // TODO: Check with weird examples if this is correct and we won't find an
@@ -188,7 +183,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             }
             NodeKind::Index(_idx) => {
                 let compiled_index: Arc<Node> =
-                    CallStackIter::new(self.cache, &mut self.document_stack)?.last()?;
+                    CallStackIter::new(self.cache, self.document_stack)?.last()?;
                 self.search_stack.push(compiled_index.clone());
                 Some(compiled_index)
             }
@@ -211,7 +206,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                     return Some(dollar_node);
                 }
 
-                if let Some(resolved) = var.resolve(&mut self.document_stack) {
+                if let Some(resolved) = var.resolve(self.document_stack) {
                     log::debug!(
                         "{} Resolved to {:?} at {}:{:?}",
                         var.id.clone().unwrap_or_default().0,
@@ -460,7 +455,7 @@ impl<'a> LocalCompletion<'a> {
     pub fn build_node_from_call_stack(
         &self,
         mut call_stack: NodeStack,
-        mut document_stack: &mut NodeStack,
+        document_stack: &mut NodeStack,
     ) -> Result<Arc<Node>> {
         let mut base_object: Option<Arc<Node>> = None;
 
@@ -492,12 +487,12 @@ impl<'a> LocalCompletion<'a> {
                 },
             };
             base_object = Some(
-                ResolveNodeIter::new(to_complete_object, &mut document_stack, self.cache)
+                ResolveNodeIter::new(to_complete_object, document_stack, self.cache)
                     .last()
                     .ok_or(anyhow!("getting new base object"))?,
             );
         }
-        Ok(base_object.ok_or(anyhow!("no object found"))?)
+        base_object.ok_or(anyhow!("no object found"))
     }
 
     pub fn build_node(&self, document_stack: NodeStack) -> Result<Arc<Node>> {

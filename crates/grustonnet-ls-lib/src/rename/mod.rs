@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::{Result, anyhow};
 use language_server::cache::Cache;
-use lsp_types::{RenameParams, TextEdit, WorkspaceEdit};
+use lsp_types::{RenameParams, TextEdit, Uri, WorkspaceEdit};
 
 use crate::{cache::JsonnetASTGenerator, references::ReferenceProvider};
 
@@ -29,14 +29,19 @@ impl<'a> RenameProvider<'a> {
             .ok_or(anyhow!("No references found"))?;
 
         // Rename all references
-        let edits = references.into_iter().fold(HashMap::new(), |mut acc, loc| {
-            log::debug!("Renaming at {:?}", loc.range);
-            acc.entry(loc.uri.clone()).or_insert(vec![]).push(TextEdit {
-                range: loc.range,
-                new_text: params.new_name.clone(),
-            });
-            acc
-        });
+        // We don't really care for the mutability here
+        #[allow(clippy::mutable_key_type)]
+        let edits = references.into_iter().fold(
+            HashMap::new(),
+            |mut acc: HashMap<Uri, Vec<TextEdit>>, loc| {
+                log::debug!("Renaming at {:?}", loc.range);
+                acc.entry(loc.uri.clone()).or_default().push(TextEdit {
+                    range: loc.range,
+                    new_text: params.new_name.clone(),
+                });
+                acc
+            },
+        );
 
         let workspace_edit = WorkspaceEdit {
             changes: Some(edits),

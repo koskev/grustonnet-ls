@@ -15,7 +15,7 @@ fn local_config() -> Configuration {
     }
 }
 
-use crate::completion::completion::CompletionTestCase;
+use crate::completion::common::CompletionTestCase;
 
 pub mod array;
 pub mod binary;
@@ -25,7 +25,7 @@ pub mod dollar;
 pub mod extcode;
 pub mod function;
 pub mod import;
-pub mod local;
+pub mod locals;
 pub mod object;
 pub mod selfnode;
 pub mod shadow;

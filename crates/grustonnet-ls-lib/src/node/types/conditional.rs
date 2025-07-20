@@ -17,6 +17,6 @@ pub struct Conditional {
 impl Conditional {
     pub fn resolve(&self) -> Arc<Node> {
         // TODO: Properly resolve
-        return self.branch_true.clone();
+        self.branch_true.clone()
     }
 }

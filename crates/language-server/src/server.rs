@@ -103,11 +103,11 @@ impl From<ResponseError> for LSPError {
     }
 }
 
-impl Into<ResponseError> for LSPError {
-    fn into(self) -> ResponseError {
+impl From<LSPError> for ResponseError {
+    fn from(val: LSPError) -> Self {
         ResponseError {
-            code: self.error_code,
-            message: self.message,
+            code: val.error_code,
+            message: val.message,
             data: None,
         }
     }
@@ -140,9 +140,9 @@ impl<S: Serialize> From<S> for LSPResponse {
     }
 }
 
-impl Into<serde_json::Value> for LSPResponse {
-    fn into(self) -> serde_json::Value {
-        self.0
+impl From<LSPResponse> for serde_json::Value {
+    fn from(val: LSPResponse) -> Self {
+        val.0
     }
 }
 
@@ -156,7 +156,7 @@ fn not_implemented_error() -> LSPError {
 pub fn get_response_error(message: String) -> LSPError {
     LSPError {
         error_code: ErrorCode::UnknownErrorCode as i32,
-        message: message,
+        message,
     }
 }
 
@@ -268,7 +268,7 @@ impl LSPConnection {
     pub fn new_network(port: u16) -> Self {
         let (connection, io_threads) = Connection::listen(format!("127.0.0.1:{}", port)).unwrap();
         Self {
-            connection: connection,
+            connection,
             threads: Arc::new(Mutex::new(Some(io_threads))),
             ..Default::default()
         }

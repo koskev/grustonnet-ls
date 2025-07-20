@@ -41,11 +41,11 @@ impl From<lsp_types::Position> for Location {
     }
 }
 
-impl Into<lsp_types::Position> for Location {
-    fn into(self) -> lsp_types::Position {
+impl From<Location> for lsp_types::Position {
+    fn from(val: Location) -> Self {
         Position {
-            line: std::cmp::max(0, self.line - 1) as u32,
-            character: std::cmp::max(0, self.column - 1) as u32,
+            line: std::cmp::max(0, val.line - 1) as u32,
+            character: std::cmp::max(0, val.column - 1) as u32,
         }
     }
 }
@@ -76,15 +76,15 @@ impl LocationRange {
             return self.begin.line <= location.line && self.end.line >= location.line;
         }
 
-        return true;
+        true
     }
 
     pub fn is_valid(&self) -> bool {
-        return self.begin.line != 0
+        self.begin.line != 0
             && self.begin.column != 0
             && self.end.line != 0
             && self.end.column != 0
-            && self.file_name.len() != 0;
+            && !self.file_name.is_empty()
     }
 }
 

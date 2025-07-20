@@ -37,7 +37,7 @@ pub fn generate_test_function_for_dir(input: TokenStream) -> TokenStream {
     let root_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let dir = format!("{}/{}", root_dir, args.dir.value());
 
-    let path = fs::canonicalize(&dir).expect(&format!("No abs path found for {}", dir));
+    let path = fs::canonicalize(&dir).unwrap_or_else(|_| panic!("No abs path found for {dir}"));
 
     let walk = WalkDir::new(path);
     let funcs: Vec<_> = walk
@@ -57,7 +57,7 @@ pub fn generate_test_function_for_dir(input: TokenStream) -> TokenStream {
                 p.parent()
                     .expect("No parent")
                     .file_name()
-                    .unwrap_or(&OsStr::new("unknown"))
+                    .unwrap_or(OsStr::new("unknown"))
                     .to_str()
                     .unwrap(),
                 p.file_stem().expect("No stem").to_str().unwrap()

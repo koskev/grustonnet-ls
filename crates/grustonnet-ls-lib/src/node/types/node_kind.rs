@@ -102,7 +102,7 @@ impl Display for NodeKind {
 
 impl Default for NodeKind {
     fn default() -> Self {
-        return Self::Other(json!(null));
+        Self::Other(json!(null))
     }
 }
 

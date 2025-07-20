@@ -39,6 +39,7 @@ pub struct DiagnosticConfig {
 pub struct InlayConfig {
     /// Enable debug inlay hints to show the ast types
     pub enable_debug: bool,
+    #[default = true]
     /// Enable function parameter inlay hints (might cause some delays)
     pub enable_function_parameters: bool,
 }

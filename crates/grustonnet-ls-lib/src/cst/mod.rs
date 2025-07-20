@@ -8,6 +8,6 @@ fn new_tree(content: &str) -> Option<tree_sitter::Tree> {
     parser
         .set_language(&tree_sitter_jsonnet::language())
         .expect("Something is really wrong with the tresitter setup!");
-    let tree = parser.parse(content, None);
-    tree
+
+    parser.parse(content, None)
 }

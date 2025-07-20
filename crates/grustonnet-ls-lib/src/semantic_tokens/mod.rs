@@ -113,23 +113,23 @@ struct SemanticDataList {
     data: Vec<SemanticData>,
 }
 
-impl Into<lsp_types::SemanticTokens> for SemanticDataList {
-    fn into(mut self) -> lsp_types::SemanticTokens {
+impl From<SemanticDataList> for lsp_types::SemanticTokens {
+    fn from(mut val: SemanticDataList) -> Self {
         let mut tokens = SemanticTokens::default();
         // Sort all the data by the line and then the column
-        self.data.sort_by(|a, b| {
+        val.data.sort_by(|a, b| {
             let order = a.location.begin.line.cmp(&b.location.begin.line);
             if !order.is_eq() {
                 return order;
             }
             a.location.begin.column.cmp(&b.location.begin.column)
         });
-        log::trace!("DATA: {:#?}", self.data);
-        for (i, data) in self.data.iter().enumerate() {
+        log::trace!("DATA: {:#?}", val.data);
+        for (i, data) in val.data.iter().enumerate() {
             let prev_token = if i == 0 {
                 SemanticData::default()
             } else {
-                self.data[i - 1].clone()
+                val.data[i - 1].clone()
             };
 
             tokens.data.push(lsp_types::SemanticToken {
@@ -174,6 +174,7 @@ pub fn get_tokens(root: Arc<Node>) -> SemanticTokens {
             // Skip special $std without a valid location
             continue;
         }
+        #[allow(clippy::single_match)]
         match current_node.node_kind.as_ref() {
             NodeKind::Var(var) => {
                 if var.id.is_none() {

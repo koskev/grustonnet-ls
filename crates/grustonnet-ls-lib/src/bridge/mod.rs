@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, hash_map::Entry},
     error::Error,
     fmt::{Debug, Display},
     fs,
@@ -73,10 +73,10 @@ impl Display for EvaluateError {
     }
 }
 
-impl Into<LSPError> for EvaluateError {
-    fn into(self) -> LSPError {
+impl From<EvaluateError> for LSPError {
+    fn from(val: EvaluateError) -> Self {
         LSPError {
-            message: self.to_string(),
+            message: val.to_string(),
             error_code: ErrorCode::ParseError as i32,
         }
     }
@@ -197,9 +197,9 @@ fn find_upwards(cwd: &str, suffix: &str) -> HashMap<String, String> {
                     .strip_suffix(suffix)
                     .unwrap()
                     .to_string();
-                if !files_found.contains_key(&name) {
+                if let Entry::Vacant(e) = files_found.entry(name) {
                     if let Ok(content) = fs::read_to_string(found.path()) {
-                        files_found.insert(name, content);
+                        e.insert(content);
                     }
                 }
             });
@@ -209,7 +209,7 @@ fn find_upwards(cwd: &str, suffix: &str) -> HashMap<String, String> {
             None => break,
         }
     }
-    return files_found;
+    files_found
 }
 
 // TODO: performance nightmare
@@ -301,14 +301,14 @@ impl GenerateAST for GoJsonnet {
             filename.to_string(),
             self.get_evaluate_params(source_file),
         );
-        if res.error_data.len() > 0 {
+        if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
         Ok(res.ast_data)
     }
     fn get_ast(&self, filename: &str) -> Result<String, EvaluateError> {
         let res = ASTBridgeImpl::get_ast(filename.to_string());
-        if res.error_data.len() > 0 {
+        if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
         Ok(res.ast_data)
@@ -319,7 +319,7 @@ impl GenerateAST for GoJsonnet {
         let res = ASTBridgeImpl::get_ast_snippet(source_file.to_string(), snippet.to_string());
         let dur = start.elapsed();
         log::info!("Ast evaluation took {:?}", dur);
-        if res.error_data.len() > 0 {
+        if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
         Ok(res.ast_data)
@@ -330,7 +330,7 @@ impl GenerateAST for GoJsonnet {
             ast_string.to_string(),
             self.get_evaluate_params(source_file),
         );
-        if res.error_data.len() > 0 {
+        if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
         Ok(res.ast_data)
@@ -342,7 +342,7 @@ impl GenerateAST for GoJsonnet {
             snippet.to_string(),
             self.get_evaluate_params(filename),
         );
-        if res.error_data.len() > 0 {
+        if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
         Ok(res.ast_data)
@@ -354,7 +354,7 @@ impl GenerateAST for GoJsonnet {
             snippet.to_string(),
             self.get_evaluate_params(filename),
         );
-        if res.error_data.len() > 0 {
+        if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
         Ok(res.ast_data)
@@ -371,7 +371,7 @@ impl GenerateAST for GoJsonnet {
             snippet.to_string(),
             options.clone(),
         );
-        if res.error_data.len() > 0 {
+        if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
         Ok(res.ast_data)

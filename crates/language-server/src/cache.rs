@@ -70,6 +70,7 @@ impl<G: ASTGenerator> Document<G> {
             self.manually_loaded_at = Some(modified);
         }
         if load_ast {
+            #[allow(clippy::single_match)]
             match self.state {
                 ASTState::NotLoaded => self.update_ast(),
                 _ => (),
@@ -146,7 +147,7 @@ impl<G: ASTGenerator> Cache<G> {
                 if val.get().manually_loaded_at.is_some() {
                     val.get_mut().update_content_if_needed(load_ast)?;
                 }
-                return Ok(val.get().clone());
+                Ok(val.get().clone())
             }
             Entry::Vacant(key) => {
                 // load into cache with flag
@@ -158,7 +159,7 @@ impl<G: ASTGenerator> Cache<G> {
                 };
                 doc.update_content_if_needed(load_ast)?;
                 key.insert(doc.clone());
-                return Ok(doc);
+                Ok(doc)
             }
         }
     }

@@ -9,7 +9,7 @@ use crate::{
     node::types::{node::Node, node_kind::NodeKind},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct NodeStackG<T>
 where
     T: Clone,
@@ -79,15 +79,9 @@ impl NodeStack {
     ) -> Result<Arc<Node>> {
         let (last_node, built_node) = self.build_except_last(cache)?;
         let last_node_body = match built_node.node_kind.as_ref() {
-            NodeKind::DesugaredObject(obj) => {
-                if let Some(field) =
-                    obj.get_field(&last_node.clone().unwrap_or_default().get_name())
-                {
-                    Some(field.body.clone())
-                } else {
-                    None
-                }
-            }
+            NodeKind::DesugaredObject(obj) => obj
+                .get_field(&last_node.clone().unwrap_or_default().get_name())
+                .map(|field| field.body.clone()),
             _ => Some(built_node),
         };
 
@@ -104,7 +98,7 @@ impl NodeStack {
             .get_call_stack();
         let mut last_node = None;
         let built_node = match call_stack.stack.len() {
-            x if x == 1 => call_stack.stack.pop().expect("impossible to reach"),
+            1 => call_stack.stack.pop().expect("impossible to reach"),
             x if x > 1 => {
                 // Remove the last node (=at the beginning of the vec) and resolve the rest of the stack
                 last_node = Some(call_stack.stack.remove(0));
@@ -115,7 +109,7 @@ impl NodeStack {
                     .ok_or(anyhow!("Call iter was empty. Stack: {}", call_stack))?
             }
             _ => {
-                return Err(anyhow!("Cant find the destination of an empty stack").into());
+                return Err(anyhow!("Cant find the destination of an empty stack"));
             }
         };
         Ok((last_node, built_node))

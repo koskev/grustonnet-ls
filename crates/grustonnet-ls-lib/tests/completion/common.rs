@@ -81,8 +81,8 @@ impl CompletionTestCase {
                 content_changes: vec![TextDocumentContentChangeEvent {
                     text: self.replace_by_string.clone(),
                     range: Some(Range {
-                        start: rope.get_location(string_begin).unwrap().into(),
-                        end: rope.get_location(string_end).unwrap().into(),
+                        start: rope.get_location(string_begin).unwrap(),
+                        end: rope.get_location(string_end).unwrap(),
                     }),
                     range_length: None,
                 }],
@@ -96,7 +96,7 @@ impl CompletionTestCase {
             .completion(lsp_types::CompletionParams {
                 text_document_position: TextDocumentPositionParams {
                     text_document: TextDocumentIdentifier { uri: file_uri },
-                    position: completion_location.clone().into(),
+                    position: completion_location,
                 },
                 work_done_progress_params: WorkDoneProgressParams::default(),
                 context: None,

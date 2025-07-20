@@ -77,28 +77,28 @@ impl<'a> From<Node<'a>> for NodeType {
 
 impl NodeType {
     pub fn is_statement_ending(&self) -> bool {
-        match *self {
+        matches!(
+            *self,
             Self::NodeColon
-            | Self::NodeComma
-            | Self::NodeSemicolon
-            | Self::NodeOpeningBracket
-            | Self::NodeOpeningSquareBracket
-            | Self::NodeEqual
-            | Self::NodePlus => true,
-            _ => false,
-        }
+                | Self::NodeComma
+                | Self::NodeSemicolon
+                | Self::NodeOpeningBracket
+                | Self::NodeOpeningSquareBracket
+                | Self::NodeEqual
+                | Self::NodePlus
+        )
     }
 
     pub fn is_symbol(&self) -> bool {
-        match *self {
+        matches!(
+            *self,
             Self::NodeSemicolon
-            | Self::NodeDot
-            | Self::NodeClosingBracket
-            | Self::NodeOpeningBracket
-            | Self::NodeOpeningSquareBracket
-            | Self::NodeClosingSquareBracket
-            | Self::NodeColon => true,
-            _ => false,
-        }
+                | Self::NodeDot
+                | Self::NodeClosingBracket
+                | Self::NodeOpeningBracket
+                | Self::NodeOpeningSquareBracket
+                | Self::NodeClosingSquareBracket
+                | Self::NodeColon
+        )
     }
 }

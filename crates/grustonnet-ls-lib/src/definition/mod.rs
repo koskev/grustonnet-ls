@@ -28,9 +28,9 @@ impl<'a> DefinitionProvider<'a> {
     pub fn definition(&self, uri: &Uri, pos: Location) -> Result<DefinitinInfo> {
         let doc = self.cache.get_document(uri)?;
 
-        let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.clone().into()));
+        let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.clone()));
 
-        let (last_node, built_node) = document_stack.build_except_last(&self.cache)?;
+        let (last_node, built_node) = document_stack.build_except_last(self.cache)?;
 
         let index_name = last_node
             .unwrap_or(built_node.clone())
@@ -49,13 +49,10 @@ impl<'a> DefinitionProvider<'a> {
                     .loc_range
                     .clone(),
             ),
-            NodeKind::Local(local) => {
-                if let Some(first_bind) = local.binds.first() {
-                    Some(first_bind.loc_range.clone())
-                } else {
-                    None
-                }
-            }
+            NodeKind::Local(local) => local
+                .binds
+                .first()
+                .map(|first_bind| first_bind.loc_range.clone()),
             _ => None,
         }
         .ok_or(anyhow!(

@@ -19,7 +19,7 @@ impl Var {
         if let Some(id) = &self.id {
             return id.0 == name;
         }
-        return false;
+        false
     }
 
     // TODO: resolve before is vars

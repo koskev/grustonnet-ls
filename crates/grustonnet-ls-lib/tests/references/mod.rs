@@ -38,8 +38,8 @@ impl ReferenceTestCase {
                 .unwrap(),
         )
         .unwrap();
-        let file_content =
-            read_to_string(&self.filename).expect(&format!("Failed to read {}", self.filename));
+        let file_content = read_to_string(&self.filename)
+            .unwrap_or_else(|_| panic!("Failed to read {}", self.filename));
 
         server
             .cache
@@ -61,7 +61,7 @@ impl ReferenceTestCase {
             .references(ReferenceParams {
                 text_document_position: TextDocumentPositionParams {
                     text_document: TextDocumentIdentifier { uri: file_uri },
-                    position: self.source.clone(),
+                    position: self.source,
                 },
                 context: ReferenceContext {
                     include_declaration: true,
