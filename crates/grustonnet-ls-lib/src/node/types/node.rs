@@ -153,6 +153,12 @@ impl<'a> Iterator for NodeIter<'a> {
                     self.index += 1;
                     return Some(&func.body);
                 }
+                if let Some(params) = &func.parameters
+                    && let Some(param) = params.get(self.index - 1)
+                {
+                    self.index += 1;
+                    return param.default_arg.as_deref();
+                }
                 return None;
             }
             NodeKind::DesugaredObject(obj) => {
@@ -166,6 +172,7 @@ impl<'a> Iterator for NodeIter<'a> {
                     } else {
                         return Some(&field.body);
                     }
+                    // TODO: locals, asserts
                 }
             }
             // Var has no children
@@ -234,11 +241,17 @@ impl<'a> Iterator for NodeIter<'a> {
                     _ => None,
                 };
             }
+            NodeKind::SuperIndex(idx) => {
+                self.index += 1;
+                return match self.index {
+                    1 => Some(&idx.index),
+                    _ => None,
+                };
+            }
             NodeKind::LiteralString(_)
             | NodeKind::LiteralNumber(_)
             | NodeKind::LiteralBoolean(_)
             | NodeKind::LiteralNull
-            | NodeKind::SuperIndex
             | NodeKind::SelfNode
             | NodeKind::Import(_)
             | NodeKind::ImportStr(_)

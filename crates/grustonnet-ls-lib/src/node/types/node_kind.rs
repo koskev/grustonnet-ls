@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::node::types::{
-    Array, Error, Import, Local, Unary,
+    Array, Error, Identifier, Import, Local, Unary,
     binary::Binary,
     conditional::Conditional,
     desugared_object::DesugaredObject,
@@ -26,6 +26,16 @@ pub struct InSuper {
     pub index: Arc<Node>,
     pub in_fodder: Option<Fodder>,
     pub super_fodder: Option<Fodder>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase", tag = "Type")]
+pub struct SuperIndex {
+    #[serde(rename = "IDFodder")]
+    pub id_fodder: Option<Fodder>,
+    pub index: Arc<Node>,
+    pub dot_fodder: Option<Fodder>,
+    pub id: Option<Identifier>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq)]
@@ -53,7 +63,7 @@ pub enum NodeKind {
 
     #[serde(alias = "Self")]
     SelfNode,
-    SuperIndex,
+    SuperIndex(SuperIndex),
     Dollar,
 
     // Leftover nodes. Most likely something is broken

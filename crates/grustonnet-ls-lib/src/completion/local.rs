@@ -316,7 +316,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 self.search_stack.push(binary.right.clone());
                 Some(binary.right.clone())
             }
-            NodeKind::SuperIndex => self.handle_self_super(&current_node, true),
+            NodeKind::SuperIndex(_) => self.handle_self_super(&current_node, true),
             NodeKind::SelfNode => self.handle_self_super(&current_node, false),
             NodeKind::Conditional(cond) => {
                 let resolved = cond.resolve().clone();
