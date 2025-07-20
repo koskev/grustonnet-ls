@@ -6,6 +6,8 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
 * [-] Completion
     * [x] Global completion
     * [x] Index completion
+    * [x] Value preview
+        * [ ] Make the Object preview pretty
     * [-] Complete "everything"
         * [ ] Find the remaining cases where completion does not work/tries to complete the wrong node
     * [x] Stdlib

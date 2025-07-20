@@ -3,6 +3,7 @@ use std::{
     sync::Arc,
 };
 
+use lsp_types::CompletionItemKind;
 use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -124,6 +125,40 @@ impl NodeKind {
             Self::LiteralBoolean(litbool) => Some(litbool.value.to_string()),
             Self::DesugaredObject(obj) => Some(obj.to_string()),
             _ => None,
+        }
+    }
+
+    // Not using into/from to make calling this method easier
+    pub fn get_lsp_kind(&self) -> CompletionItemKind {
+        match self {
+            NodeKind::Apply(_) | NodeKind::Function(_) => CompletionItemKind::FUNCTION,
+            NodeKind::Import(_) => CompletionItemKind::MODULE,
+            _ => CompletionItemKind::VARIABLE,
+        }
+    }
+
+    /// Gets a readable name to insert into the completion item
+    pub fn get_node_kind_name(&self) -> &str {
+        match self {
+            NodeKind::LiteralNumber(_) => "number",
+            NodeKind::LiteralString(_) => "string",
+            NodeKind::LiteralBoolean(_) => "boolean",
+            NodeKind::LiteralNull => "null",
+            NodeKind::DesugaredObject(_) => "object",
+            NodeKind::ImportStr(_) | NodeKind::Import(_) | NodeKind::ImportBin(_) => "import",
+            NodeKind::Var(_) => "variable",
+            NodeKind::SuperIndex(_) | NodeKind::InSuper(_) => "super",
+            NodeKind::Index(_) => "index",
+            NodeKind::Binary(_) => "binary",
+            NodeKind::Array(_) => "array",
+            NodeKind::Apply(_) | NodeKind::Function(_) => "function",
+            NodeKind::Conditional(_) => "conditional",
+            NodeKind::Unary(_) => "unary",
+            NodeKind::Error(_) => "error",
+            NodeKind::SelfNode => "self",
+            NodeKind::Dollar => "dollar",
+            NodeKind::Local(_) => "local",
+            NodeKind::Other(_) => "invalid",
         }
     }
 }

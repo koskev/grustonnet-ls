@@ -14,7 +14,7 @@ use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemKind, CompletionList, Position, Uri};
+use lsp_types::{CompletionItem, CompletionItemLabelDetails, CompletionList, Position, Uri};
 
 pub struct LocalCompletion<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -530,7 +530,12 @@ impl<'a> Completion for LocalCompletion<'a> {
                     Some(CompletionItem {
                         label: field.get_name()?,
                         detail: field.body.node_kind.get_value(),
-                        kind: Some(CompletionItemKind::FIELD),
+                        kind: Some(field.body.node_kind.get_lsp_kind()),
+                        label_details: Some(CompletionItemLabelDetails {
+                            description: Some(field.body.node_kind.get_node_kind_name().into()),
+                            ..Default::default()
+                        }),
+
                         ..Default::default()
                     })
                 })

@@ -116,6 +116,9 @@ impl CompletionTestCase {
             if expected.kind.is_none() {
                 item.kind = None;
             }
+            if expected.label_details.is_none() {
+                item.label_details = None;
+            }
         }
 
         assert_eq!(

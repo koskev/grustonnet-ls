@@ -2,7 +2,7 @@ use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemKind, Position, Uri};
+use lsp_types::{CompletionItem, CompletionItemKind, CompletionItemLabelDetails, Position, Uri};
 
 use crate::{
     cache::JsonnetASTGenerator,
@@ -50,26 +50,24 @@ impl<'a> Completion for GlobalCompletion<'a> {
         let items = binds
             .iter()
             .filter_map(|bind| {
-                let kind = match &bind.body {
-                    Some(kind) => {
-                        if let NodeKind::Function(_) = *kind.node_kind {
-                            CompletionItemKind::FUNCTION
-                        } else {
-                            CompletionItemKind::VARIABLE
-                        }
-                    }
-                    None => CompletionItemKind::VARIABLE,
-                };
                 match bind.variable.0.as_str() {
                     // Filter out weird "$" in ast
                     "$" => None,
                     _ => Some(CompletionItem {
                         label: bind.variable.0.clone(),
-                        kind: Some(kind),
-                        detail: bind
-                            .body
-                            .as_ref()
-                            .map(|body| body.node_kind.variant_name().to_string()),
+                        kind: Some(
+                            bind.body
+                                .as_ref()
+                                .map(|body| body.node_kind.get_lsp_kind())
+                                .unwrap_or(CompletionItemKind::VARIABLE),
+                        ),
+                        label_details: Some(CompletionItemLabelDetails {
+                            description: bind
+                                .body
+                                .as_ref()
+                                .map(|body| body.node_kind.get_node_kind_name().into()),
+                            ..Default::default()
+                        }),
                         ..Default::default()
                     }),
                 }
