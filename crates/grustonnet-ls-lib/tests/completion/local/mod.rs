@@ -17,6 +17,7 @@ fn local_config() -> Configuration {
 
 use crate::completion::completion::CompletionTestCase;
 
+pub mod array;
 pub mod binary;
 pub mod builder;
 pub mod conditional;

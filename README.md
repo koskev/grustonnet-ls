@@ -26,7 +26,7 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
     * [x] Default parameters
     * [-] Builder pattern
         * [ ] Check extremely complex patterns
-    * [ ] Array access
+    * [x] Array access
     * [ ] Unused function arguments
 * [x] Semantic tokens
 * [-] Inlay Hints

@@ -347,15 +347,19 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                     None
                 }
             }
-            _ => {
-                log::warn!(
-                    "Unhandled node in completion iterator: {}",
-                    current_node.node_kind.variant_name(),
-                );
-                // Return the current node as the result to avoid getting the result for the
-                // previous index e.g. foo.bar.bar.bar
-                Some(current_node)
-            }
+            // Return the current node without adding it to the search stack to avoid completing
+            // the previous index again. e.g. foo.bar.bar.bar
+            NodeKind::LiteralString(_)
+            | NodeKind::LiteralNumber(_)
+            | NodeKind::LiteralBoolean(_)
+            | NodeKind::LiteralNull
+            | NodeKind::ImportStr(_)
+            | NodeKind::ImportBin(_)
+            | NodeKind::Array(_) // Handled by the callstack iter
+            // TODO: check the the kinds below
+            | NodeKind::Error(_)
+            | NodeKind::Unary(_)
+            | NodeKind::InSuper(_) => Some(current_node),
         }
     }
 }
@@ -374,7 +378,11 @@ impl<'a> CallStackIter<'a> {
         document_stack: &'a mut NodeStack,
     ) -> Option<Self> {
         let call_stack = document_stack.peek()?.get_call_stack();
-        log::trace!("New callstack iter with stack {}", call_stack);
+        log::trace!(
+            "New callstack iter with stack\n{}\nfrom\n{}",
+            call_stack,
+            document_stack
+        );
         Some(Self {
             cache,
             base_object: None,
@@ -402,17 +410,30 @@ impl<'a> Iterator for CallStackIter<'a> {
     type Item = Arc<Node>;
     fn next(&mut self) -> Option<Self::Item> {
         let call_node = self.call_stack.stack.pop()?;
+        log::trace!("New call node: {}", call_node.node_kind);
         // Get the next object to complete. If we don't have a base object: Just use the call node
         // if we have a base object: Check for the DesugaredObject fields and get the correct one
         let to_complete_object = match &self.base_object {
             None => call_node,
             Some(base_object) => match call_node.node_kind.as_ref() {
                 NodeKind::Index(idx) => {
-                    let index_name = idx.get_name()?;
                     match base_object.node_kind.as_ref() {
                         NodeKind::DesugaredObject(obj) => {
+                            let index_name = idx.get_name()?;
                             let found_field = obj.get_field(&index_name)?;
                             found_field.body.clone()
+                        }
+                        // arr[0] is basically arr.0
+                        NodeKind::Array(arr) => {
+                            if let NodeKind::LiteralNumber(idx_num) = idx.index.node_kind.as_ref()
+                                && let Ok(idx_num) = idx_num.original_string.parse::<usize>()
+                                && let Some(elements) = &arr.elements
+                                && let Some(element) = elements.get(idx_num)
+                            {
+                                element.expr.clone()
+                            } else {
+                                base_object.clone()
+                            }
                         }
                         // Index does not point to an object
                         _ => base_object.clone(),

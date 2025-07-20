@@ -29,7 +29,8 @@ impl Node {
         search_stack.push(Arc::new(self.clone()));
 
         while let Some(current_node) = search_stack.stack.pop() {
-            match &(*current_node.node_kind) {
+            log::trace!("Handling in call stack: {}", current_node.node_kind);
+            match current_node.node_kind.as_ref() {
                 NodeKind::Index(idx) => {
                     call_stack.push(current_node.clone());
 
@@ -229,18 +230,25 @@ impl<'a> Iterator for NodeIter<'a> {
                 }
                 return None;
             }
+            NodeKind::InSuper(idx) => {
+                self.index += 1;
+                return match self.index {
+                    1 => Some(&idx.index),
+                    _ => None,
+                };
+            }
             NodeKind::LiteralString(_)
             | NodeKind::LiteralNumber(_)
             | NodeKind::LiteralBoolean(_)
             | NodeKind::LiteralNull
             | NodeKind::SuperIndex
             | NodeKind::SelfNode
-            | NodeKind::Import(_) => (),
-            _ => {
-                error!(
-                    "Unhandled type {} while searching for children",
-                    self.root_node.node_kind.variant_name()
-                )
+            | NodeKind::Import(_)
+            | NodeKind::ImportStr(_)
+            | NodeKind::ImportBin(_)
+            | NodeKind::Dollar => (),
+            NodeKind::Other(other) => {
+                error!("Found other in children: {:?}", other)
             }
         };
         return None;

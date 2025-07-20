@@ -23,9 +23,9 @@ use crate::node::types::{
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase", tag = "Type")]
 pub struct InSuper {
-    index: Arc<Node>,
-    in_fodder: Option<Fodder>,
-    super_fodder: Option<Fodder>,
+    pub index: Arc<Node>,
+    pub in_fodder: Option<Fodder>,
+    pub super_fodder: Option<Fodder>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq)]
