@@ -6,22 +6,26 @@ use std::{
 };
 
 use anyhow::Result;
+use crossbeam::channel::Sender;
 use lsp_server::{
     Connection, ErrorCode, ExtractError, IoThreads, Message, Notification, Request, RequestId,
     Response, ResponseError,
 };
 use lsp_types::{
     DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
-    InitializeParams, ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind, Uri,
+    InitializeParams, ProgressParams, ProgressParamsValue, ServerCapabilities,
+    TextDocumentSyncCapability, TextDocumentSyncKind, Uri, WorkDoneProgress, WorkDoneProgressBegin,
+    WorkDoneProgressEnd, WorkDoneProgressReport,
     notification::{
         DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument,
-        Notification as NotificationTrait,
+        Notification as NotificationTrait, Progress,
     },
     request::{
         Completion, DocumentDiagnosticRequest, ExecuteCommand, Formatting, GotoDefinition,
         InlayHintRequest, References, Rename, Request as RequestTrait, SemanticTokensFullRequest,
     },
 };
+use rand::RngCore;
 use ropey::Rope;
 use serde::Serialize;
 
@@ -277,6 +281,84 @@ impl LSPConnection {
 
     pub fn send(&self, message: Message) -> Result<()> {
         Ok(self.connection.sender.send(message)?)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct WorkProgressSender {
+    sender: Sender<Message>,
+    id: u32,
+    progress: u32,
+    last_message: Option<String>,
+}
+
+impl WorkProgressSender {
+    pub fn new(sender: Sender<Message>) -> Self {
+        let id = rand::rng().next_u32();
+        Self {
+            sender,
+            id,
+            progress: 0,
+            last_message: None,
+        }
+    }
+
+    pub fn work_start(&self, title: String, message: Option<String>) {
+        self.sender
+            .send(Message::Notification(Notification {
+                method: Progress::METHOD.to_string(),
+                params: serde_json::to_value(ProgressParams {
+                    token: lsp_types::NumberOrString::Number(self.id as i32),
+                    value: ProgressParamsValue::WorkDone(WorkDoneProgress::Begin(
+                        WorkDoneProgressBegin {
+                            title: title.to_string(),
+                            message: message.map(|s| s.to_string()),
+                            percentage: Some(0),
+                            ..Default::default()
+                        },
+                    )),
+                })
+                .unwrap(),
+            }))
+            .unwrap();
+    }
+
+    pub fn work_progress(&mut self, percentage: u32, message: Option<String>) {
+        if percentage > self.progress || self.last_message != message {
+            self.last_message = message.clone();
+            self.sender
+                .send(Message::Notification(Notification {
+                    method: Progress::METHOD.to_string(),
+                    params: serde_json::to_value(ProgressParams {
+                        token: lsp_types::NumberOrString::Number(self.id as i32),
+                        value: ProgressParamsValue::WorkDone(WorkDoneProgress::Report(
+                            WorkDoneProgressReport {
+                                percentage: Some(percentage),
+                                message,
+                                ..Default::default()
+                            },
+                        )),
+                    })
+                    .unwrap(),
+                }))
+                .unwrap();
+        }
+    }
+    pub fn work_done(&self) {
+        self.sender
+            .send(Message::Notification(Notification {
+                method: Progress::METHOD.to_string(),
+                params: serde_json::to_value(ProgressParams {
+                    token: lsp_types::NumberOrString::Number(self.id as i32),
+                    value: ProgressParamsValue::WorkDone(WorkDoneProgress::End(
+                        WorkDoneProgressEnd {
+                            ..Default::default()
+                        },
+                    )),
+                })
+                .unwrap(),
+            }))
+            .unwrap();
     }
 }
 

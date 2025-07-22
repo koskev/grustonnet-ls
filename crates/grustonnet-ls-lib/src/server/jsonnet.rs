@@ -9,7 +9,9 @@ use language_server::{
     cache::Cache,
     completion::Completion,
     diagnostics::{Diagnostics, DiagnosticsQueue},
-    server::{LSPConnection, LSPError, LSPResponse, LSPServer, get_response_error},
+    server::{
+        LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
+    },
     utils::diff,
 };
 use lsp_types::{
@@ -179,11 +181,19 @@ impl LSPServer for JsonnetServer {
             let eval_params = self.cache.ast_generator.jsonnet.get_evaluate_params(".");
             let all_files = utils::files::get_all_jsonnnet_files(&eval_params.jpaths);
             let cache = self.cache.clone();
+            let sender = self.connection.connection.sender.clone();
             bevy_tasks::ComputeTaskPool::get_or_init(bevy_tasks::TaskPool::default)
                 .spawn(async move {
-                    for uri in all_files {
-                        let _ = cache.get_document(&uri);
+                    let mut progress = WorkProgressSender::new(sender);
+                    progress.work_start("Analyzing workspace".into(), Some("Test".into()));
+                    for (i, uri) in all_files.iter().enumerate() {
+                        let _ = cache.get_document(uri);
+                        progress.work_progress(
+                            (i * 100 / all_files.len()) as u32,
+                            Some(format!("Loading file {}/{}", i, all_files.len())),
+                        );
                     }
+                    progress.work_done();
                 })
                 .detach();
         }
