@@ -29,7 +29,9 @@ impl<'a> ReferenceProvider<'a> {
 }
 
 impl<'a> ReferenceProvider<'a> {
-    fn get_identifier(&self, pos: Location, uri: &Uri) -> Option<String> {
+    // Gets the identifier at the given position
+    // Returns the string and if the identifier is limited to the current file (e.g. locals)
+    fn get_identifier(&self, pos: Location, uri: &Uri) -> Option<(String, bool)> {
         let doc = self.cache.get_document(uri).ok()?;
         let top_node = doc
             .get_ast()
@@ -38,17 +40,20 @@ impl<'a> ReferenceProvider<'a> {
             .peek()?;
 
         Some(match top_node.node_kind.as_ref() {
-            NodeKind::LiteralString(s) => s.value.clone(),
-            NodeKind::Var(var) => var.id.clone()?.0,
-            NodeKind::Local(local) => local.get_name()?,
-            NodeKind::Function(func) => func.parameters.clone()?.iter().find_map(|param| {
-                if param.loc_range.in_range(&pos) {
-                    Some(param.name.0.clone())
-                } else {
-                    None
-                }
-            })?,
-            NodeKind::DesugaredObject(obj) => obj.get_name_at(&pos)?,
+            NodeKind::LiteralString(s) => (s.value.clone(), false),
+            NodeKind::Var(var) => (var.id.clone()?.0, false),
+            NodeKind::Local(local) => (local.get_name()?, true),
+            NodeKind::Function(func) => (
+                func.parameters.clone()?.iter().find_map(|param| {
+                    if param.loc_range.in_range(&pos) {
+                        Some(param.name.0.clone())
+                    } else {
+                        None
+                    }
+                })?,
+                false,
+            ),
+            NodeKind::DesugaredObject(obj) => (obj.get_name_at(&pos)?, false),
             _ => {
                 log::warn!(
                     "Unhandled identifier for {}",
@@ -68,7 +73,7 @@ impl<'a> ReferenceProvider<'a> {
         let goto_provider = DefinitionProvider::new(self.cache);
         // Go to definition to find the target location
         let target_info = goto_provider.definition(uri, pos)?;
-        let identifier = self
+        let (identifier, is_local) = self
             .get_identifier(
                 target_info.location.range.start.into(),
                 &target_info.location.uri,
@@ -77,7 +82,11 @@ impl<'a> ReferenceProvider<'a> {
         // Search for in all caches and files and get all potential positions
         // Get all jsonnet and libsonnet files in the search paths
         let start = Instant::now();
-        let files = utils::files::get_all_jsonnnet_files(self.search_paths);
+        let files = if is_local {
+            vec![uri.clone()]
+        } else {
+            utils::files::get_all_jsonnnet_files(self.search_paths)
+        };
         log::info!("Getting all files took {:?}", start.elapsed());
         let start = Instant::now();
         #[cfg(feature = "tracing")]
