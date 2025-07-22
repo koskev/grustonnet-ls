@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::node::{
     location::LocationRange,
-    types::{fodder::Fodder, local_bind::LocalBind, node::Node},
+    types::{fodder::Fodder, local_bind::LocalBind, node::Node, node_kind::NodeKind},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
@@ -59,7 +59,16 @@ impl Local {
     }
 
     pub fn get_identifier_position(&self) -> Option<LocationRange> {
-        Some(self.binds.first()?.loc_range.clone())
+        // If the first bind is a function we need to fix the position
+        let bind = self.binds.first()?;
+        let mut range = bind.loc_range.clone();
+        if let Some(body) = &bind.body
+            && let NodeKind::Function(_func) = body.node_kind.as_ref()
+        {
+            range = body.node_base.loc_range.clone();
+            range.end.column += self.get_name().unwrap_or_default().len() as i32;
+        }
+        Some(range)
     }
 }
 

@@ -38,26 +38,13 @@ impl<'a> DefinitionProvider<'a> {
             .node_kind
             .as_ref()
         {
-            // TODO: make a ast fix function and fix the local bind position
-            // If we have a local with a function the bind won't have a valid location
-            // Unwrap is safe
-            let func_node = document_stack.stack.pop().unwrap();
-            let local_node = document_stack.stack.pop().ok_or(anyhow!("no next local"))?;
-            let NodeKind::Local(local) = local_node.node_kind.as_ref() else {
-                return Err(anyhow!("next node is not local"));
-            };
-            let mut end_pos = func_node.node_base.loc_range.begin.clone();
-            end_pos.column += local_node.get_name().len() as i32;
-            return Ok(DefinitinInfo {
-                name: local.get_name().unwrap_or_default(),
-                location: lsp_types::Location {
-                    uri: uri.clone(),
-                    range: Range {
-                        start: func_node.node_base.loc_range.begin.clone().into(),
-                        end: func_node.node_base.loc_range.begin.clone().into(),
-                    },
-                },
-            });
+            // If we have a local with a function and want issue a definition on the local
+            // identifier we have to ignore the function node as it would
+            // resolve to the body content and location
+            // e.g. local goto_test(arg) = {};
+            //              ^
+            //             <goto>
+            let _ = document_stack.stack.pop();
         }
 
         let (last_node, built_node) = document_stack.build_except_last(self.cache)?;

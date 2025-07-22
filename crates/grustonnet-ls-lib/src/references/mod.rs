@@ -33,11 +33,12 @@ impl<'a> ReferenceProvider<'a> {
     // Returns the string and if the identifier is limited to the current file (e.g. locals)
     fn get_identifier(&self, pos: Location, uri: &Uri) -> Option<(String, bool)> {
         let doc = self.cache.get_document(uri).ok()?;
-        let top_node = doc
-            .get_ast()
-            .ok()?
-            .get_stack_by_position(&pos.clone())
-            .peek()?;
+        let mut stack = doc.get_ast().ok()?.get_stack_by_position(&pos.clone());
+        if let NodeKind::Function(_func) = stack.peek()?.node_kind.as_ref() {
+            // TODO: Same as in goto definition
+            let _ = stack.stack.pop();
+        }
+        let top_node = stack.peek()?;
 
         Some(match top_node.node_kind.as_ref() {
             NodeKind::LiteralString(s) => (s.value.clone(), false),
