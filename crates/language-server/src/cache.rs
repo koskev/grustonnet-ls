@@ -168,4 +168,15 @@ impl<G: ASTGenerator> Cache<G> {
     pub fn get_document(&self, uri: &Uri) -> Result<Document<G>, LSPError> {
         self.get_document_with_option(uri, true)
     }
+
+    /// Get a list of all loaded uris by the lsp
+    pub fn get_loaded_lsp_uris(&self) -> Vec<Uri> {
+        self.documents
+            .read()
+            .unwrap()
+            .iter()
+            .filter(|(_u, d)| d.manually_loaded_at.is_none())
+            .map(|(u, _)| u.clone())
+            .collect()
+    }
 }
