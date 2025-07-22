@@ -118,6 +118,17 @@ pub struct NodeIter<'a> {
     index: usize,
 }
 
+impl<'a> IntoIterator for &'a Node {
+    type Item = &'a Node;
+    type IntoIter = NodeIter<'a>;
+    fn into_iter(self) -> Self::IntoIter {
+        NodeIter {
+            root_node: self,
+            index: 0,
+        }
+    }
+}
+
 impl<'a> Iterator for NodeIter<'a> {
     type Item = &'a Node;
     fn next(&mut self) -> Option<Self::Item> {
