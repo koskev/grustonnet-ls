@@ -1,7 +1,9 @@
 use language_server::{cache::Cache, diagnostics::Diagnostics};
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
-use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
+use crate::{
+    cache::JsonnetASTGenerator, node::types::node_kind::NodeKind, references::ReferenceProvider,
+};
 
 pub struct LintDiagnostics {
     cache: Cache<JsonnetASTGenerator>,
@@ -13,28 +15,62 @@ impl LintDiagnostics {
     }
 }
 
+impl LintDiagnostics {
+    fn get_diagnostics(&self, uri: &Uri) -> Option<Vec<lsp_types::Diagnostic>> {
+        let doc = self.cache.get_document(uri).unwrap();
+        let stack = doc.get_ast().ok()?.get_complete_stack();
+        let locals = stack
+            .stack
+            .iter()
+            .filter_map(|n| {
+                if let NodeKind::Local(loc) = n.node_kind.as_ref() {
+                    Some(loc)
+                } else {
+                    None
+                }
+            })
+            .filter(|loc| !loc.get_name().unwrap_or_default().starts_with("_"));
+
+        let search_paths = vec![];
+        let provider = ReferenceProvider::new(&self.cache, &search_paths);
+
+        Some(
+            locals
+                .filter(|local| {
+                    // TODO: There has to be some Rust magic for this
+                    if let Some(range) = local.get_identifier_position()
+                        && let Ok(res) = provider.references(range.begin.clone(), uri, true)
+                        && let Some(locations) = res
+                        && locations.len() == 1
+                    {
+                        true
+                    } else {
+                        false
+                    }
+                })
+                .filter_map(|local| {
+                    Some(Diagnostic {
+                    range: Range {
+                        start: local.get_identifier_position()?.begin.clone().into(),
+                        end: local.get_identifier_position()?.end.clone().into(),
+                    },
+                    // TODO: add code action
+                    message: format!(
+                        "Unused variable. If this is intentional prefix with an underscore: _{}",
+                        local.get_name().unwrap_or("<variable>".to_string())
+                    ),
+                    code_description: Some(CodeDescription { href: uri.clone() }),
+                    severity: Some(DiagnosticSeverity::WARNING),
+                    ..Default::default()
+                })
+                })
+                .collect(),
+        )
+    }
+}
+
 impl Diagnostics for LintDiagnostics {
     fn diagnostics(&self, uri: &Uri) -> Vec<lsp_types::Diagnostic> {
-        let doc = self.cache.get_document(uri).unwrap();
-        let res = self
-            .cache
-            .ast_generator
-            .jsonnet
-            .lint_snippet(&doc.filename, &doc.content);
-
-        if let Err(diag_err) = res {
-            return vec![Diagnostic {
-                range: Range {
-                    start: diag_err.start.into(),
-                    end: diag_err.end.into(),
-                },
-                message: diag_err.message,
-                code_description: Some(CodeDescription { href: uri.clone() }),
-                severity: Some(DiagnosticSeverity::WARNING),
-                ..Default::default()
-            }];
-        }
-
-        vec![]
+        self.get_diagnostics(uri).unwrap_or_default()
     }
 }

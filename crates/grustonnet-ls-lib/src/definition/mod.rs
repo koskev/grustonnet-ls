@@ -49,10 +49,7 @@ impl<'a> DefinitionProvider<'a> {
                     .loc_range
                     .clone(),
             ),
-            NodeKind::Local(local) => local
-                .binds
-                .first()
-                .map(|first_bind| first_bind.loc_range.clone()),
+            NodeKind::Local(local) => local.get_identifier_position(),
             _ => None,
         }
         .ok_or(anyhow!(

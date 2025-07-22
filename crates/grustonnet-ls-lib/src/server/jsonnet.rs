@@ -33,7 +33,7 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     definition::DefinitionProvider,
-    diagnostics::{eval::EvalDiagnostics, lint::LintDiagnostics},
+    diagnostics::{eval::EvalDiagnostics, go_lint::GoLintDiagnostics, lint::LintDiagnostics},
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay},
     references::ReferenceProvider,
     rename::RenameProvider,
@@ -76,6 +76,10 @@ impl JsonnetServer {
             let diags = EvalDiagnostics::new(self.cache.clone()).diagnostics(uri);
             items.extend(diags);
         }
+        if config.diagnostics.enable_go_lint {
+            let diags = GoLintDiagnostics::new(self.cache.clone()).diagnostics(uri);
+            items.extend(diags);
+        }
         if config.diagnostics.enable_lint {
             let diags = LintDiagnostics::new(self.cache.clone()).diagnostics(uri);
             items.extend(diags);
@@ -96,6 +100,9 @@ impl LSPServer for JsonnetServer {
         let mut diags: Vec<Box<dyn Diagnostics>> = vec![];
         if config.diagnostics.enable_eval {
             diags.push(Box::new(EvalDiagnostics::new(self.cache.clone())));
+        }
+        if config.diagnostics.enable_go_lint {
+            diags.push(Box::new(GoLintDiagnostics::new(self.cache.clone())));
         }
         if config.diagnostics.enable_lint {
             diags.push(Box::new(LintDiagnostics::new(self.cache.clone())));

@@ -29,8 +29,13 @@ pub struct DiagnosticConfig {
     #[default = true]
     /// Enable diagnostics by evaluating the jsonnet file
     pub enable_eval: bool,
+    #[default = false]
+    /// Enable diagnostics by using jsonnet-lint (mainly gives unused variables but may fail in
+    /// some cases)
+    pub enable_go_lint: bool,
+
     #[default = true]
-    /// Enable diagnostics by using jsonnet-lint (mainly gives unused variables)
+    /// Enable linting checks (currently limited to unused variables)
     pub enable_lint: bool,
 }
 

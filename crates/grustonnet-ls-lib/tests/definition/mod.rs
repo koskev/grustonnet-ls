@@ -247,3 +247,20 @@ fn local_function_arg() {
     }
     .check();
 }
+
+#[test]
+fn local_shadow() {
+    DefinitionTestCase {
+        filename: "testdata/definition/shadow.jsonnet".into(),
+        source: Position {
+            line: 10,
+            character: 8,
+        },
+        target: Position {
+            line: 4,
+            character: 6,
+        },
+        ..Default::default()
+    }
+    .check();
+}

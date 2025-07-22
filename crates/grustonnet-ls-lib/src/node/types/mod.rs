@@ -15,7 +15,10 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::node::types::{fodder::Fodder, local_bind::LocalBind, node::Node};
+use crate::node::{
+    location::LocationRange,
+    types::{fodder::Fodder, local_bind::LocalBind, node::Node},
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
 #[serde(rename_all = "PascalCase")]
@@ -53,6 +56,10 @@ pub struct Unary {
 impl Local {
     pub fn get_name(&self) -> Option<String> {
         Some(self.binds.first()?.variable.0.clone())
+    }
+
+    pub fn get_identifier_position(&self) -> Option<LocationRange> {
+        Some(self.binds.first()?.loc_range.clone())
     }
 }
 

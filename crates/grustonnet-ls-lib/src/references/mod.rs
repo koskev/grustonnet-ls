@@ -6,7 +6,7 @@ use lsp_types::{Range, Uri};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use ropey::Rope;
 #[cfg(feature = "tracing")]
-use tracy_client::{secondary_frame_mark, set_thread_name, span};
+use tracy_client::{set_thread_name, span};
 
 use crate::{
     cache::JsonnetASTGenerator,

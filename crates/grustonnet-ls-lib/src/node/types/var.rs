@@ -51,6 +51,7 @@ impl Var {
         document_stack
             .stack
             .iter()
+            .rev()
             .find_map(|node| match node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),

@@ -11,6 +11,7 @@ use language_server::{diagnostics::Diagnostics, utils::hashqueue::HashQueue};
 use lsp_types::{Diagnostic, Uri};
 
 pub mod eval;
+pub mod go_lint;
 pub mod lint;
 
 type DiagnosticsList = Vec<Box<dyn Diagnostics>>;
