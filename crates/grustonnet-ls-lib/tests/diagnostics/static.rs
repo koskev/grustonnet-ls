@@ -18,6 +18,7 @@ fn empty() {
                 ..Default::default()
             },
         ],
+        ..Default::default()
     }
     .check()
 }
@@ -58,6 +59,7 @@ fn syntax() {
                 ..Default::default()
             },
         ],
+        ..Default::default()
     }
     .check()
 }
@@ -81,6 +83,7 @@ fn unused() {
             message: "Unused variable: a".to_string(),
             ..Default::default()
         }],
+        ..Default::default()
     }
     .check()
 }

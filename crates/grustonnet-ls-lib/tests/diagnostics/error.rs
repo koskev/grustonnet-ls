@@ -35,6 +35,7 @@ fn error_circular_import() {
             message: "unknown error: GO Error: Bug - placeholder for a dependent node cannot be noType".to_string(),
             ..Default::default()
         }],
+        ..Default::default()
     }
     .check()
 }

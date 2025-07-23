@@ -21,6 +21,7 @@ fn array() {
             },
             ..Default::default()
         }],
+        ..Default::default()
     }
     .check()
 }
@@ -44,6 +45,7 @@ fn assert() {
             },
             ..Default::default()
         }],
+        ..Default::default()
     }
     .check()
 }
@@ -67,6 +69,7 @@ fn assert_nested() {
             },
             ..Default::default()
         }],
+        ..Default::default()
     }
     .check()
 }
@@ -90,6 +93,7 @@ fn assert_function() {
             },
             ..Default::default()
         }],
+        ..Default::default()
     }
     .check()
 }

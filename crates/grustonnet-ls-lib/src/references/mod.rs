@@ -89,6 +89,12 @@ impl<'a> ReferenceProvider<'a> {
             utils::files::get_all_jsonnnet_files(self.search_paths)
         };
         log::info!("Getting all files took {:?}", start.elapsed());
+        log::debug!(
+            "Searching for references of {} at {} in {} files",
+            identifier,
+            target_info,
+            files.len()
+        );
         let start = Instant::now();
         #[cfg(feature = "tracing")]
         let zone = span!("Reference calc");
@@ -136,8 +142,18 @@ impl<'a> ReferenceProvider<'a> {
                 else {
                     return false;
                 };
-                // On match: Add to reference list
-                potential_location.location == target_info.location
+                // XXX: Since goto might result in different end locations (Due to the workaround
+                // with local functions), we will just compare the start position (which should be
+                // enough anyways). If we land on the same position we have a reference
+                let found = potential_location.location.uri == target_info.location.uri
+                    && potential_location.location.range.start == target_info.location.range.start;
+                log::trace!(
+                    "Potential reference {} for target {}? {}",
+                    potential_location,
+                    target_info,
+                    found
+                );
+                found
             })
             .collect();
 

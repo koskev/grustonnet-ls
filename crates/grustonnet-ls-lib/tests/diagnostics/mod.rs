@@ -17,22 +17,32 @@ pub mod error;
 pub mod runtime;
 pub mod r#static;
 
-#[derive(Default)]
 pub(crate) struct DiagnosticTestCase {
     pub(crate) filename: String,
     pub(crate) expected: Vec<Diagnostic>,
+    pub(crate) config: DiagnosticConfig,
+}
+
+impl Default for DiagnosticTestCase {
+    fn default() -> Self {
+        Self {
+            filename: String::default(),
+            expected: vec![],
+            // TODO: Use this default for now to not touch the tests :)
+            config: DiagnosticConfig {
+                enable_eval: true,
+                enable_go_lint: true,
+                enable_lint: false,
+            },
+        }
+    }
 }
 
 impl DiagnosticTestCase {
     fn create_server(&self) -> JsonnetServer {
         JsonnetServer {
             configuration: Arc::new(RwLock::new(Configuration {
-                // TODO: make configurable per test
-                diagnostics: DiagnosticConfig {
-                    enable_eval: true,
-                    enable_go_lint: true,
-                    enable_lint: false,
-                },
+                diagnostics: self.config.clone(),
                 ..Default::default()
             })),
             ..Default::default()

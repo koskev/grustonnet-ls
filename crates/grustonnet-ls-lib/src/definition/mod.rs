@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use anyhow::{Result, anyhow};
 use language_server::{cache::Cache, utils::UriHelper};
 use lsp_types::{Range, Uri};
@@ -18,6 +20,18 @@ pub struct DefinitionProvider<'a> {
 pub struct DefinitinInfo {
     pub location: lsp_types::Location,
     pub name: String,
+}
+
+impl Display for DefinitinInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} (path: {}, range: {:?})",
+            self.name,
+            self.location.uri.path().as_str(),
+            self.location.range
+        )
+    }
 }
 
 impl<'a> DefinitionProvider<'a> {
