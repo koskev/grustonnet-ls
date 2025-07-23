@@ -249,6 +249,23 @@ fn local_function_arg() {
 }
 
 #[test]
+fn local_function_itself() {
+    DefinitionTestCase {
+        filename: "testdata/definition/local_function.jsonnet".into(),
+        source: Position {
+            line: 0,
+            character: 11,
+        },
+        target: Position {
+            line: 0,
+            character: 6,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
 fn local_shadow() {
     DefinitionTestCase {
         filename: "testdata/definition/shadow.jsonnet".into(),
