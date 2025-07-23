@@ -1,10 +1,16 @@
 use language_server::{server::LSPServer, utils::UriHelper};
 use pretty_assertions::assert_eq;
-use std::fs::read_to_string;
+use std::{
+    fs::read_to_string,
+    sync::{Arc, RwLock},
+};
 
 pub use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Uri};
 
-use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
+use grustonnet_ls_lib::server::{
+    config::{Configuration, DiagnosticConfig},
+    jsonnet::JsonnetServer,
+};
 
 pub mod empty;
 pub mod error;
@@ -20,6 +26,15 @@ pub(crate) struct DiagnosticTestCase {
 impl DiagnosticTestCase {
     fn create_server(&self) -> JsonnetServer {
         JsonnetServer {
+            configuration: Arc::new(RwLock::new(Configuration {
+                // TODO: make configurable per test
+                diagnostics: DiagnosticConfig {
+                    enable_eval: true,
+                    enable_go_lint: true,
+                    enable_lint: false,
+                },
+                ..Default::default()
+            })),
             ..Default::default()
         }
     }
@@ -27,6 +42,7 @@ impl DiagnosticTestCase {
         let server = self.create_server();
         let file_content = read_to_string(&self.filename).unwrap();
         let file_uri = Uri::from_path(&self.filename).unwrap();
+
         server
             .configuration
             .write()
