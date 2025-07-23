@@ -124,7 +124,6 @@ impl From<SemanticDataList> for lsp_types::SemanticTokens {
             }
             a.location.begin.column.cmp(&b.location.begin.column)
         });
-        log::trace!("DATA: {:#?}", val.data);
         for (i, data) in val.data.iter().enumerate() {
             let prev_token = if i == 0 {
                 SemanticData::default()
@@ -137,14 +136,8 @@ impl From<SemanticDataList> for lsp_types::SemanticTokens {
                 delta_start: if data.location.begin.line != prev_token.location.begin.line {
                     // Location starts at 1. As this is the only absolute value, we only need to
                     // substract 1 here
-                    log::trace!("Diff line start {}", data.location.begin.column);
                     data.location.begin.column as u32 - 1
                 } else {
-                    log::trace!(
-                        "same line start {} {}",
-                        data.location.begin.column,
-                        prev_token.location.begin.column
-                    );
                     data.location.begin.column as u32 - prev_token.location.begin.column as u32
                 },
                 length: data.length,
@@ -155,7 +148,6 @@ impl From<SemanticDataList> for lsp_types::SemanticTokens {
                     .fold(0, |acc, val| acc | (1 << val.to_int())),
                 ..Default::default()
             });
-            log::trace!("Prev: {:?}", tokens.data.last());
         }
 
         tokens
@@ -188,9 +180,7 @@ pub fn get_tokens(root: Arc<Node>) -> SemanticTokens {
                 };
                 if var.id.clone().unwrap_or_default().0 == "std" {
                     data.node_modifier = vec![SemanticModifier::DefaultLibrary];
-                    log::trace!("Var is std");
                 } else if let Some(var_node) = var.resolve(&mut document_stack.clone()) {
-                    log::trace!("Var {:?} resolved to {}", var.id, var_node.node_kind);
                     match var_node.node_kind.as_ref() {
                         NodeKind::SelfNode => {
                             data.node_modifier = vec![SemanticModifier::DefaultLibrary];
@@ -201,7 +191,6 @@ pub fn get_tokens(root: Arc<Node>) -> SemanticTokens {
                         _ => (),
                     }
                 } else {
-                    log::trace!("Unable to resolve {:?}", var.id);
                     // We'll just assume all vars we can't resolve are params
                     // TODO: Get params on the stack
                     data.node_type = SemanticToken::Parameter;
