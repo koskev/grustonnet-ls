@@ -29,4 +29,5 @@ pub mod locals;
 pub mod object;
 pub mod selfnode;
 pub mod shadow;
+pub mod stdlib;
 pub mod superindex;

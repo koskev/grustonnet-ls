@@ -24,7 +24,7 @@ impl Var {
 
     // TODO: resolve before is vars
     pub fn is_std(&self) -> bool {
-        self.is_name("std")
+        self.is_name("std") || self.is_name("$std")
     }
 
     pub fn is_self(&self) -> bool {
