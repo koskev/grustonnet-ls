@@ -1,0 +1,3 @@
+function(myArg={}) {
+  key: myArg,
+}

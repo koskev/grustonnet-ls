@@ -150,3 +150,28 @@ fn import_chained_long_two_local() {
     }
     .check();
 }
+
+#[test]
+fn func_call_binary() {
+    CompletionTestCase {
+        filename: "testdata/complete/import/func_call.jsonnet".into(),
+        replace_string: "x: myFunc".into(),
+        replace_by_string: "x: myFunc.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "key2".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "key".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
