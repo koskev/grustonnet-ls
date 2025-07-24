@@ -315,3 +315,20 @@ fn conditional_object_name() {
     }
     .check();
 }
+
+#[test]
+fn default_arg() {
+    DefinitionTestCase {
+        filename: "testdata/definition/from_default_arg.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 9,
+        },
+        target: Position {
+            line: 0,
+            character: 6,
+        },
+        ..Default::default()
+    }
+    .check();
+}

@@ -65,7 +65,7 @@ impl Node {
     pub fn get_complete_stack(&self) -> NodeStack {
         let mut stack: NodeStack = self
             .iter()
-            .map(|child: &Node| child.get_complete_stack())
+            .map(|child| child.get_complete_stack())
             .collect();
         stack.push_front(Arc::new(self.clone()));
 
@@ -76,7 +76,7 @@ impl Node {
         let mut stack: NodeStack = self
             .iter()
             .filter(|child| child.node_base.loc_range.in_range(pos))
-            .map(|child: &Node| child.get_stack_by_position(pos))
+            .map(|child| child.get_stack_by_position(pos))
             .collect();
         stack.push_front(Arc::new(self.clone()));
 
@@ -118,23 +118,12 @@ pub struct NodeIter<'a> {
     root_node: &'a Node,
     index: usize,
 
-    queue: Vec<&'a Node>,
-}
-
-impl<'a> IntoIterator for &'a Node {
-    type Item = &'a Node;
-    type IntoIter = NodeIter<'a>;
-    fn into_iter(self) -> Self::IntoIter {
-        NodeIter {
-            root_node: self,
-            index: 0,
-            queue: vec![],
-        }
-    }
+    queue: Vec<Arc<Node>>,
 }
 
 impl<'a> Iterator for NodeIter<'a> {
-    type Item = &'a Node;
+    // XXX: Item is an Arc to allow the return of function params
+    type Item = Arc<Node>;
     fn next(&mut self) -> Option<Self::Item> {
         log::trace!(
             "Next item {} at {:?}",
@@ -149,19 +138,19 @@ impl<'a> Iterator for NodeIter<'a> {
                 if let Some(elements) = &arr.elements {
                     if let Some(element) = elements.get(self.index) {
                         self.index += 1;
-                        return Some(&element.expr);
+                        return Some(element.expr.clone());
                     }
                 }
             }
             NodeKind::Local(loc) => {
                 if self.index == 0 {
                     self.index += 1;
-                    return loc.body.as_deref();
+                    return loc.body.clone();
                 }
                 match loc.binds.get(self.index - 1) {
                     Some(bind) => {
                         self.index += 1;
-                        return bind.body.as_deref();
+                        return bind.body.clone();
                     }
                     None => return None,
                 }
@@ -169,13 +158,13 @@ impl<'a> Iterator for NodeIter<'a> {
             NodeKind::Function(func) => {
                 if self.index == 0 {
                     self.index += 1;
-                    return Some(&func.body);
+                    return Some(func.body.clone());
                 }
                 if let Some(params) = &func.parameters
                     && let Some(param) = params.get(self.index - 1)
                 {
                     self.index += 1;
-                    return param.default_arg.as_deref();
+                    return param.default_arg.clone();
                 }
                 return None;
             }
@@ -184,12 +173,18 @@ impl<'a> Iterator for NodeIter<'a> {
                     self.index += 1;
                     // TODO: The function does not have a valid location. Therefore we just add
                     // the function body as a child. But we probably need to fix it another way to
-                    // get the parameters?
-                    self.queue.push(&field.name);
+                    // properly get the parameters
+                    self.queue.push(field.name.clone());
                     if let NodeKind::Function(func) = field.body.node_kind.as_ref() {
-                        return Some(&func.body);
+                        let params = func.parameters.iter().flat_map(|parameters| {
+                            parameters
+                                .iter()
+                                .filter_map(|parameter| parameter.default_arg.clone())
+                        });
+                        self.queue.extend(params);
+                        return Some(func.body.clone());
                     } else {
-                        return Some(&field.body);
+                        return Some(field.body.clone());
                     }
                     // TODO: locals, asserts
                 }
@@ -199,33 +194,33 @@ impl<'a> Iterator for NodeIter<'a> {
             NodeKind::Index(idx) => {
                 self.index += 1;
                 return match self.index {
-                    1 => Some(&idx.target),
-                    2 => Some(&idx.index),
+                    1 => Some(idx.target.clone()),
+                    2 => Some(idx.index.clone()),
                     _ => None,
                 };
             }
             NodeKind::Apply(apply) => {
                 if self.index == 0 {
                     self.index += 1;
-                    return Some(&apply.target);
+                    return Some(apply.target.clone());
                 }
                 let mut offset = 1;
                 if let Some(arg) = apply.arguments.positional.get(self.index - offset) {
                     self.index += 1;
-                    return Some(&arg.expr);
+                    return Some(arg.expr.clone());
                 }
                 offset += apply.arguments.positional.len();
                 if let Some(arg) = apply.arguments.named.get(self.index - offset) {
                     self.index += 1;
-                    return Some(&arg.arg);
+                    return Some(arg.arg.clone());
                 }
                 return None;
             }
             NodeKind::Binary(binary) => {
                 self.index += 1;
                 return match self.index {
-                    1 => Some(&binary.left),
-                    2 => Some(&binary.right),
+                    1 => Some(binary.left.clone()),
+                    2 => Some(binary.right.clone()),
                     _ => None,
                 };
             }
@@ -233,37 +228,37 @@ impl<'a> Iterator for NodeIter<'a> {
                 self.index += 1;
                 // TODO: Eval condition
                 return match self.index {
-                    1 => Some(&cond.branch_true),
-                    2 => Some(&cond.branch_false),
-                    3 => Some(&cond.cond),
+                    1 => Some(cond.branch_true.clone()),
+                    2 => Some(cond.branch_false.clone()),
+                    3 => Some(cond.cond.clone()),
                     _ => None,
                 };
             }
             NodeKind::Error(err) => {
                 if self.index == 0 {
                     self.index += 1;
-                    return Some(&err.expr);
+                    return Some(err.expr.clone());
                 }
                 return None;
             }
             NodeKind::Unary(un) => {
                 if self.index == 0 {
                     self.index += 1;
-                    return Some(&un.expr);
+                    return Some(un.expr.clone());
                 }
                 return None;
             }
             NodeKind::InSuper(idx) => {
                 self.index += 1;
                 return match self.index {
-                    1 => Some(&idx.index),
+                    1 => Some(idx.index.clone()),
                     _ => None,
                 };
             }
             NodeKind::SuperIndex(idx) => {
                 self.index += 1;
                 return match self.index {
-                    1 => Some(&idx.index),
+                    1 => Some(idx.index.clone()),
                     _ => None,
                 };
             }
