@@ -57,15 +57,22 @@ impl<'a> Inlay for ApplyInlay<'a> {
                         .positional
                         .iter()
                         .enumerate()
-                        .map(|(i, apply_param)| InlayHint {
-                            position: apply_param.expr.node_base.loc_range.begin.clone().into(),
-                            label: lsp_types::InlayHintLabel::String(format!("{}:", names[i])),
-                            kind: None,
-                            text_edits: None,
-                            tooltip: None,
-                            padding_left: None,
-                            padding_right: Some(true),
-                            data: None,
+                        .filter_map(|(i, apply_param)| {
+                            Some(InlayHint {
+                                position: apply_param.expr.node_base.loc_range.begin.clone().into(),
+                                label: lsp_types::InlayHintLabel::String(format!(
+                                    "{}:",
+                                    // this probably happens for $std or a top level function without
+                                    // any params. e.g. in crates/grustonnet-ls-lib/testdata/complete/import/nested_func.libsonnet
+                                    names.get(i)?
+                                )),
+                                kind: None,
+                                text_edits: None,
+                                tooltip: None,
+                                padding_left: None,
+                                padding_right: Some(true),
+                                data: None,
+                            })
                         })
                         .collect::<Vec<InlayHint>>(),
                 )
