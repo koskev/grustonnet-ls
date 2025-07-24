@@ -139,43 +139,8 @@ impl<'a> ResolveNodeIter<'a> {
         self.search_stack.push(found_object.clone());
         Some(found_object.clone())
     }
-}
 
-impl<'a> Iterator for ResolveNodeIter<'a> {
-    type Item = Arc<Node>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.iterations_left == 0 {
-            return None;
-        }
-        self.iterations_left -= 1;
-        if let Some(next_node) = self.next_nodes.pop() {
-            self.search_stack.push(next_node.clone());
-            return Some(next_node);
-        }
-        let Some(current_node) = self.search_stack.stack.pop() else {
-            log::debug!(
-                "Search stack is empty. Checking if there are nodes to merge. Len {}",
-                self.merge_nodes.len()
-            );
-            let top_node = self.merge_nodes.pop()?;
-            let mut merged_node = (*top_node).clone();
-
-            let NodeKind::DesugaredObject(mut merged_object) =
-                merged_node.node_kind.as_ref().clone()
-            else {
-                return None;
-            };
-            while let Some(other_node) = self.merge_nodes.pop() {
-                if let NodeKind::DesugaredObject(obj) = other_node.node_kind.as_ref() {
-                    merged_object = merged_object.merge(obj);
-                }
-            }
-            merged_node.node_kind = Box::new(NodeKind::DesugaredObject(merged_object));
-            return Some(merged_node.into());
-        };
-        log::trace!("Looking at {}", current_node.node_kind);
-        self.document_stack.push(current_node.clone());
+    fn handle_node(&mut self, current_node: Arc<Node>) -> Option<Arc<Node>> {
         match current_node.node_kind.as_ref() {
             NodeKind::Other(other) => {
                 log::error!("Got invalid node {:#?}", other);
@@ -356,6 +321,46 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             | NodeKind::Unary(_)
             | NodeKind::InSuper(_) => Some(current_node),
         }
+    }
+}
+
+impl<'a> Iterator for ResolveNodeIter<'a> {
+    type Item = Arc<Node>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.iterations_left == 0 {
+            return None;
+        }
+        self.iterations_left -= 1;
+        if let Some(next_node) = self.next_nodes.pop() {
+            self.search_stack.push(next_node.clone());
+            return Some(next_node);
+        }
+        while let Some(current_node) = self.search_stack.stack.pop() {
+            log::trace!("Looking at {}", current_node.node_kind);
+            self.document_stack.push(current_node.clone());
+            if let Some(resolved) = self.handle_node(current_node) {
+                return Some(resolved);
+            }
+        }
+        log::debug!(
+            "Search stack is empty. Checking if there are nodes to merge. Len {}",
+            self.merge_nodes.len()
+        );
+        let top_node = self.merge_nodes.pop()?;
+        let mut merged_node = (*top_node).clone();
+
+        let NodeKind::DesugaredObject(mut merged_object) = merged_node.node_kind.as_ref().clone()
+        else {
+            return None;
+        };
+        while let Some(other_node) = self.merge_nodes.pop() {
+            if let NodeKind::DesugaredObject(obj) = other_node.node_kind.as_ref() {
+                merged_object = merged_object.merge(obj);
+            }
+        }
+        merged_node.node_kind = Box::new(NodeKind::DesugaredObject(merged_object));
+        Some(merged_node.into())
     }
 }
 
@@ -549,10 +554,7 @@ impl<'a> Completion for LocalCompletion<'a> {
                 }
             }
             _ => {
-                log::warn!(
-                    "Unhandled local completion: {}",
-                    node.node_kind.variant_name()
-                );
+                log::warn!("Unhandled local completion: {}", node.node_kind);
                 vec![]
             }
         };

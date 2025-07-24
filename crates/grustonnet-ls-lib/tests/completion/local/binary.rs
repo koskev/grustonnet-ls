@@ -95,3 +95,22 @@ fn binary_multiple() {
     }
     .check();
 }
+
+#[test]
+fn unsupported_part() {
+    CompletionTestCase {
+        filename: "testdata/complete/binary/unsupported_part.jsonnet".into(),
+        replace_string: "x:: res".into(),
+        replace_by_string: "x:: res.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "mykey".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
