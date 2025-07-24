@@ -87,6 +87,7 @@ impl Node {
         NodeIter {
             root_node: self,
             index: 0,
+            queue: vec![],
         }
     }
 
@@ -116,6 +117,8 @@ impl Node {
 pub struct NodeIter<'a> {
     root_node: &'a Node,
     index: usize,
+
+    queue: Vec<&'a Node>,
 }
 
 impl<'a> IntoIterator for &'a Node {
@@ -125,6 +128,7 @@ impl<'a> IntoIterator for &'a Node {
         NodeIter {
             root_node: self,
             index: 0,
+            queue: vec![],
         }
     }
 }
@@ -137,6 +141,9 @@ impl<'a> Iterator for NodeIter<'a> {
             self.root_node.node_kind,
             self.root_node.node_base.loc_range.begin
         );
+        if let Some(queue_node) = self.queue.pop() {
+            return Some(queue_node);
+        }
         match self.root_node.node_kind.as_ref() {
             NodeKind::Array(arr) => {
                 if let Some(elements) = &arr.elements {
@@ -178,6 +185,7 @@ impl<'a> Iterator for NodeIter<'a> {
                     // TODO: The function does not have a valid location. Therefore we just add
                     // the function body as a child. But we probably need to fix it another way to
                     // get the parameters?
+                    self.queue.push(&field.name);
                     if let NodeKind::Function(func) = field.body.node_kind.as_ref() {
                         return Some(&func.body);
                     } else {

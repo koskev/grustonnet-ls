@@ -281,3 +281,37 @@ fn local_shadow() {
     }
     .check();
 }
+
+#[test]
+fn conditional_regular() {
+    DefinitionTestCase {
+        filename: "testdata/definition/from_conditional.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 9,
+        },
+        target: Position {
+            line: 0,
+            character: 6,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn conditional_object_name() {
+    DefinitionTestCase {
+        filename: "testdata/definition/from_conditional.jsonnet".into(),
+        source: Position {
+            line: 3,
+            character: 9,
+        },
+        target: Position {
+            line: 0,
+            character: 6,
+        },
+        ..Default::default()
+    }
+    .check();
+}
