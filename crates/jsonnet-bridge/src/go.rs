@@ -10,9 +10,9 @@ pub struct ExtValue {
     pub value: String,
 }
 
-#[derive(rust2go::R2G)]
+#[derive(rust2go::R2G, Debug)]
 pub struct ASTInfo {
-    pub ast_data: String,
+    pub ast_data: Vec<u8>,
     // If there is an error error_data contains the error information
     pub error_data: String,
 }

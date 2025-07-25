@@ -35,7 +35,7 @@ pub enum BinaryOp {
     Or,
 }
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Binary {
     pub left: Arc<Node>,
     pub right: Arc<Node>,

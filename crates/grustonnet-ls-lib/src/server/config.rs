@@ -42,6 +42,7 @@ pub struct DiagnosticConfig {
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
 pub struct InlayConfig {
+    #[default = true]
     /// Enable debug inlay hints to show the ast types
     pub enable_debug: bool,
     #[default = true]

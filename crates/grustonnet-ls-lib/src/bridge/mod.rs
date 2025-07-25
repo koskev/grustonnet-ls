@@ -15,12 +15,15 @@ use lsp_server::ErrorCode;
 use name_variant::NamedVariant;
 use regex::Regex;
 
-use crate::{node::location::Location, server::config::JsonnetConfig};
+use crate::{
+    node::{location::Location, types::node::Node},
+    server::config::JsonnetConfig,
+};
 
 pub trait GenerateAST {
-    fn get_ast(&self, filename: &str) -> Result<String, EvaluateError>;
-    fn get_ast_snippet(&self, source_file: &str, snippet: &str) -> Result<String, EvaluateError>;
-    fn import_ast(&self, source_file: &str, filename: &str) -> Result<String, EvaluateError>;
+    fn get_ast(&self, filename: &str) -> Result<Node, EvaluateError>;
+    fn get_ast_snippet(&self, source_file: &str, snippet: &str) -> Result<Node, EvaluateError>;
+    fn import_ast(&self, source_file: &str, filename: &str) -> Result<Node, EvaluateError>;
     fn evaluate_ast(&self, ast_string: &str, source_file: &str) -> Result<String, EvaluateError>;
     fn evaluate_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
     fn lint_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
@@ -295,7 +298,7 @@ impl GoJsonnet {
 }
 
 impl GenerateAST for GoJsonnet {
-    fn import_ast(&self, source_file: &str, filename: &str) -> Result<String, EvaluateError> {
+    fn import_ast(&self, source_file: &str, filename: &str) -> Result<Node, EvaluateError> {
         let res = ASTBridgeImpl::import_ast(
             source_file.to_string(),
             filename.to_string(),
@@ -304,17 +307,20 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(res.ast_data)
+        rmp_serde::from_slice(&res.ast_data).map_err(|e| EvaluateError {
+            message: format!("Failed to convert data! {e}"),
+            ..Default::default()
+        })
     }
-    fn get_ast(&self, filename: &str) -> Result<String, EvaluateError> {
+    fn get_ast(&self, filename: &str) -> Result<Node, EvaluateError> {
         let res = ASTBridgeImpl::get_ast(filename.to_string());
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(res.ast_data)
+        Ok(rmp_serde::from_slice(&res.ast_data).unwrap())
     }
 
-    fn get_ast_snippet(&self, source_file: &str, snippet: &str) -> Result<String, EvaluateError> {
+    fn get_ast_snippet(&self, source_file: &str, snippet: &str) -> Result<Node, EvaluateError> {
         let start = Instant::now();
         let res = ASTBridgeImpl::get_ast_snippet(source_file.to_string(), snippet.to_string());
         let dur = start.elapsed();
@@ -322,7 +328,10 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(res.ast_data)
+        let start = Instant::now();
+        let node = rmp_serde::from_slice(&res.ast_data).unwrap();
+        log::info!("Deserializing took {:?}", start.elapsed());
+        Ok(node)
     }
 
     fn evaluate_ast(&self, ast_string: &str, source_file: &str) -> Result<String, EvaluateError> {
@@ -333,7 +342,7 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(res.ast_data)
+        Ok(String::from_utf8(res.ast_data).unwrap())
     }
 
     fn evaluate_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError> {
@@ -345,7 +354,7 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(res.ast_data)
+        Ok(String::from_utf8(res.ast_data).unwrap())
     }
 
     fn lint_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError> {
@@ -357,7 +366,7 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(res.ast_data)
+        Ok(String::from_utf8(res.ast_data).unwrap())
     }
 
     fn format_snippet(
@@ -374,6 +383,6 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(res.ast_data)
+        Ok(String::from_utf8(res.ast_data).unwrap())
     }
 }

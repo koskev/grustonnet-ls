@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-jsonnet/ast"
 	"github.com/google/go-jsonnet/formatter"
 	"github.com/google/go-jsonnet/linter"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type GoAst struct{}
@@ -52,7 +53,7 @@ func (GoAst) get_ast(filename *string) (info ASTInfo) {
 		info.error_data = err.Error()
 		return info
 	}
-	info.ast_data = string(nodeJson)
+	info.ast_data = nodeJson
 	// fmt.Printf("%+s", nodeJson)
 	return info
 }
@@ -70,12 +71,12 @@ func (GoAst) get_ast_snippet(source_file *string, snippet *string) (info ASTInfo
 		info.error_data = err.Error()
 		return info
 	}
-	nodeJson, err := json.Marshal(tagged_marshal(node))
+	nodeJson, err := msgpack.Marshal(tagged_marshal(node))
 	if err != nil {
 		info.error_data = err.Error()
 		return info
 	}
-	info.ast_data = string(nodeJson)
+	info.ast_data = nodeJson
 	return info
 }
 
@@ -94,12 +95,12 @@ func (GoAst) import_ast(source_file *string, filename *string, params *EvaluateP
 		return info
 	}
 	// fmt.Printf("PATHS: %+v", params.jpaths)
-	nodeJson, err := json.Marshal(tagged_marshal(node))
+	nodeJson, err := msgpack.Marshal(tagged_marshal(node))
 	if err != nil {
 		info.error_data = err.Error()
 		return info
 	}
-	info.ast_data = string(nodeJson)
+	info.ast_data = nodeJson
 	return info
 }
 
@@ -123,7 +124,7 @@ func (GoAst) evaluate_ast(astString *string, params *EvaluateParams) (info ASTIn
 		return info
 	}
 
-	info.ast_data = res
+	info.ast_data = []uint8(res)
 	return info
 }
 
@@ -141,7 +142,7 @@ func (GoAst) evaluate_snippet(filename *string, snippet *string, params *Evaluat
 		return info
 	}
 
-	info.ast_data = res
+	info.ast_data = []uint8(res)
 	return info
 }
 
@@ -162,7 +163,7 @@ func (GoAst) lint_snippet(filename *string, snippet *string, params *EvaluatePar
 	if hasErr {
 		info.error_data = buf.String()
 	} else {
-		info.ast_data = buf.String()
+		info.ast_data = buf.Bytes()
 	}
 	return info
 }
@@ -189,7 +190,7 @@ func (GoAst) format_snippet(filename *string, snippet *string, options *FormatOp
 	if err != nil {
 		info.error_data = err.Error()
 	} else {
-		info.ast_data = formatted
+		info.ast_data = []uint8(formatted)
 	}
 
 	return info
@@ -223,7 +224,7 @@ func to_json_map_arr[T any](vals []T) []map[string]any {
 
 func tagged_marshal(val any) map[string]any {
 	if val == nil {
-		return map[string]any{"Type": "empty"}
+		return map[string]any{"T": "empty"}
 	}
 	data := map[string]any{}
 	reflect_val := reflect.ValueOf(val)
@@ -234,7 +235,7 @@ func tagged_marshal(val any) map[string]any {
 	if reflect_type.Kind() == reflect.Pointer {
 		reflect_type = reflect_type.Elem()
 	}
-	data["Type"] = reflect_type.Name()
+	data["T"] = reflect_type.Name()
 	for i := range reflect_type.NumField() {
 		field_type := reflect_type.Field(i)
 		field_val := reflect_val.FieldByName(field_type.Name)

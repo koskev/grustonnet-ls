@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::node::types::{fodder::Fodder, node::Node};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Conditional {
     pub cond: Arc<Node>,
     pub branch_true: Arc<Node>,

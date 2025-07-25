@@ -22,7 +22,7 @@ use crate::node::types::{
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct InSuper {
     pub index: Arc<Node>,
     pub in_fodder: Option<Fodder>,
@@ -30,7 +30,7 @@ pub struct InSuper {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct SuperIndex {
     #[serde(rename = "IDFodder")]
     pub id_fodder: Option<Fodder>,
@@ -40,7 +40,7 @@ pub struct SuperIndex {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub enum NodeKind {
     Binary(Binary),
     Array(Array),

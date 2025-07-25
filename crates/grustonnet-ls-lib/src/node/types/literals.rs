@@ -14,7 +14,7 @@ pub enum LiteralStringKind {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct LiteralString {
     pub value: String,
     pub block_indent: String,
@@ -23,13 +23,13 @@ pub struct LiteralString {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct LiteralNumber {
     pub original_string: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct LiteralBoolean {
     pub value: bool,
 }

@@ -18,7 +18,7 @@ pub struct JsonnetASTGenerator {
 impl JsonnetASTGenerator {
     pub fn import_ast(&self, source_file: &str, filename: &str) -> Result<Node> {
         let node_data = self.jsonnet.import_ast(source_file, filename)?;
-        Ok(serde_json::from_str(&node_data)?)
+        Ok(node_data)
     }
 }
 
@@ -34,10 +34,7 @@ impl ASTGenerator for JsonnetASTGenerator {
                 .jsonnet
                 .get_ast_snippet(source_file, &current_content.to_string());
             match json_data {
-                Ok(json_data) => {
-                    let start = Instant::now();
-                    let node_data = serde_json::from_str::<Node>(&json_data)?;
-                    log::info!("Deserializing took {:?}", start.elapsed());
+                Ok(node_data) => {
                     log::debug!("Got valid ast!");
                     return Ok(node_data.into());
                 }

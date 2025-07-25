@@ -62,7 +62,7 @@ fn build_stdlib() {
     );
 
     // Convert html to md
-    let mut lib: StdLib = serde_json::from_str(&info.ast_data).unwrap();
+    let mut lib: StdLib = serde_json::from_str(&String::from_utf8(info.ast_data).unwrap()).unwrap();
     lib.groups.iter_mut().for_each(|group| {
         group.fields.iter_mut().for_each(|func| {
             func.description = htmd::HtmlToMarkdown::new()

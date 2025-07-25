@@ -71,13 +71,13 @@ impl<'a> ResolveNodeIter<'a> {
         if let NodeKind::LiteralString(name_node) = arg_node.node_kind.as_ref() {
             let val = conf.ext_code.get(&name_node.value)?;
             // Get ast snippet and add to stack
-            let ext_ast = self
+            let ext_node: Arc<Node> = self
                 .cache
                 .ast_generator
                 .jsonnet
                 .get_ast_snippet(&current_node.node_base.loc_range.file_name, val)
-                .ok()?;
-            let ext_node = Arc::new(serde_json::from_str::<Node>(&ext_ast).ok()?);
+                .ok()?
+                .into();
             self.search_stack.push(ext_node.clone());
             Some(ext_node)
         } else {

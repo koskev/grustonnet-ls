@@ -28,7 +28,7 @@ pub struct CommaSeparatedExpr {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Array {
     pub elements: Option<Vec<CommaSeparatedExpr>>,
     pub close_fodder: Option<Fodder>,
@@ -40,14 +40,14 @@ pub struct Array {
 pub struct Identifier(pub String);
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Local {
     pub binds: Vec<LocalBind>,
     pub body: Option<Arc<Node>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Unary {
     pub expr: Arc<Node>,
     pub op: i32,
@@ -73,13 +73,13 @@ impl Local {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Import {
     pub file: Arc<Node>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Error {
     expr: Arc<Node>,
 }

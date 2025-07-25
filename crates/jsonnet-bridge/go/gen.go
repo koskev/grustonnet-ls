@@ -8,20 +8,20 @@ package main
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef struct ListRef {
+  const void *ptr;
+  uintptr_t len;
+} ListRef;
+
 typedef struct StringRef {
   const uint8_t *ptr;
   uintptr_t len;
 } StringRef;
 
 typedef struct ASTInfoRef {
-  struct StringRef ast_data;
+  struct ListRef ast_data;
   struct StringRef error_data;
 } ASTInfoRef;
-
-typedef struct ListRef {
-  const void *ptr;
-  uintptr_t len;
-} ListRef;
 
 typedef struct EvaluateParamsRef {
   struct ListRef ext_vars;
@@ -347,19 +347,19 @@ func refExtValue(p *ExtValue, buffer *[]byte) C.ExtValueRef {
 }
 
 type ASTInfo struct {
-	ast_data   string
+	ast_data   []uint8
 	error_data string
 }
 
 func newASTInfo(p C.ASTInfoRef) ASTInfo {
 	return ASTInfo{
-		ast_data:   newString(p.ast_data),
+		ast_data:   new_list_mapper_primitive(newC_uint8_t)(p.ast_data),
 		error_data: newString(p.error_data),
 	}
 }
 func ownASTInfo(p C.ASTInfoRef) ASTInfo {
 	return ASTInfo{
-		ast_data:   ownString(p.ast_data),
+		ast_data:   new_list_mapper(newC_uint8_t)(p.ast_data),
 		error_data: ownString(p.error_data),
 	}
 }
@@ -370,7 +370,7 @@ func cntASTInfo(s *ASTInfo, cnt *uint) [0]C.ASTInfoRef {
 }
 func refASTInfo(p *ASTInfo, buffer *[]byte) C.ASTInfoRef {
 	return C.ASTInfoRef{
-		ast_data:   refString(&p.ast_data, buffer),
+		ast_data:   ref_list_mapper_primitive(refC_uint8_t)(&p.ast_data, buffer),
 		error_data: refString(&p.error_data, buffer),
 	}
 }

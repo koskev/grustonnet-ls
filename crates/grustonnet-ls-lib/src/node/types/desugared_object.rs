@@ -12,7 +12,7 @@ use crate::node::{
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct DesugaredObjectField {
     pub name: Arc<Node>,
     pub body: Arc<Node>,
@@ -22,7 +22,7 @@ pub struct DesugaredObjectField {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct DesugaredObject {
     pub asserts: Vec<Node>,
     pub fields: Vec<DesugaredObjectField>,

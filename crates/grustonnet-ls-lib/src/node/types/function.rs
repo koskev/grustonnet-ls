@@ -11,7 +11,7 @@ use crate::node::{
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct NamedArgument {
     pub name_fodder: Option<Fodder>,
     pub name: Identifier,
@@ -21,7 +21,7 @@ pub struct NamedArgument {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Apply {
     pub target: Arc<Node>,
     pub fodder_left: Option<Fodder>,
@@ -34,7 +34,7 @@ pub struct Apply {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Parameter {
     pub name_fodder: Option<Fodder>,
     pub name: Identifier,
@@ -45,7 +45,7 @@ pub struct Parameter {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Function {
     pub paren_left_fodder: Option<Fodder>,
     pub paren_right_fodder: Option<Fodder>,
@@ -55,7 +55,7 @@ pub struct Function {
     pub trailing_comma: bool,
 }
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "Type")]
+#[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Arguments {
     pub positional: Vec<CommaSeparatedExpr>,
     pub named: Vec<NamedArgument>,
