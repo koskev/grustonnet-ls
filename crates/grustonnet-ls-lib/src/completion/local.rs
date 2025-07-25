@@ -1,4 +1,8 @@
-use std::{sync::Arc, time::Instant};
+use std::{
+    str::FromStr,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use crate::{
     bridge::GenerateAST,
@@ -13,6 +17,7 @@ use anyhow::{Result, anyhow};
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
+    utils::UriHelper,
 };
 use lsp_types::{CompletionItem, CompletionItemLabelDetails, CompletionList, Position, Uri};
 
@@ -141,7 +146,10 @@ impl<'a> ResolveNodeIter<'a> {
     }
 
     fn handle_node(&mut self, current_node: Arc<Node>) -> Option<Arc<Node>> {
-        match current_node.node_kind.as_ref() {
+        let start = Instant::now();
+        log::info!("{}", current_node.node_kind.variant_name());
+        let name = current_node.node_kind.variant_name();
+        let result = match current_node.node_kind.as_ref() {
             NodeKind::Other(other) => {
                 log::error!("Got invalid node {:#?}", other);
                 None
@@ -199,13 +207,10 @@ impl<'a> ResolveNodeIter<'a> {
             }
             NodeKind::Import(import) => {
                 if let NodeKind::LiteralString(file) = import.file.node_kind.as_ref() {
-                    let imported = self
-                        .cache
-                        .ast_generator
-                        .import_ast(&current_node.node_base.loc_range.file_name, &file.value);
-                    match imported {
-                        Ok(imported_node) => {
-                            let imported_node = Arc::new(imported_node);
+                    let jpaths = self.cache.ast_generator.jsonnet.get_evaluate_params(&current_node.node_base.loc_range.file_name).jpaths;
+                    let imported_node = jpaths.iter().find_map(|p| self.cache.get_document(
+                            &Uri::from_path(&format!("{}/{}", p, file.value)).ok()?).ok()?.ast)?;
+
                             log::debug!(
                                 "pushing import node {} for {}",
                                 imported_node.node_kind,
@@ -213,12 +218,6 @@ impl<'a> ResolveNodeIter<'a> {
                             );
                             self.search_stack.push(imported_node.clone());
                             Some(imported_node)
-                        }
-                        Err(e) => {
-                            log::error!("Failed to import node: {}", e);
-                            None
-                        }
-                    }
                 } else {
                     log::error!("Import file is not a string!");
                     None
@@ -229,17 +228,20 @@ impl<'a> ResolveNodeIter<'a> {
                 // apply node as an std function
                 // TODO: $std for loops etc.
 
+                let start_apply = Instant::now();
                 if let NodeKind::Index(idx) = apply.target.node_kind.as_ref() {
                     if let NodeKind::Var(var) = idx.target.node_kind.as_ref()
                         && var.is_std()
                     {
                         // Handle the std node
                         // extVar: We can't compile the node due to hidden fields
-                        return match idx.get_name().unwrap_or_default().as_str() {
+                        let res =  match idx.get_name().unwrap_or_default().as_str() {
                             "extVar" => self.handle_extvar(&current_node, apply),
                             // TODO: just compile the node
                             _ => None,
                         };
+                        log::info!("Apply took for match {:?}", start_apply.elapsed());
+                        return res
                     }
                 }
 
@@ -248,6 +250,7 @@ impl<'a> ResolveNodeIter<'a> {
                 // TODO: find function
                 // get names of positional arguments and push them to the document stack
 
+                log::info!("Apply took {:?}", start_apply.elapsed());
                 Some(apply.target.clone())
             }
             NodeKind::Function(func) => {
@@ -320,7 +323,9 @@ impl<'a> ResolveNodeIter<'a> {
             | NodeKind::Error(_)
             | NodeKind::Unary(_)
             | NodeKind::InSuper(_) => Some(current_node),
-        }
+        };
+        log::info!("Handle node took {:?}: {}", start.elapsed(), name);
+        result
     }
 }
 
@@ -337,13 +342,16 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             return Some(next_node);
         }
         while let Some(current_node) = self.search_stack.stack.pop() {
-            log::trace!("Looking at {}", current_node.node_kind);
+            log::info!("Looking at {}", current_node.node_kind.variant_name());
             self.document_stack.push(current_node.clone());
+            let start = Instant::now();
             if let Some(resolved) = self.handle_node(current_node) {
+                log::info!("Successfull handled node in {:?}", start.elapsed());
                 return Some(resolved);
             }
+            log::info!("failed to handle node in {:?}", start.elapsed());
         }
-        log::debug!(
+        log::info!(
             "Search stack is empty. Checking if there are nodes to merge. Len {}",
             self.merge_nodes.len()
         );
