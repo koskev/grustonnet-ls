@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -10,51 +11,51 @@ use crate::node::{
     },
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "T")]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+#[serde(rename_all = "PascalCase", tag = "T", default)]
 pub struct NamedArgument {
-    pub name_fodder: Option<Fodder>,
+    pub name_fodder: Fodder,
     pub name: Identifier,
-    pub eq_fodder: Option<Fodder>,
+    pub eq_fodder: Fodder,
     pub arg: Arc<Node>,
-    pub comma_fodder: Option<Fodder>,
+    pub comma_fodder: Fodder,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "T")]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+#[serde(rename_all = "PascalCase", tag = "T", default)]
 pub struct Apply {
     pub target: Arc<Node>,
-    pub fodder_left: Option<Fodder>,
+    pub fodder_left: Fodder,
     pub arguments: Arguments,
-    pub fodder_right: Option<Fodder>,
-    pub tail_strict_fodder: Option<Fodder>,
+    pub fodder_right: Fodder,
+    pub tail_strict_fodder: Fodder,
     // Always false if there were no arguments.
     pub trailing_comma: bool,
     pub tail_strict: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "T")]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+#[serde(rename_all = "PascalCase", tag = "T", default)]
 pub struct Parameter {
-    pub name_fodder: Option<Fodder>,
+    pub name_fodder: Fodder,
     pub name: Identifier,
-    pub comma_fodder: Option<Fodder>,
-    pub eq_fodder: Option<Fodder>,
+    pub comma_fodder: Fodder,
+    pub eq_fodder: Fodder,
     pub default_arg: Option<Arc<Node>>,
     pub loc_range: LocationRange,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "T")]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+#[serde(rename_all = "PascalCase", tag = "T", default)]
 pub struct Function {
-    pub paren_left_fodder: Option<Fodder>,
-    pub paren_right_fodder: Option<Fodder>,
+    pub paren_left_fodder: Fodder,
+    pub paren_right_fodder: Fodder,
     pub body: Arc<Node>,
-    pub parameters: Option<Vec<Parameter>>,
+    pub parameters: Vec<Parameter>,
     // Always false if there were no parameters.
     pub trailing_comma: bool,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Arguments {
     pub positional: Vec<CommaSeparatedExpr>,
@@ -75,7 +76,7 @@ impl Function {
     pub fn get_bind_for_arguments(&self, arguments: &Arguments) -> Option<Vec<Node>> {
         let mut bindings = vec![];
         for (i, expr) in arguments.positional.iter().enumerate() {
-            let var = self.parameters.clone()?.get(i)?.name.clone();
+            let var = self.parameters.clone().get(i)?.name.clone();
             log::debug!("Pushed arg {}", var.0);
             bindings.push(Node {
                 node_kind: Box::new(NodeKind::Local(Local {
@@ -87,7 +88,7 @@ impl Function {
                     ..Default::default()
                 })),
                 node_base: NodeBase {
-                    ctx: Some("manually pushed".to_string()),
+                    ctx: "manually pushed".to_string(),
                     ..Default::default()
                 },
                 ..Default::default()

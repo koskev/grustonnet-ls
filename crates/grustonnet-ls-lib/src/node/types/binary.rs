@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 use crate::node::types::{fodder::Fodder, node::Node, node_kind::NodeKind};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase")]
 pub enum BinaryOp {
     #[default]
@@ -34,12 +35,12 @@ pub enum BinaryOp {
     And,
     Or,
 }
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "T")]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+#[serde(rename_all = "PascalCase", tag = "T", default)]
 pub struct Binary {
-    pub left: Arc<Node>,
     pub right: Arc<Node>,
-    pub op_fodder: Option<Fodder>,
+    pub left: Arc<Node>,
+    pub op_fodder: Fodder,
     pub op: i32,
 }
 

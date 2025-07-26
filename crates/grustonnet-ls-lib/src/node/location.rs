@@ -1,7 +1,8 @@
+use bincode::{Decode, Encode};
 use lsp_types::Position;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase")]
 pub struct LocationRange {
     // We don't need this and it is stupidly large
@@ -12,7 +13,7 @@ pub struct LocationRange {
     pub end: Location,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase")]
 pub struct Location {
     pub line: i32,
@@ -25,7 +26,7 @@ impl Default for Location {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase")]
 pub struct Source {
     pub diagnostic_file_name: String,

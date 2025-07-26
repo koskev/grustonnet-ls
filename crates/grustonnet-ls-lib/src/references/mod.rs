@@ -45,7 +45,7 @@ impl<'a> ReferenceProvider<'a> {
             NodeKind::Var(var) => (var.id.clone()?.0, false),
             NodeKind::Local(local) => (local.get_name()?, true),
             NodeKind::Function(func) => (
-                func.parameters.clone()?.iter().find_map(|param| {
+                func.parameters.iter().find_map(|param| {
                     if param.loc_range.in_range(&pos) {
                         Some(param.name.0.clone())
                     } else {

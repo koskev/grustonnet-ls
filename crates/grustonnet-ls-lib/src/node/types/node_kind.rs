@@ -3,10 +3,10 @@ use std::{
     sync::Arc,
 };
 
+use bincode::{Decode, Encode};
 use lsp_types::CompletionItemKind;
 use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use crate::node::types::{
     Array, Error, Identifier, Import, Local, Unary,
@@ -21,25 +21,25 @@ use crate::node::types::{
     var::Var,
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "T")]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+#[serde(rename_all = "PascalCase", tag = "T", default)]
 pub struct InSuper {
     pub index: Arc<Node>,
-    pub in_fodder: Option<Fodder>,
-    pub super_fodder: Option<Fodder>,
+    pub in_fodder: Fodder,
+    pub super_fodder: Fodder,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "T")]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+#[serde(rename_all = "PascalCase", tag = "T", default)]
 pub struct SuperIndex {
     #[serde(rename = "IDFodder")]
-    pub id_fodder: Option<Fodder>,
+    pub id_fodder: Fodder,
     pub index: Arc<Node>,
-    pub dot_fodder: Option<Fodder>,
+    pub dot_fodder: Fodder,
     pub id: Option<Identifier>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub enum NodeKind {
     Binary(Binary),
@@ -66,9 +66,8 @@ pub enum NodeKind {
     SelfNode,
     SuperIndex(SuperIndex),
     Dollar,
-
     // Leftover nodes. Most likely something is broken
-    Other(serde_json::Value),
+    Other,
 }
 
 impl Display for NodeKind {
@@ -113,7 +112,7 @@ impl Display for NodeKind {
 
 impl Default for NodeKind {
     fn default() -> Self {
-        Self::Other(json!(null))
+        Self::Other
     }
 }
 
@@ -158,7 +157,7 @@ impl NodeKind {
             NodeKind::SelfNode => "self",
             NodeKind::Dollar => "dollar",
             NodeKind::Local(_) => "local",
-            NodeKind::Other(_) => "invalid",
+            NodeKind::Other => "invalid",
         }
     }
 }

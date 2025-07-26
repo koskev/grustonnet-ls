@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -7,14 +8,14 @@ use crate::node::{
     types::{Identifier, fodder::Fodder, function::Function, node::Node},
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase")]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+#[serde(rename_all = "PascalCase", default)]
 pub struct LocalBind {
-    pub var_fodder: Option<Fodder>,
+    pub var_fodder: Fodder,
     pub body: Option<Arc<Node>>,
-    pub eq_fodder: Option<Fodder>,
+    pub eq_fodder: Fodder,
     pub variable: Identifier,
-    pub close_fodder: Option<Fodder>,
+    pub close_fodder: Fodder,
     pub fun: Option<Function>,
     pub loc_range: LocationRange,
 }

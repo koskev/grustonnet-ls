@@ -32,7 +32,7 @@ impl ASTGenerator for JsonnetASTGenerator {
             log::trace!("Document content: {}", new_content);
             let json_data = self
                 .jsonnet
-                .get_ast_snippet(source_file, &current_content.to_string());
+                .get_ast_snippet_binary(source_file, &current_content.to_string());
             match json_data {
                 Ok(node_data) => {
                     log::debug!("Got valid ast!");

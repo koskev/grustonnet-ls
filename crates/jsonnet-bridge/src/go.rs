@@ -24,6 +24,12 @@ pub struct EvaluateParams {
     pub jpaths: Vec<String>,
 }
 
+#[derive(rust2go::R2G, Default, Debug, Clone)]
+pub struct TestData {
+    pub name: String,
+    pub data: Vec<u8>,
+}
+
 pub enum StringStyle {
     Double,
     Single,
@@ -77,6 +83,7 @@ pub struct FormatOptions {
 pub trait ASTBridge {
     fn get_ast(filename: String) -> ASTInfo;
     fn get_ast_snippet(source_file: String, snippet: String) -> ASTInfo;
+    fn get_ast_snippet_binary(source_file: String, snippet: String) -> ASTInfo;
     fn import_ast(source_file: String, filename: String, params: EvaluateParams) -> ASTInfo;
     fn evaluate_ast(ast_string: String, params: EvaluateParams) -> ASTInfo;
     fn evaluate_snippet(filename: String, snippet: String, params: EvaluateParams) -> ASTInfo;
@@ -85,4 +92,6 @@ pub trait ASTBridge {
     fn format_snippet(filename: String, snippet: String, options: FormatOptions) -> ASTInfo;
 
     fn version() -> String;
+
+    fn get_test_objects() -> Vec<TestData>;
 }

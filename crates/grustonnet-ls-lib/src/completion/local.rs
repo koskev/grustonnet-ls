@@ -80,7 +80,7 @@ impl<'a> ResolveNodeIter<'a> {
                 .cache
                 .ast_generator
                 .jsonnet
-                .get_ast_snippet(&current_node.node_base.loc_range.file_name, val)
+                .get_ast_snippet_binary(&current_node.node_base.loc_range.file_name, val)
                 .ok()?
                 .into();
             self.search_stack.push(ext_node.clone());
@@ -150,8 +150,8 @@ impl<'a> ResolveNodeIter<'a> {
         log::info!("{}", current_node.node_kind.variant_name());
         let name = current_node.node_kind.variant_name();
         let result = match current_node.node_kind.as_ref() {
-            NodeKind::Other(other) => {
-                log::error!("Got invalid node {:#?}", other);
+            NodeKind::Other => {
+                log::error!("Got invalid node");
                 None
             }
             NodeKind::Index(_idx) => {
@@ -435,8 +435,7 @@ impl<'a> Iterator for CallStackIter<'a> {
                         NodeKind::Array(arr) => {
                             if let NodeKind::LiteralNumber(idx_num) = idx.index.node_kind.as_ref()
                                 && let Ok(idx_num) = idx_num.original_string.parse::<usize>()
-                                && let Some(elements) = &arr.elements
-                                && let Some(element) = elements.get(idx_num)
+                                && let Some(element) = arr.elements.get(idx_num)
                             {
                                 element.expr.clone()
                             } else {

@@ -48,7 +48,7 @@ impl<'a> Inlay for ApplyInlay<'a> {
                 let NodeKind::Function(found_function) = last_node.node_kind.as_ref() else {
                     return None;
                 };
-                let params = found_function.parameters.as_ref()?;
+                let params = &found_function.parameters;
                 let names: Vec<&String> = params.iter().map(|p| &p.name.0).collect();
 
                 Some(

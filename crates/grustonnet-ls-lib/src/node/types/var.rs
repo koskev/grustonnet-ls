@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -8,7 +9,7 @@ use crate::node::{
     types::{Identifier, local_bind::LocalBind, node::Node, node_kind::NodeKind},
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Var {
     pub id: Option<Identifier>,
@@ -55,7 +56,8 @@ impl Var {
             .find_map(|node| match node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
-                NodeKind::Function(func) => func.parameters.as_ref()?.iter().find_map(|param| {
+
+                NodeKind::Function(func) => func.parameters.iter().find_map(|param| {
                     if let Some(name) = self.id.as_ref()
                         && param.name == *name
                     {
@@ -80,7 +82,7 @@ impl Var {
             if let Some(found) = match next_node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
-                NodeKind::Function(func) => func.parameters.as_ref()?.iter().find_map(|p| {
+                NodeKind::Function(func) => func.parameters.iter().find_map(|p| {
                     if p.name == *id {
                         p.default_arg.clone()
                     } else {

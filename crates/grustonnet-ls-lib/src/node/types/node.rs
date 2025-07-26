@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
+use bincode::{Decode, Encode};
 use language_server::cache::ASTNode;
-use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -11,7 +11,7 @@ use crate::node::{
 };
 
 impl ASTNode for Node {}
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", default)]
 pub struct Node {
     pub node_base: NodeBase,
@@ -135,11 +135,9 @@ impl<'a> Iterator for NodeIter<'a> {
         }
         match self.root_node.node_kind.as_ref() {
             NodeKind::Array(arr) => {
-                if let Some(elements) = &arr.elements {
-                    if let Some(element) = elements.get(self.index) {
-                        self.index += 1;
-                        return Some(element.expr.clone());
-                    }
+                if let Some(element) = arr.elements.get(self.index) {
+                    self.index += 1;
+                    return Some(element.expr.clone());
                 }
             }
             NodeKind::Local(loc) => {
@@ -160,9 +158,7 @@ impl<'a> Iterator for NodeIter<'a> {
                     self.index += 1;
                     return Some(func.body.clone());
                 }
-                if let Some(params) = &func.parameters
-                    && let Some(param) = params.get(self.index - 1)
-                {
+                if let Some(param) = func.parameters.get(self.index - 1) {
                     self.index += 1;
                     return param.default_arg.clone();
                 }
@@ -176,11 +172,10 @@ impl<'a> Iterator for NodeIter<'a> {
                     // properly get the parameters
                     self.queue.push(field.name.clone());
                     if let NodeKind::Function(func) = field.body.node_kind.as_ref() {
-                        let params = func.parameters.iter().flat_map(|parameters| {
-                            parameters
-                                .iter()
-                                .filter_map(|parameter| parameter.default_arg.clone())
-                        });
+                        let params = func
+                            .parameters
+                            .iter()
+                            .filter_map(|parameter| parameter.default_arg.clone());
                         self.queue.extend(params);
                         return Some(func.body.clone());
                     } else {
@@ -270,10 +265,8 @@ impl<'a> Iterator for NodeIter<'a> {
             | NodeKind::Import(_)
             | NodeKind::ImportStr(_)
             | NodeKind::ImportBin(_)
-            | NodeKind::Dollar => (),
-            NodeKind::Other(other) => {
-                error!("Found other in children: {:?}", other)
-            }
+            | NodeKind::Dollar
+            | NodeKind::Other => (),
         };
         None
     }

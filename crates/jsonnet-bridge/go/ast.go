@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -11,6 +12,34 @@ import (
 	"github.com/google/go-jsonnet/formatter"
 	"github.com/google/go-jsonnet/linter"
 	"github.com/vmihailenco/msgpack/v5"
+)
+
+const (
+	Binary          = iota
+	Array           = iota
+	LiteralNumber   = iota
+	LiteralString   = iota
+	LiteralBoolean  = iota
+	LiteralNull     = iota
+	Local           = iota
+	Function        = iota
+	Apply           = iota
+	DesugaredObject = iota
+	Index           = iota
+	Var             = iota
+	Import          = iota
+	ImportStr       = iota
+	ImportBin       = iota
+	Conditional     = iota
+	Error           = iota
+	Unary           = iota
+	InSuper         = iota
+
+	SelfNode   = iota
+	SuperIndex = iota
+	Dollar     = iota
+	// Leftover nodes. Most likely something is broken
+	Other = iota
 )
 
 type GoAst struct{}
@@ -77,6 +106,25 @@ func (GoAst) get_ast_snippet(source_file *string, snippet *string) (info ASTInfo
 		return info
 	}
 	info.ast_data = nodeJson
+	return info
+}
+
+func (GoAst) get_ast_snippet_binary(source_file *string, snippet *string) (info ASTInfo) {
+	info = ASTInfo{}
+	defer func() {
+		if r := recover(); r != nil {
+			info.error_data = fmt.Sprintf("GO Error: %v", r)
+		}
+	}()
+	node, err := jsonnet.SnippetToAST(*source_file, *snippet)
+	if err != nil {
+		// Since go is stupid we are not able to get the underlying error type and thus are forced to just use the string
+		info.error_data = err.Error()
+		return info
+	}
+	encoder := JsonnetEncoder{}
+	encoder.encode_bincode(node)
+	info.ast_data = encoder.buf.Bytes()
 	return info
 }
 
@@ -220,6 +268,336 @@ func to_json_map_arr[T any](vals []T) []map[string]any {
 		retval = append(retval, m)
 	}
 	return retval
+}
+
+var BYTE_ORDER = binary.LittleEndian
+
+type JsonnetEncoder struct {
+	buf bytes.Buffer
+}
+
+func NewJsonnetEncoder() *JsonnetEncoder {
+	return &JsonnetEncoder{}
+}
+
+var count = 0
+
+func (self *JsonnetEncoder) write(data any) {
+	// fmt.Printf("Writing %v (%T)\n", data, data)
+	_ = binary.Write(&self.buf, BYTE_ORDER, data)
+}
+
+func (self *JsonnetEncoder) encode_string_option(data string) *JsonnetEncoder {
+	l := uint64(len(data))
+	if l == 0 {
+		self.write(uint8(0))
+	} else {
+		self.write(uint8(1))
+		self.write(uint64(len(data)))
+		self.write([]byte(data))
+	}
+	return self
+}
+
+func (self *JsonnetEncoder) encode_string(data string) *JsonnetEncoder {
+	self.write(uint64(len(data)))
+	if len(data) > 0 {
+		self.write([]byte(data))
+	}
+	return self
+}
+
+func (self *JsonnetEncoder) encode_bincode_val(val reflect.Value) *JsonnetEncoder {
+	switch val.Kind() {
+	case reflect.Int:
+		self.write(int32(val.Int()))
+	case reflect.Slice:
+		self.write(uint64(val.Len()))
+		for i := range val.Len() {
+			slice_val := val.Index(i)
+			self.encode_bincode_val(slice_val)
+		}
+	case reflect.Pointer:
+		if val.IsNil() ||
+			// Filter out Source as it contains a pointer to the whole file
+			reflect.TypeOf(val.Elem().Interface()) == reflect.TypeFor[ast.Source]() {
+			self.write(int8(0))
+		} else {
+			self.write(int8(1))
+			self.encode_bincode(val.Elem().Interface())
+		}
+	case reflect.String:
+		self.encode_string(val.String())
+	case reflect.Struct, reflect.Interface:
+		if val.Interface() != nil {
+			self.encode_bincode(val.Interface())
+		}
+	case reflect.Bool:
+		if val.Bool() {
+			self.write(int8(1))
+		} else {
+			self.write(int8(0))
+		}
+	default:
+		panic(fmt.Sprintf("Unknown kind! %v %v", val.Kind(), val))
+	}
+	return self
+}
+
+func (self *JsonnetEncoder) encode_option(val any) {
+	if val == nil {
+		self.write(uint8(0))
+	} else {
+		self.write(uint8(1))
+		self.encode_bincode(val)
+	}
+}
+
+func (self *JsonnetEncoder) encode_bincode(val any) *JsonnetEncoder {
+	reflect_val := reflect.ValueOf(val)
+	if reflect_val.Kind() == reflect.Pointer {
+		reflect_val = reflect_val.Elem()
+	}
+	reflect_type := reflect.TypeOf(val)
+	if reflect_type.Kind() == reflect.Pointer {
+		reflect_type = reflect_type.Elem()
+	}
+	if reflect_type.Kind() != reflect.Struct {
+		return self.encode_bincode_val(reflect_val)
+	}
+	// Since the AST objects have the NodeBase at different positions (WHY!!?!) we have to handle each case of the ast
+	switch currNode := reflect_val.Interface().(type) {
+	case ast.Binary:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Binary))
+	case ast.Array:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Array))
+	case ast.LiteralNumber:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(LiteralNumber))
+	case ast.LiteralString:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(LiteralString))
+	case ast.LiteralBoolean:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(LiteralBoolean))
+	case ast.LiteralNull:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(LiteralNull))
+	case ast.Local:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Local))
+		self.encode_bincode(currNode.Binds)
+		self.encode_option(currNode.Body)
+		return self
+	case ast.Function:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Function))
+	case ast.Apply:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Apply))
+	case ast.DesugaredObject:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(DesugaredObject))
+	case ast.Index:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Index))
+		self.encode_bincode(currNode.Target)
+		self.encode_bincode(currNode.Index)
+		self.encode_bincode(currNode.RightBracketFodder)
+		self.encode_bincode(currNode.LeftBracketFodder)
+		if currNode.Id == nil {
+			self.write(uint8(0))
+		} else {
+			self.write(uint8(1))
+			self.encode_string(string(*currNode.Id))
+		}
+		return self
+	case ast.Var:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Var))
+		self.encode_string_option(string(currNode.Id))
+		return self
+	case ast.Import:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Import))
+		fileNode := ast.LiteralString{}
+		if currNode.File != nil {
+			fileNode = *currNode.File
+		}
+		self.encode_bincode(fileNode)
+		return self
+	case ast.ImportStr:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(ImportStr))
+		fileNode := ast.LiteralString{}
+		if currNode.File != nil {
+			fileNode = *currNode.File
+		}
+		self.encode_bincode(fileNode)
+		return self
+	case ast.ImportBin:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(ImportBin))
+		fileNode := ast.LiteralString{}
+		if currNode.File != nil {
+			fileNode = *currNode.File
+		}
+		self.encode_bincode(fileNode)
+		return self
+	case ast.Conditional:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Conditional))
+	case ast.Error:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Error))
+	case ast.Unary:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Unary))
+	case ast.InSuper:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(InSuper))
+	case ast.Self:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(SelfNode))
+	case ast.SuperIndex:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(SuperIndex))
+	case ast.Dollar:
+		self.encode_base_node(currNode.NodeBase)
+		self.write(uint32(Dollar))
+	case ast.LocalBind:
+		self.encode_bincode(currNode.VarFodder)
+		self.encode_option(currNode.Body)
+		self.encode_bincode(currNode.EqFodder)
+		self.encode_bincode(currNode.Variable)
+		self.encode_bincode(currNode.CloseFodder)
+		// XXX: if we vast fun to any it is not nil. WHY?!?!
+		if currNode.Fun == nil {
+			self.write(uint8(0))
+		} else {
+			self.write(uint8(1))
+			self.encode_bincode(currNode.Fun)
+		}
+		self.encode_bincode(currNode.LocRange)
+		return self
+	case ast.Parameter:
+		self.encode_bincode(currNode.NameFodder)
+		self.encode_bincode(currNode.Name)
+		self.encode_bincode(currNode.CommaFodder)
+		self.encode_bincode(currNode.EqFodder)
+		self.encode_option(currNode.DefaultArg)
+		self.encode_bincode(currNode.LocRange)
+		return self
+	}
+	for i := range reflect_type.NumField() {
+		field_type := reflect_type.Field(i)
+		if field_type.Anonymous {
+			// Skip NodeBase to have it at the same position every time
+			continue
+		}
+		field_val := reflect_val.FieldByName(field_type.Name)
+		self.encode_bincode_val(field_val)
+	}
+
+	return self
+}
+
+func (self *JsonnetEncoder) encode_base_node(node ast.NodeBase) *JsonnetEncoder {
+	self.encode_bincode(node.Fodder)
+	if node.Ctx == nil || true {
+		self.encode_string("")
+	} else {
+		self.encode_string(*node.Ctx)
+	}
+	self.encode_bincode(node.FreeVars)
+	self.encode_bincode(node.LocRange)
+	return self
+}
+
+func (GoAst) get_test_objects() []TestData {
+	emptyCtx := ""
+	return []TestData{
+		{
+			name: "fodder",
+			data: NewJsonnetEncoder().encode_bincode(ast.Fodder{
+				{
+					Comment: []string{
+						"one",
+						"two",
+					},
+					Kind:   1,
+					Blanks: 2,
+					Indent: 3,
+				},
+			}).buf.Bytes(),
+		},
+		{
+			name: "location",
+			data: NewJsonnetEncoder().encode_bincode(ast.Location{
+				Line:   5,
+				Column: 19,
+			}).buf.Bytes(),
+		},
+		{
+			name: "locrange",
+			data: NewJsonnetEncoder().encode_bincode(ast.LocationRange{
+				FileName: "test",
+				Begin: ast.Location{
+					Line:   1,
+					Column: 2,
+				},
+				End: ast.Location{
+					Line:   3,
+					Column: 4,
+				},
+			}).buf.Bytes(),
+		},
+		{
+			name: "self",
+			data: NewJsonnetEncoder().encode_bincode(ast.Self{}).buf.Bytes(),
+		},
+		{
+			name: "apply",
+			data: NewJsonnetEncoder().encode_bincode(ast.Apply{
+				Target: &ast.Self{},
+			}).buf.Bytes(),
+		},
+		{
+			name: "array",
+			data: NewJsonnetEncoder().encode_bincode(ast.Array{}).buf.Bytes(),
+		},
+		{
+			name: "local_self",
+			data: NewJsonnetEncoder().encode_bincode(ast.Local{
+				Body: &ast.Self{},
+			}).buf.Bytes(),
+		},
+		{
+			name: "local_empty",
+			data: NewJsonnetEncoder().encode_bincode(ast.Local{}).buf.Bytes(),
+		},
+		{
+			name: "node_base",
+			data: NewJsonnetEncoder().encode_bincode(ast.NodeBase{
+				Fodder:   ast.Fodder{},
+				FreeVars: ast.Identifiers{},
+				LocRange: ast.LocationRange{
+					FileName: "",
+					Begin: ast.Location{
+						Line:   1,
+						Column: 1,
+					},
+					End: ast.Location{
+						Line:   1,
+						Column: 3,
+					},
+				},
+				Ctx: &emptyCtx,
+			}).buf.Bytes(),
+		},
+	}
 }
 
 func tagged_marshal(val any) map[string]any {

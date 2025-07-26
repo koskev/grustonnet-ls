@@ -23,6 +23,12 @@ use crate::{
 pub trait GenerateAST {
     fn get_ast(&self, filename: &str) -> Result<Node, EvaluateError>;
     fn get_ast_snippet(&self, source_file: &str, snippet: &str) -> Result<Node, EvaluateError>;
+    fn get_ast_snippet_binary(
+        &self,
+        source_file: &str,
+        snippet: &str,
+    ) -> Result<Node, EvaluateError>;
+    fn get_ast_data(&self, source_file: &str, snippet: &str) -> Result<Vec<u8>, EvaluateError>;
     fn import_ast(&self, source_file: &str, filename: &str) -> Result<Node, EvaluateError>;
     fn evaluate_ast(&self, ast_string: &str, source_file: &str) -> Result<String, EvaluateError>;
     fn evaluate_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError>;
@@ -319,6 +325,38 @@ impl GenerateAST for GoJsonnet {
         }
         Ok(rmp_serde::from_slice(&res.ast_data).unwrap())
     }
+    fn get_ast_data(&self, source_file: &str, snippet: &str) -> Result<Vec<u8>, EvaluateError> {
+        let start = Instant::now();
+        let res =
+            ASTBridgeImpl::get_ast_snippet_binary(source_file.to_string(), snippet.to_string());
+        let dur = start.elapsed();
+        log::info!("Ast evaluation took {:?}", dur);
+        if !res.error_data.is_empty() {
+            return Err(EvaluateError::from(res.error_data));
+        }
+        Ok(res.ast_data)
+    }
+
+    fn get_ast_snippet_binary(
+        &self,
+        source_file: &str,
+        snippet: &str,
+    ) -> Result<Node, EvaluateError> {
+        let start = Instant::now();
+        let res =
+            ASTBridgeImpl::get_ast_snippet_binary(source_file.to_string(), snippet.to_string());
+        let dur = start.elapsed();
+        log::info!("Ast evaluation took {:?}", dur);
+        if !res.error_data.is_empty() {
+            return Err(EvaluateError::from(res.error_data));
+        }
+        let start = Instant::now();
+        //eprintln!("DATA {:?}", res.ast_data);
+        let (node, _) = bincode::decode_from_slice(&res.ast_data, bincode::config::legacy())
+            .unwrap_or_else(|e| panic!("Could not decode ast from {:?}: {e}", res.ast_data));
+        log::info!("Deserializing took {:?}", start.elapsed());
+        Ok(node)
+    }
 
     fn get_ast_snippet(&self, source_file: &str, snippet: &str) -> Result<Node, EvaluateError> {
         let start = Instant::now();
@@ -330,6 +368,9 @@ impl GenerateAST for GoJsonnet {
         }
         let start = Instant::now();
         let node = rmp_serde::from_slice(&res.ast_data).unwrap();
+        //eprintln!("DATA {:?}", res.ast_data);
+        //let (node, _) = bincode::decode_from_slice(&res.ast_data, bincode::config::legacy())
+        //    .unwrap_or_else(|_| panic!("Could not decode ast from {:?}", res.ast_data));
         log::info!("Deserializing took {:?}", start.elapsed());
         Ok(node)
     }
@@ -384,5 +425,81 @@ impl GenerateAST for GoJsonnet {
             return Err(EvaluateError::from(res.error_data));
         }
         Ok(String::from_utf8(res.ast_data).unwrap())
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl};
+
+    use crate::node::{
+        location::{Location, LocationRange},
+        types::{base::NodeBase, fodder::Fodder, node::Node},
+    };
+
+    #[test]
+    fn base_object() {
+        let config = bincode::config::legacy();
+        let test_objects = ASTBridgeImpl::get_test_objects();
+        for test_object in test_objects {
+            match test_object.name.as_str() {
+                "location" => {
+                    let result: (Location, usize) =
+                        bincode::decode_from_slice(&test_object.data, config)
+                            .expect("unable to decode location");
+                    assert_eq!(result.0.line, 5);
+                    assert_eq!(result.0.column, 19);
+                }
+                "locrange" => {
+                    let (result, _): (LocationRange, usize) =
+                        bincode::decode_from_slice(&test_object.data, config)
+                            .expect(&format!("Got {:?}", test_object.data));
+                    assert_eq!(result.file_name, "test");
+                    assert_eq!(result.begin.line, 1);
+                    assert_eq!(result.begin.column, 2);
+                    assert_eq!(result.end.line, 3);
+                    assert_eq!(result.end.column, 4);
+                }
+                "base" => {
+                    let _result: (NodeBase, usize) =
+                        bincode::decode_from_slice(&test_object.data, config).unwrap();
+                }
+                "fodder" => {
+                    let (result, _): (Fodder, usize) =
+                        bincode::decode_from_slice(&test_object.data, config).unwrap();
+
+                    assert_eq!(result.0.len(), 1);
+                    assert_eq!(result.0[0].kind, 1);
+                    assert_eq!(result.0[0].blanks, 2);
+                    assert_eq!(result.0[0].indent, 3);
+                    assert_eq!(result.0[0].comment.len(), 2);
+                    assert_eq!(result.0[0].comment[0], "one");
+                    assert_eq!(result.0[0].comment[1], "two");
+                }
+                "self" => {
+                    let (result, _): (Node, usize) =
+                        bincode::decode_from_slice(&test_object.data, config)
+                            .expect(&format!("Got {:?}", test_object.data));
+                }
+                "node_base" => {
+                    let (result, _): (NodeBase, usize) =
+                        bincode::decode_from_slice(&test_object.data, config).unwrap();
+                    assert_eq!(result.ctx, "\0", "Wrong CTX");
+                    assert_eq!(result.fodder.0.len(), 0);
+                    assert_eq!(result.free_vars.len(), 0);
+                    assert_eq!(result.loc_range.file_name, "");
+                    assert_eq!(result.loc_range.begin.line, 1);
+                    assert_eq!(result.loc_range.begin.column, 1);
+                    assert_eq!(result.loc_range.end.line, 1);
+                    assert_eq!(result.loc_range.end.column, 3);
+                }
+                _ => {
+                    let (_result, _): (Node, usize) =
+                        bincode::decode_from_slice(&test_object.data, config)
+                            .expect(&format!("Got {:?}", test_object.data));
+                }
+            }
+        }
     }
 }

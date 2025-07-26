@@ -1,0 +1,6 @@
+linters:
+  settings:
+    staticcheck:
+      checks:
+        - all
+        - '-ST1006'

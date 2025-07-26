@@ -48,6 +48,11 @@ typedef struct FormatOptionsRef {
   bool strip_comments;
   bool strip_all_but_comments;
 } FormatOptionsRef;
+
+typedef struct TestDataRef {
+  struct StringRef name;
+  struct ListRef data;
+} TestDataRef;
 */
 import "C"
 import (
@@ -62,12 +67,14 @@ var ASTBridgeImpl ASTBridge
 type ASTBridge interface {
 	get_ast(filename *string) ASTInfo
 	get_ast_snippet(source_file *string, snippet *string) ASTInfo
+	get_ast_snippet_binary(source_file *string, snippet *string) ASTInfo
 	import_ast(source_file *string, filename *string, params *EvaluateParams) ASTInfo
 	evaluate_ast(ast_string *string, params *EvaluateParams) ASTInfo
 	evaluate_snippet(filename *string, snippet *string, params *EvaluateParams) ASTInfo
 	lint_snippet(filename *string, snippet *string, params *EvaluateParams) ASTInfo
 	format_snippet(filename *string, snippet *string, options *FormatOptions) ASTInfo
 	version() string
+	get_test_objects() []TestData
 }
 
 //export CASTBridge_get_ast
@@ -86,6 +93,18 @@ func CASTBridge_get_ast_snippet(source_file C.StringRef, snippet C.StringRef, sl
 	_new_source_file := newString(source_file)
 	_new_snippet := newString(snippet)
 	resp := ASTBridgeImpl.get_ast_snippet(&_new_source_file, &_new_snippet)
+	resp_ref, buffer := cvt_ref(cntASTInfo, refASTInfo)(&resp)
+	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
+	runtime.KeepAlive(resp_ref)
+	runtime.KeepAlive(resp)
+	runtime.KeepAlive(buffer)
+}
+
+//export CASTBridge_get_ast_snippet_binary
+func CASTBridge_get_ast_snippet_binary(source_file C.StringRef, snippet C.StringRef, slot *C.void, cb *C.void) {
+	_new_source_file := newString(source_file)
+	_new_snippet := newString(snippet)
+	resp := ASTBridgeImpl.get_ast_snippet_binary(&_new_source_file, &_new_snippet)
 	resp_ref, buffer := cvt_ref(cntASTInfo, refASTInfo)(&resp)
 	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
 	runtime.KeepAlive(resp_ref)
@@ -161,6 +180,16 @@ func CASTBridge_format_snippet(filename C.StringRef, snippet C.StringRef, option
 func CASTBridge_version(slot *C.void, cb *C.void) {
 	resp := ASTBridgeImpl.version()
 	resp_ref, buffer := cvt_ref(cntString, refString)(&resp)
+	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
+	runtime.KeepAlive(resp_ref)
+	runtime.KeepAlive(resp)
+	runtime.KeepAlive(buffer)
+}
+
+//export CASTBridge_get_test_objects
+func CASTBridge_get_test_objects(slot *C.void, cb *C.void) {
+	resp := ASTBridgeImpl.get_test_objects()
+	resp_ref, buffer := cvt_ref(cnt_list_mapper(cntTestData), ref_list_mapper(refTestData))(&resp)
 	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
 	runtime.KeepAlive(resp_ref)
 	runtime.KeepAlive(resp)
@@ -406,6 +435,35 @@ func refEvaluateParams(p *EvaluateParams, buffer *[]byte) C.EvaluateParamsRef {
 		ext_vars: ref_list_mapper(refExtValue)(&p.ext_vars, buffer),
 		ext_code: ref_list_mapper(refExtValue)(&p.ext_code, buffer),
 		jpaths:   ref_list_mapper(refString)(&p.jpaths, buffer),
+	}
+}
+
+type TestData struct {
+	name string
+	data []uint8
+}
+
+func newTestData(p C.TestDataRef) TestData {
+	return TestData{
+		name: newString(p.name),
+		data: new_list_mapper_primitive(newC_uint8_t)(p.data),
+	}
+}
+func ownTestData(p C.TestDataRef) TestData {
+	return TestData{
+		name: ownString(p.name),
+		data: new_list_mapper(newC_uint8_t)(p.data),
+	}
+}
+func cntTestData(s *TestData, cnt *uint) [0]C.TestDataRef {
+	_ = s
+	_ = cnt
+	return [0]C.TestDataRef{}
+}
+func refTestData(p *TestData, buffer *[]byte) C.TestDataRef {
+	return C.TestDataRef{
+		name: refString(&p.name, buffer),
+		data: ref_list_mapper_primitive(refC_uint8_t)(&p.data, buffer),
 	}
 }
 

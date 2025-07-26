@@ -30,16 +30,14 @@ impl<'a> Completion for GlobalCompletion<'a> {
             .flat_map(|node| match &(*node.node_kind) {
                 NodeKind::Local(local) => local.binds.clone(),
                 NodeKind::DesugaredObject(obj) => obj.locals.clone(),
-                NodeKind::Function(func) => match &func.parameters {
-                    Some(params) => params
-                        .iter()
-                        .map(|param| LocalBind {
-                            variable: param.name.clone(),
-                            ..Default::default()
-                        })
-                        .collect(),
-                    None => vec![],
-                },
+                NodeKind::Function(func) => func
+                    .parameters
+                    .iter()
+                    .map(|param| LocalBind {
+                        variable: param.name.clone(),
+                        ..Default::default()
+                    })
+                    .collect(),
                 _ => {
                     eprintln!("No bind {}", node.node_kind.variant_name());
                     vec![]

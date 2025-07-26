@@ -13,6 +13,7 @@ pub mod var;
 
 use std::sync::Arc;
 
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -20,33 +21,33 @@ use crate::node::{
     types::{fodder::Fodder, local_bind::LocalBind, node::Node, node_kind::NodeKind},
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase")]
 pub struct CommaSeparatedExpr {
     pub expr: Arc<Node>,
-    pub comma_fodder: Option<Fodder>,
+    pub comma_fodder: Fodder,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(rename_all = "PascalCase", tag = "T")]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+#[serde(rename_all = "PascalCase", tag = "T", default)]
 pub struct Array {
-    pub elements: Option<Vec<CommaSeparatedExpr>>,
-    pub close_fodder: Option<Fodder>,
+    pub elements: Vec<CommaSeparatedExpr>,
+    pub close_fodder: Fodder,
     pub trailing_comma: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase")]
 pub struct Identifier(pub String);
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Local {
     pub binds: Vec<LocalBind>,
     pub body: Option<Arc<Node>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Unary {
     pub expr: Arc<Node>,
@@ -72,13 +73,13 @@ impl Local {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Import {
     pub file: Arc<Node>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Error {
     expr: Arc<Node>,

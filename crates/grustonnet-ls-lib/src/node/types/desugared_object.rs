@@ -3,6 +3,7 @@ use std::{
     sync::Arc,
 };
 
+use bincode::{Decode, Encode};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +12,7 @@ use crate::node::{
     types::{local_bind::LocalBind, node::Node, node_kind::NodeKind},
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub struct DesugaredObjectField {
     pub name: Arc<Node>,
@@ -21,7 +22,7 @@ pub struct DesugaredObjectField {
     pub plus_super: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub struct DesugaredObject {
     pub asserts: Vec<Node>,
