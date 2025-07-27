@@ -9,13 +9,14 @@ use crate::{
         types::{function::Apply, node::Node, node_kind::NodeKind},
     },
 };
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
     utils::UriHelper,
 };
 use lsp_types::{CompletionItem, CompletionItemLabelDetails, CompletionList, Position, Uri};
+use thiserror::Error;
 
 pub struct LocalCompletion<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -25,6 +26,20 @@ impl<'a> LocalCompletion<'a> {
     pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
+}
+
+#[derive(Error, Debug)]
+pub enum LocalError {
+    #[error("getting index name")]
+    IndexName,
+    #[error("finding DesugaredObject")]
+    NoDesugaredObject,
+    #[error("resolving last node of call stack")]
+    ReolveLastNode,
+    #[error("creating callstack iter")]
+    CreateCallstack,
+    #[error("no base object found")]
+    NoBaseObject,
 }
 
 pub struct ResolveNodeIter<'a> {
@@ -472,7 +487,7 @@ impl<'a> LocalCompletion<'a> {
                 None => call_node,
                 Some(base_object) => match call_node.node_kind.as_ref() {
                     NodeKind::Index(idx) => {
-                        let index_name = idx.get_name().ok_or(anyhow!("getting index name"))?;
+                        let index_name = idx.get_name().ok_or(LocalError::IndexName)?;
                         match base_object.node_kind.as_ref() {
                             NodeKind::DesugaredObject(obj) => {
                                 let found_field = obj
@@ -485,7 +500,7 @@ impl<'a> LocalCompletion<'a> {
                                             false
                                         }
                                     })
-                                    .ok_or(anyhow!("finding desugared field"))?;
+                                    .ok_or(LocalError::NoDesugaredObject)?;
                                 found_field.body.clone()
                             }
                             _ => base_object,
@@ -497,18 +512,17 @@ impl<'a> LocalCompletion<'a> {
             base_object = Some(
                 ResolveNodeIter::new(to_complete_object, document_stack, self.cache)
                     .last()
-                    .ok_or(anyhow!("getting new base object"))?,
+                    .ok_or(LocalError::ReolveLastNode)?,
             );
         }
-        base_object.ok_or(anyhow!("no object found"))
+        base_object.ok_or(LocalError::NoBaseObject.into())
     }
 
     pub fn build_node(&self, document_stack: NodeStack) -> Result<Arc<Node>> {
         let mut document_stack = document_stack;
         let iter = CallStackIter::new(self.cache, &mut document_stack)
-            .ok_or(anyhow!("Could not create callstack iter"))?;
-        iter.last()
-            .ok_or(anyhow!("Could not resolve last node of call stack"))
+            .ok_or(LocalError::CreateCallstack)?;
+        iter.last().ok_or(LocalError::ReolveLastNode.into())
     }
 }
 
