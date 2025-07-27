@@ -81,7 +81,12 @@ impl Display for NodeKind {
                 write!(f, "{}", s.value)?;
             }
             Self::Apply(apply) => {
-                write!(f, "({:?}) -> {}", apply.arguments, apply.target.node_kind)?;
+                write!(
+                    f,
+                    "({}) -> {}",
+                    apply.arguments.positional.len(),
+                    apply.target.node_kind
+                )?;
             }
             Self::Index(idx) => {
                 write!(f, "{} -> {}", idx.index.node_kind, idx.target.node_kind)?;

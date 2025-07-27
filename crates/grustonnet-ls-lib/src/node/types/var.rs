@@ -78,7 +78,24 @@ impl Var {
             let bind = binds.iter().find(|local| local.variable.0 == id.0);
             bind?.body.clone()
         };
+
+        // To correctly resolve the vars, we need to pop all of the previous nodes (otherwise we
+        // will have problems with self, dollar, and shadowed nodes. However we currently use the
+        // apply node on the stack while processing a function. Therefore we are unable to find any
+        // argument on the stack and can't assign them.
+        // In this awful workaround we make an exception for apply nodes and just push them back to
+        // the stack as they don't interfere with self etc
+        // TODO: fix this mess
+        let mut popped_apply_nodes = vec![];
+        log::trace!(
+            "Searching for {} in {}",
+            self.id.clone().unwrap_or_default().0,
+            document_stack
+        );
         while let Some(next_node) = document_stack.stack.pop() {
+            if let NodeKind::Apply(_) = *next_node.node_kind {
+                popped_apply_nodes.push(next_node.clone());
+            }
             if let Some(found) = match next_node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
@@ -91,12 +108,19 @@ impl Var {
                 }),
                 _ => None,
             } {
+                log::error!("Found var: {}", found.node_kind.variant_name());
+                while let Some(popped) = popped_apply_nodes.pop() {
+                    document_stack.push(popped);
+                }
                 // Push the found node back
                 document_stack.push(next_node);
                 return Some(found);
             }
         }
-        log::trace!("Unable to find var in stack");
+        log::trace!(
+            "Unable to find var {} in stack",
+            self.id.clone().unwrap_or_default().0
+        );
         None
     }
 }

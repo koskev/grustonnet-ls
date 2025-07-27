@@ -560,7 +560,8 @@ impl<'a> Completion for LocalCompletion<'a> {
                     let mut detail = field.body.node_kind.get_value();
                     // TODO: better detection
                     if let Some(documentation_node) = &last_docsonnet_node
-                        && documentation_node.get_name().unwrap() == field.get_name().unwrap()
+                        && documentation_node.get_name().unwrap()
+                            == format!("#{}", field.get_name().unwrap())
                     {
                         let doc_info = DocumentationInfo::from_docsonnet_node(
                             self.cache,
