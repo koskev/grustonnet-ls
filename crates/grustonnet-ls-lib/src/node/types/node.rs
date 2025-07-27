@@ -104,6 +104,7 @@ impl Node {
             NodeKind::Index(idx) => idx.get_name().unwrap_or_default(),
             NodeKind::Local(local) => local.get_name().unwrap_or_default(),
             NodeKind::Apply(apply) => apply.get_name().unwrap_or_default(),
+            NodeKind::LiteralString(litstring) => litstring.value.clone(),
 
             _ => {
                 log::info!("Unhandled get_name for {}", self.node_kind.variant_name());

@@ -5,6 +5,7 @@ pub mod completion;
 pub mod cst;
 pub mod definition;
 pub mod diagnostics;
+pub mod documentation;
 pub mod inlay_hint;
 pub mod node;
 pub mod references;

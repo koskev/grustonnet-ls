@@ -4,9 +4,13 @@ use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
     completion::std::StdCompletion,
+    documentation::DocumentationInfo,
     node::{
         stack::NodeStack,
-        types::{function::Apply, node::Node, node_kind::NodeKind},
+        types::{
+            desugared_object::DesugaredObjectField, function::Apply, node::Node,
+            node_kind::NodeKind,
+        },
     },
 };
 use anyhow::Result;
@@ -544,14 +548,31 @@ impl<'a> Completion for LocalCompletion<'a> {
         // TODO: Resolve the complete call stack
         let node = self.build_node(stack)?;
         log::trace!("Built node {}", node.node_kind);
+        let mut last_docsonnet_node: Option<&DesugaredObjectField> = None;
         let items = match node.node_kind.as_ref() {
             NodeKind::DesugaredObject(obj) => obj
                 .fields
                 .iter()
                 .filter_map(|field| {
+                    if field.get_name()?.starts_with("#") {
+                        last_docsonnet_node = Some(field);
+                    }
+                    let mut detail = field.body.node_kind.get_value();
+                    // TODO: better detection
+                    if let Some(documentation_node) = &last_docsonnet_node
+                        && documentation_node.get_name().unwrap() == field.get_name().unwrap()
+                    {
+                        let doc_info = DocumentationInfo::from_docsonnet_node(
+                            self.cache,
+                            documentation_node.body.clone(),
+                        );
+                        if let Some(doc_info) = doc_info {
+                            detail = Some(doc_info.help_text);
+                        }
+                    }
                     Some(CompletionItem {
                         label: field.get_name()?,
-                        detail: field.body.node_kind.get_value(),
+                        detail,
                         kind: Some(field.body.node_kind.get_lsp_kind()),
                         label_details: Some(CompletionItemLabelDetails {
                             description: Some(field.body.node_kind.get_node_kind_name().into()),
