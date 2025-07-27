@@ -197,3 +197,99 @@ fn builder_simple_with_arg_complete() {
     }
     .check();
 }
+
+#[test]
+fn nested_inner_call() {
+    CompletionTestCase {
+        filename: "testdata/complete/builder/nested.jsonnet".into(),
+        replace_string: "x: self.new()".into(),
+        replace_by_string: "x: self.new().withInner().".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                label: "innerVal".to_string(),
+                detail: Some("0".into()),
+                ..Default::default()
+            },
+                CompletionItem {
+                label: "withInnerFunc".to_string(),
+                ..Default::default()
+            },
+                CompletionItem {
+                label: "endInner".to_string(),
+                ..Default::default()
+            }
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn nested_inner_func() {
+    CompletionTestCase {
+        filename: "testdata/complete/builder/nested.jsonnet".into(),
+        replace_string: "x: self.new()".into(),
+        replace_by_string: "x: self.new().withInner().withInnerFunc().".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                label: "innerVal".to_string(),
+                detail: Some("5".into()),
+                ..Default::default()
+            },
+                CompletionItem {
+                label: "withInnerFunc".to_string(),
+                ..Default::default()
+            },
+                CompletionItem {
+                label: "endInner".to_string(),
+                ..Default::default()
+            }
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+
+#[test]
+fn nested_inner_end() {
+    CompletionTestCase {
+        filename: "testdata/complete/builder/nested.jsonnet".into(),
+        replace_string: "x: self.new()".into(),
+        replace_by_string: "x: self.new().withInner().withInnerFunc().endInner().".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                label: "innerVal".to_string(),
+                // TODO: currently not supported
+                // detail: Some("5".into()),
+                ..Default::default()
+            },
+            CompletionItem {
+                label: "withArg".to_string(),
+                ..Default::default()
+            },
+            CompletionItem {
+                label: "withoutArg".to_string(),
+                ..Default::default()
+            },
+                CompletionItem {
+                label: "withInner".to_string(),
+                ..Default::default()
+            },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}

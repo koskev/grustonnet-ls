@@ -111,7 +111,9 @@ impl CompletionTestCase {
             .iter_mut()
             .zip(self.expected.items.iter())
         {
-            item.detail = None;
+            if expected.detail.is_none() {
+                item.detail = None;
+            }
             // If kind was not set in the test we don't test it
             if expected.kind.is_none() {
                 item.kind = None;

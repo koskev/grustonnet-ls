@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Instant};
+use std::sync::Arc;
 
 use anyhow::{Result, anyhow};
 use language_server::{cache::ASTGenerator, utils::rope::RopeHelper};

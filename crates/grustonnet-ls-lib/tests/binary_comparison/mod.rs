@@ -2,9 +2,7 @@ use language_server::server::LSPServer;
 use pretty_assertions::assert_eq;
 use std::fs::read_to_string;
 
-use grustonnet_ls_lib::{
-    bridge::GenerateAST, node::types::node::Node, server::jsonnet::JsonnetServer,
-};
+use grustonnet_ls_lib::{bridge::GenerateAST, server::jsonnet::JsonnetServer};
 use language_server::utils::UriHelper;
 use lsp_types::Uri;
 

@@ -1,8 +1,4 @@
-use std::{
-    str::FromStr,
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::{sync::Arc, time::Instant};
 
 use crate::{
     bridge::GenerateAST,

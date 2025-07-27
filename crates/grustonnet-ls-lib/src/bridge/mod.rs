@@ -477,11 +477,6 @@ mod test {
                     assert_eq!(result.0[0].comment[0], "one");
                     assert_eq!(result.0[0].comment[1], "two");
                 }
-                "self" => {
-                    let (result, _): (Node, usize) =
-                        bincode::decode_from_slice(&test_object.data, config)
-                            .expect(&format!("Got {:?}", test_object.data));
-                }
                 "node_base" => {
                     let (result, _): (NodeBase, usize) =
                         bincode::decode_from_slice(&test_object.data, config).unwrap();
@@ -497,7 +492,7 @@ mod test {
                 _ => {
                     let (_result, _): (Node, usize) =
                         bincode::decode_from_slice(&test_object.data, config)
-                            .expect(&format!("Got {:?}", test_object.data));
+                            .unwrap_or_else(|_| panic!("Got {:?}", test_object.data));
                 }
             }
         }
