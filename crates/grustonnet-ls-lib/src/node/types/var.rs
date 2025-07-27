@@ -108,7 +108,7 @@ impl Var {
                 }),
                 _ => None,
             } {
-                log::error!("Found var: {}", found.node_kind.variant_name());
+                log::trace!("Found var: {}", found.node_kind.variant_name());
                 while let Some(popped) = popped_apply_nodes.pop() {
                     document_stack.push(popped);
                 }

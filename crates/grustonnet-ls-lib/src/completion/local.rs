@@ -429,6 +429,8 @@ impl<'a> CallStackIter<'a> {
 }
 
 // This iterator resolves one of a.b.c.d in every iteration
+// TODO: by using an iterator we don't have any way of knowing if we have an error or are at the
+// end
 impl<'a> Iterator for CallStackIter<'a> {
     type Item = Arc<Node>;
     fn next(&mut self) -> Option<Self::Item> {
@@ -567,7 +569,9 @@ impl<'a> Completion for LocalCompletion<'a> {
                             self.cache,
                             documentation_node.body.clone(),
                         );
-                        if let Some(doc_info) = doc_info {
+                        if let Some(doc_info) = doc_info
+                            && doc_info.help_text.len() > 0
+                        {
                             detail = Some(doc_info.help_text);
                         }
                     }

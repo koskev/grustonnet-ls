@@ -56,8 +56,6 @@ impl DocumentationInfo {
         cache: &Cache<JsonnetASTGenerator>,
         documentation_node: Arc<Node>,
     ) -> Option<Self> {
-        // FIXME: Currently returns from functions that depend on the arguments are not working
-        // correctly. Therefore the documentation will always be empty
         let node = Self::resolve_indices(cache, documentation_node, &["function", "help"])?;
 
         Some(Self {
