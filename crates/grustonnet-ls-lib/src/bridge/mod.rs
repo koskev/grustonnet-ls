@@ -289,7 +289,7 @@ impl GoJsonnet {
             && let Some(parent) = p.parent()
             && let Some(parent_str) = parent.to_str()
         {
-            params.jpaths.push(parent_str.into());
+            params.jpaths.insert(0, parent_str.into());
         }
         // Add environment Variables
         if let Ok(jpath_env) = std::env::var("JSONNET_PATH") {

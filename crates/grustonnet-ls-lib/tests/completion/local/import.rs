@@ -175,3 +175,49 @@ fn func_call_binary() {
     }
     .check();
 }
+
+#[test]
+fn jpath_priority_implicit() {
+    let mut conf = local_config();
+    conf.jsonnet
+        .jpaths
+        .push("testdata/complete/import/jpath/lib".into());
+    CompletionTestCase {
+        filename: "testdata/complete/import/jpath/jpath.jsonnet".into(),
+        replace_string: "x: lib.localKey".into(),
+        replace_by_string: "x: lib.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "localKey".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn jpath_priority_explicit() {
+    let mut conf = local_config();
+    conf.jsonnet
+        .jpaths
+        .push("testdata/complete/import/jpath/lib".into());
+    CompletionTestCase {
+        filename: "testdata/complete/import/jpath/jpath.jsonnet".into(),
+        replace_string: "y: jlib.libKey".into(),
+        replace_by_string: "y: jlib.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "libKey".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
