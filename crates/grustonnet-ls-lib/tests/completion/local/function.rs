@@ -260,7 +260,6 @@ fn function_default_arg_var_import_index() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn function_default_arg_completion() {
     CompletionTestCase {
         filename: "testdata/complete/functions/function_defaults_from_import.jsonnet".into(),
