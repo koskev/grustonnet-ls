@@ -49,6 +49,7 @@ pub enum EvaluateErrorType {
 
     ExpectedComma,
     ExpectedToken,
+    Deserialize,
 }
 
 impl From<&str> for EvaluateErrorType {
@@ -351,9 +352,12 @@ impl GenerateAST for GoJsonnet {
             return Err(EvaluateError::from(res.error_data));
         }
         let start = Instant::now();
-        //eprintln!("DATA {:?}", res.ast_data);
         let (node, _) = bincode::decode_from_slice(&res.ast_data, bincode::config::legacy())
-            .unwrap_or_else(|e| panic!("Could not decode ast from {:?}: {e}", res.ast_data));
+            .map_err(|e| EvaluateError {
+                error_type: EvaluateErrorType::Deserialize,
+                message: format!("Could not decode AST. This is most likely a bug: {e}"),
+                ..Default::default()
+            })?;
         log::info!("Deserializing took {:?}", start.elapsed());
         Ok(node)
     }
@@ -367,10 +371,11 @@ impl GenerateAST for GoJsonnet {
             return Err(EvaluateError::from(res.error_data));
         }
         let start = Instant::now();
-        let node = rmp_serde::from_slice(&res.ast_data).unwrap();
-        //eprintln!("DATA {:?}", res.ast_data);
-        //let (node, _) = bincode::decode_from_slice(&res.ast_data, bincode::config::legacy())
-        //    .unwrap_or_else(|_| panic!("Could not decode ast from {:?}", res.ast_data));
+        let node = rmp_serde::from_slice(&res.ast_data).map_err(|e| EvaluateError {
+            error_type: EvaluateErrorType::Deserialize,
+            message: format!("Could not decode AST. This is most likely a bug: {e}"),
+            ..Default::default()
+        })?;
         log::info!("Deserializing took {:?}", start.elapsed());
         Ok(node)
     }
