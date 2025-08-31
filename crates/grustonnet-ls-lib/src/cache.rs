@@ -29,7 +29,7 @@ impl ASTGenerator for JsonnetASTGenerator {
         let mut current_content = Rope::from_str(new_content);
         // Give up after 100 tries
         for _ in 0..100 {
-            log::trace!("Document content: {}", new_content);
+            log::trace!("Document content: {}", current_content);
             let json_data = self
                 .jsonnet
                 .get_ast_snippet_binary(source_file, &current_content.to_string());
@@ -53,7 +53,13 @@ impl ASTGenerator for JsonnetASTGenerator {
                             let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
                             current_content.remove(non_whitespace_idx..non_whitespace_idx + 1);
                         }
-                        _ => return Err(e.into()),
+                        _ => {
+                            // TODO: Try other stuff to fix the line first and only if there is no
+                            // other option for this line remove it
+                            // As a last resort just try to remove the line
+                            //current_content.remove_line(e.start.line.saturating_sub(1) as usize)?;
+                            return Err(e.into());
+                        }
                     }
                 }
             }
