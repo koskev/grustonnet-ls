@@ -64,8 +64,6 @@
 
           clang
           pkg-config
-          openssl
-          openssl.dev
         ];
 
       in
