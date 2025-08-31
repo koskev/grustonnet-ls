@@ -70,6 +70,7 @@
       {
         # For `nix build` & `nix run`:
         defaultPackage = naersk'.buildPackage {
+          name = "grustonnet-ls";
           src = ./.;
 
           # Make sure go can write to the home dir
