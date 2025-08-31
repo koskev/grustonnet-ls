@@ -19,26 +19,81 @@
           inherit system;
         };
 
+        jsonnetVersion = "v0.21.0";
+
+        stdlib-content = pkgs.fetchurl {
+          url = "https://raw.githubusercontent.com/google/jsonnet/${jsonnetVersion}/doc/_stdlib_gen/stdlib-content.jsonnet";
+          hash = "sha256-Xk0V55wYdt9MGNx94DEGS2XW2c9MpYpYl+ly0hi+3vE=";
+        };
+
+        stdlib-html = pkgs.fetchurl {
+          url = "https://raw.githubusercontent.com/google/jsonnet/${jsonnetVersion}/doc/_stdlib_gen/html.libsonnet";
+          hash = "sha256-afCIZAmfLZqyRkxroyHPhJU3ABaEXGQ8xs2TzlrmAAo=";
+        };
+
         naersk' = pkgs.callPackage naersk { };
+        modRoot = "./crates/jsonnet-bridge/go";
+        goModules = pkgs.stdenv.mkDerivation {
+          name = "rust2go-vendor";
+          src = ./crates/jsonnet-bridge/go;
+          dontUnpack = true;
+
+          nativeBuildInputs = [ pkgs.go ];
+
+          buildPhase = ''
+            # Subdir since go refuses to work in the "system tmp" directory, which is /build in this case
+            mkdir go && cd go
+            cp -r $src/* .
+            export GOPATH="$TMPDIR/go-path"
+            export GOCACHE="$TMPDIR/go-cache"
+            go mod vendor
+          '';
+
+          installPhase = ''
+            mkdir -p $out
+            cp -r vendor $out
+          '';
+
+          outputHashMode = "recursive";
+          outputHashAlgo = "sha256";
+          # Do NOT set to `null` for testing. `go mod vendor` WILL break
+          outputHash = "sha256-+iH7lR+RTSnoIewPNPWrfXJU6gHXSuPe13CM9Uhff1k=";
+        };
+        nativeBuildInputs = with pkgs; [
+          go
+
+          clang
+          pkg-config
+          openssl
+          openssl.dev
+        ];
 
       in
-      rec {
+      {
         # For `nix build` & `nix run`:
         defaultPackage = naersk'.buildPackage {
           src = ./.;
+
+          # Make sure go can write to the home dir
+          preBuild = ''
+            export HOME=$TMPDIR
+            export GOFLAGS="-mod=vendor"
+            mkdir -p ${modRoot}
+            ln -s ${goModules}/vendor "${modRoot}/vendor"
+
+            # Download stdlib packages as they are otherwise downloaded by `build.rs`
+            mkdir -p ./crates/grustonnet-ls-lib/gen
+            cp ${stdlib-content} ./crates/grustonnet-ls-lib/gen/stdlib-content.jsonnet
+            cp ${stdlib-html} ./crates/grustonnet-ls-lib/gen/html.libsonnet
+          '';
+
+          inherit nativeBuildInputs;
+          LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
         };
 
         # For `nix develop`:
         devShell = pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [
-            rustc
-            cargo
-
-            clang
-            pkg-config
-            openssl
-            openssl.dev
-          ];
+          inherit nativeBuildInputs;
           LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
         };
       }
