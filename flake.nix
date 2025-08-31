@@ -92,7 +92,13 @@
 
         # For `nix develop`:
         devShell = pkgs.mkShell {
-          inherit nativeBuildInputs;
+          nativeBuildInputs =
+            with pkgs;
+            nativeBuildInputs
+            ++ [
+              rust-analyzer
+              go-jsonnet
+            ];
           LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
         };
       }
