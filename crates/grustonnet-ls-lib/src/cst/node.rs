@@ -7,7 +7,7 @@ pub trait JsonnetNode {
     fn is_ending_node(&self) -> bool;
     // Get the previous node in the tree
 
-    fn get_node_at(&self, point: Point) -> Option<Node>;
+    fn get_node_at(&self, point: Point) -> Option<Node<'_>>;
 
     fn is_inside_import(&self) -> Option<bool>;
 }
@@ -21,7 +21,7 @@ impl<'a> JsonnetNode for Node<'a> {
         NodeType::from(self.grammar_name()).is_statement_ending()
     }
 
-    fn get_node_at(&self, point: Point) -> Option<Node> {
+    fn get_node_at(&self, point: Point) -> Option<Node<'_>> {
         let mut start_pos = point;
         let end_pos = point;
 
