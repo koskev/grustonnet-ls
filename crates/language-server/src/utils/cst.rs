@@ -6,8 +6,8 @@ use crate::utils::rope::RopeHelper;
 
 pub trait CstNodeHelper {
     fn get_name(&self, content: &str) -> Option<String>;
-    fn get_prev_node(&self) -> Option<Node>;
-    fn get_prev_sibling_or_parent(&self) -> Option<Node>;
+    fn get_prev_node(&self) -> Option<Node<'_>>;
+    fn get_prev_sibling_or_parent(&self) -> Option<Node<'_>>;
 }
 
 impl<'a> CstNodeHelper for Node<'a> {
