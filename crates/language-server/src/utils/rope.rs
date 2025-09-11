@@ -1,3 +1,4 @@
+use anyhow::Result;
 use lsp_types::Position;
 use ropey::Rope;
 
@@ -7,9 +8,25 @@ pub trait RopeHelper {
     // Gets the next non whitspace character before index
     fn get_prev_non_whitespace(&self, index: usize) -> usize;
     fn get_index(&self, loc: Position) -> usize;
+    fn remove_line(&mut self, line: usize) -> Result<()>;
 }
 
 impl RopeHelper for Rope {
+    fn remove_line(&mut self, line: usize) -> Result<()> {
+        let line_start = self.try_line_to_char(line)?;
+        match self.try_line_to_char(line + 1) {
+            Ok(next_line) => {
+                log::debug!("Removing line {:?}", line_start);
+                self.try_remove(line_start..next_line - 1)?;
+            }
+            Err(_) => {
+                log::debug!("Removing rest of line line {:?}", line_start);
+                self.try_remove(line_start..)?;
+            }
+        }
+        Ok(())
+    }
+
     fn get_prev_non_whitespace(&self, index: usize) -> usize {
         let mut non_whitespace_idx = index;
         for (i, prev_char) in self.chars_at(index).reversed().enumerate() {
