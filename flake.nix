@@ -96,8 +96,12 @@
             with pkgs;
             nativeBuildInputs
             ++ [
-              rust-analyzer
+              cargo
+
               go-jsonnet
+              rust-analyzer
+              bacon
+              tracy
             ];
           LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
         };
