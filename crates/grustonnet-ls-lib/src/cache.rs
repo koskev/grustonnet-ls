@@ -39,19 +39,28 @@ impl ASTGenerator for JsonnetASTGenerator {
                     return Ok(node_data.into());
                 }
                 Err(e) => {
-                    log::warn!("Error type: {}", e.error_type.variant_name());
+                    log::warn!("Error type: {:?}", e.error_type);
+                    let func_start = e.start.clone();
+                    let add_to_prev_non_whitespace = |text: &str| {
+                        let index = current_content.get_index(func_start.into());
+                        let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
+                        current_content.insert(non_whitespace_idx + 1, text);
+                    };
+                    // TODO: branch on error an explore multiple paths
                     match e.error_type {
                         EvaluateErrorType::ExpectedComma => {
                             // Insert comma before the given node after the first non whitespace
                             // character
-                            let index = current_content.get_index(e.start.into());
-                            let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
-                            current_content.insert(non_whitespace_idx + 1, ",");
+                            add_to_prev_non_whitespace(",");
                         }
                         EvaluateErrorType::ExpectedToken => {
                             let index = current_content.get_index(e.start.into());
                             let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
                             current_content.remove(non_whitespace_idx..non_whitespace_idx + 1);
+                        }
+                        EvaluateErrorType::ExpectedCommaOrSemicolon => {
+                            // TODO: handle comma
+                            add_to_prev_non_whitespace(";");
                         }
                         _ => {
                             // TODO: Try other stuff to fix the line first and only if there is no

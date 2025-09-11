@@ -22,7 +22,7 @@ where
 
 pub trait ASTNode: Clone + Default + Debug {}
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub enum ASTState {
     Clean,
     /// The ast and content do not match due to an invalid file

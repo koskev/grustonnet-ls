@@ -42,22 +42,31 @@ pub trait GenerateAST {
     ) -> Result<String, EvaluateError>;
 }
 
-#[derive(Debug, Default, NamedVariant)]
+#[derive(Debug, NamedVariant)]
 pub enum EvaluateErrorType {
-    #[default]
-    Unknown,
+    Unknown(String),
 
     ExpectedComma,
+    ExpectedCommaOrSemicolon,
     ExpectedToken,
     Deserialize,
+}
+
+impl Default for EvaluateErrorType {
+    fn default() -> Self {
+        Self::Unknown("Unknown error".into())
+    }
 }
 
 impl From<&str> for EvaluateErrorType {
     fn from(value: &str) -> Self {
         match value {
             "Expected a comma before next field" => Self::ExpectedComma,
+            value if value.starts_with("Expected , or ; but got ") => {
+                Self::ExpectedCommaOrSemicolon
+            }
             value if value.starts_with("Expected token IDENTIFIER but got ") => Self::ExpectedToken,
-            _ => Self::default(),
+            _ => Self::Unknown(value.to_string()),
         }
     }
 }
