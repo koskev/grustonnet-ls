@@ -32,61 +32,59 @@ impl JsonnetASTGenerator {
         ropes_to_test.push_back((content, None));
         // Give up after 100 tries
         for _ in 0..100 {
-            if let Some((mut current_content, previous_error)) = ropes_to_test.pop_front() {
-                log::trace!("Document content: {}", current_content);
-                let json_data = self
-                    .jsonnet
-                    .get_ast_snippet_binary(source_file, &current_content.to_string());
-                match json_data {
-                    Ok(node_data) => {
-                        log::debug!("Got valid ast!");
-                        return Ok(node_data.into());
+            let Some((mut current_content, previous_error)) = ropes_to_test.pop_front() else {
+                return Err(anyhow!("Unable to fix ast"));
+            };
+            log::trace!("Document content: {}", current_content);
+            let json_data = self
+                .jsonnet
+                .get_ast_snippet_binary(source_file, &current_content.to_string());
+            match json_data {
+                Ok(node_data) => {
+                    log::debug!("Got valid ast!");
+                    return Ok(node_data.into());
+                }
+                Err(e) => {
+                    // If the previous error is the same as the current error, our change did
+                    // nothing and we are probably in a loop
+                    if let Some(previous_error) = previous_error
+                        && previous_error == e
+                    {
+                        return Err(e.into());
                     }
-                    Err(e) => {
-                        // If the previous error is the same as the current error, our change did
-                        // nothing and we are probably in a loop
-                        if let Some(previous_error) = previous_error
-                            && previous_error == e
-                        {
-                            return Err(e.into());
-                        }
-                        log::warn!("Error type: {:?}", e.error_type);
-                        let func_start = e.start.clone();
-                        let mut add_to_prev_non_whitespace = |text: &str| {
-                            let index = current_content.get_index(func_start.clone().into());
-                            let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
-                            current_content.insert(non_whitespace_idx + 1, text);
-                            ropes_to_test.push_back((current_content.clone(), Some(e.clone())));
-                        };
+                    log::warn!("Error type: {:?}", e.error_type);
+                    let func_start = e.start.clone();
+                    let mut add_to_prev_non_whitespace = |text: &str| {
+                        let index = current_content.get_index(func_start.clone().into());
+                        let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
+                        current_content.insert(non_whitespace_idx + 1, text);
+                        ropes_to_test.push_back((current_content.clone(), Some(e.clone())));
+                    };
 
-                        match e.error_type {
-                            EvaluateErrorType::ExpectedComma => {
-                                // Insert comma before the given node after the first non whitespace
-                                // character
-                                add_to_prev_non_whitespace(",");
-                            }
-                            EvaluateErrorType::ExpectedToken => {
-                                let index = current_content.get_index(e.start.clone().into());
-                                let non_whitespace_idx =
-                                    current_content.get_prev_non_whitespace(index);
-                                current_content.remove(non_whitespace_idx..non_whitespace_idx + 1);
-                                ropes_to_test.push_back((current_content.clone(), Some(e.clone())));
-                            }
-                            EvaluateErrorType::ExpectedCommaOrSemicolon => {
-                                add_to_prev_non_whitespace(";");
-                                add_to_prev_non_whitespace(",");
-                            }
-                            _ => {
-                                // TODO: Try other stuff to fix the line first and only if there is no
-                                // other option for this line remove it
-                                // As a last resort just try to remove the line
-                                //current_content.remove_line(e.start.line.saturating_sub(1) as usize)?;
-                            }
+                    match e.error_type {
+                        EvaluateErrorType::ExpectedComma => {
+                            // Insert comma before the given node after the first non whitespace
+                            // character
+                            add_to_prev_non_whitespace(",");
+                        }
+                        EvaluateErrorType::ExpectedToken => {
+                            let index = current_content.get_index(e.start.clone().into());
+                            let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
+                            current_content.remove(non_whitespace_idx..non_whitespace_idx + 1);
+                            ropes_to_test.push_back((current_content.clone(), Some(e.clone())));
+                        }
+                        EvaluateErrorType::ExpectedCommaOrSemicolon => {
+                            add_to_prev_non_whitespace(";");
+                            add_to_prev_non_whitespace(",");
+                        }
+                        _ => {
+                            // TODO: Try other stuff to fix the line first and only if there is no
+                            // other option for this line remove it
+                            // As a last resort just try to remove the line
+                            //current_content.remove_line(e.start.line.saturating_sub(1) as usize)?;
                         }
                     }
                 }
-            } else {
-                return Err(anyhow!("Unable to fix ast"));
             }
         }
         Err(anyhow!("Unable to fix ast after 100 tries"))
