@@ -68,6 +68,7 @@ impl JsonnetASTGenerator {
                             add_to_prev_non_whitespace(",");
                         }
                         EvaluateErrorType::ExpectedToken => {
+                            // Probably a "." in "foo.". By removing it we get a valid AST
                             let index = current_content.get_index(e.start.clone().into());
                             let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
                             current_content.remove(non_whitespace_idx..non_whitespace_idx + 1);
