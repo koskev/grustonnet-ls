@@ -14,6 +14,20 @@ pub struct DocumentationInfo {
 }
 
 impl DocumentationInfo {
+    fn compile_object(cache: &Cache<JsonnetASTGenerator>, node: Arc<Node>) -> Option<Arc<Node>> {
+        let doc = cache
+            .get_document(&Uri::from_path(&node.node_base.loc_range.file_name).ok()?)
+            .ok()?;
+        let mut doc_stack = doc
+            .get_ast()
+            .ok()?
+            .get_stack_by_position(&node.node_base.loc_range.begin);
+        let iter = CallStackIter::new(cache, &mut doc_stack)?;
+        let last_node = iter.last();
+
+        None
+    }
+
     fn resolve_indices(
         cache: &Cache<JsonnetASTGenerator>,
         node: Arc<Node>,

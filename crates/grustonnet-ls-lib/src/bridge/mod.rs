@@ -42,7 +42,7 @@ pub trait GenerateAST {
     ) -> Result<String, EvaluateError>;
 }
 
-#[derive(Debug, NamedVariant)]
+#[derive(Debug, NamedVariant, Clone, PartialEq, Eq)]
 pub enum EvaluateErrorType {
     Unknown(String),
 
@@ -71,7 +71,7 @@ impl From<&str> for EvaluateErrorType {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct EvaluateError {
     pub filename: String,
     pub start: Location,
