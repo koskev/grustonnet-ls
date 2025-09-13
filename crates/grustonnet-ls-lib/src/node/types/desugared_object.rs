@@ -5,6 +5,7 @@ use std::{
 
 use bincode::{Decode, Encode};
 use itertools::Itertools;
+use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, FormatOptions};
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -51,8 +52,18 @@ impl Display for DesugaredObject {
                 )
             })
             .collect::<String>();
-
-        write!(f, "{{ {} }}", body)
+        // TODO: use the actual format options
+        let formatted = ASTBridgeImpl::format_snippet(
+            "".into(),
+            format!("{{ {} }}", body),
+            FormatOptions::default(),
+        );
+        if formatted.error_data.len() != 0 {
+            write!(f, "{{ {} }}", body)
+        } else {
+            let formatted_string = String::from_utf8(formatted.ast_data).unwrap_or_default();
+            write!(f, "{}", formatted_string)
+        }
     }
 }
 
