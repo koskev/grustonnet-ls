@@ -36,6 +36,7 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
     * [x] Function parameters
         * [ ] Only update if needed
     * [ ] Indices
+    * [x] Name after long objects
 * [x] Goto definition
     * [ ] Goto file from import string
     * Can go everything we can complete

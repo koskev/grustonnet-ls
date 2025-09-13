@@ -34,7 +34,7 @@ use crate::{
     cst::completion::{CompletionInfo, CompletionType},
     definition::DefinitionProvider,
     diagnostics::{eval::EvalDiagnostics, go_lint::GoLintDiagnostics, lint::LintDiagnostics},
-    inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay},
+    inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
     references::ReferenceProvider,
     rename::RenameProvider,
     semantic_tokens::{self},
@@ -334,20 +334,22 @@ impl LSPServer for JsonnetServer {
 
     fn inlay_hint(&self, params: InlayHintParams) -> Result<LSPResponse, LSPError> {
         let mut hints: Vec<InlayHint> = vec![];
+        let config = self.configuration.read().unwrap();
 
-        if self.configuration.read().unwrap().inlay.enable_debug {
+        if config.inlay.enable_debug {
             let debug_hints =
                 DebugInlay::new(&self.cache).inlay(&params.text_document.uri, params.range)?;
             hints.extend(debug_hints);
         }
 
-        if self
-            .configuration
-            .read()
-            .unwrap()
-            .inlay
-            .enable_function_parameters
-        {
+        if config.inlay.name_hints.enabled {
+            let function_end_hints =
+                NameInlay::new(&self.cache, config.inlay.name_hints.line_threshold)
+                    .inlay(&params.text_document.uri, params.range)?;
+            hints.extend(function_end_hints);
+        }
+
+        if config.inlay.enable_function_parameters {
             let argument_hints =
                 ApplyInlay::new(&self.cache).inlay(&params.text_document.uri, params.range)?;
             hints.extend(argument_hints);

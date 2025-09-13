@@ -48,6 +48,19 @@ pub struct InlayConfig {
     #[default = true]
     /// Enable function parameter inlay hints (might cause some delays)
     pub enable_function_parameters: bool,
+
+    /// Enable inlay hints at the ends of long objects etc.
+    pub name_hints: InlayNameConfig,
+}
+
+#[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(default)]
+pub struct InlayNameConfig {
+    #[default = true]
+    pub enabled: bool,
+    #[default = 10]
+    /// Sets the number of lines after which the object name is added
+    pub line_threshold: i32,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
@@ -67,7 +80,7 @@ pub struct JsonnetConfig {
     /// <name>.extvars.libsonnet
     pub find_upwards: bool,
 
-    #[default = true]
+    #[default = false]
     /// Preload all jsonnet files in all jpaths to allow for faster cross file search
     pub preload_files: bool,
 }
