@@ -27,13 +27,12 @@ impl JsonnetASTGenerator {
         &self,
         content: Rope,
         source_file: &str,
-    ) -> Result<Arc<<JsonnetASTGenerator as language_server::cache::ASTGenerator>::Node>> {
-        let mut previous_error = None;
+    ) -> Result<Arc<<Self as ASTGenerator>::Node>> {
         let mut ropes_to_test = VecDeque::new();
-        ropes_to_test.push_back(content);
+        ropes_to_test.push_back((content, None));
         // Give up after 100 tries
         for _ in 0..100 {
-            if let Some(mut current_content) = ropes_to_test.pop_front() {
+            if let Some((mut current_content, previous_error)) = ropes_to_test.pop_front() {
                 log::trace!("Document content: {}", current_content);
                 let json_data = self
                     .jsonnet
@@ -51,14 +50,13 @@ impl JsonnetASTGenerator {
                         {
                             return Err(e.into());
                         }
-                        previous_error = Some(e.clone());
                         log::warn!("Error type: {:?}", e.error_type);
                         let func_start = e.start.clone();
                         let mut add_to_prev_non_whitespace = |text: &str| {
                             let index = current_content.get_index(func_start.clone().into());
                             let non_whitespace_idx = current_content.get_prev_non_whitespace(index);
                             current_content.insert(non_whitespace_idx + 1, text);
-                            ropes_to_test.push_back(current_content.clone());
+                            ropes_to_test.push_back((current_content.clone(), Some(e.clone())));
                         };
 
                         match e.error_type {
@@ -68,11 +66,11 @@ impl JsonnetASTGenerator {
                                 add_to_prev_non_whitespace(",");
                             }
                             EvaluateErrorType::ExpectedToken => {
-                                let index = current_content.get_index(e.start.into());
+                                let index = current_content.get_index(e.start.clone().into());
                                 let non_whitespace_idx =
                                     current_content.get_prev_non_whitespace(index);
                                 current_content.remove(non_whitespace_idx..non_whitespace_idx + 1);
-                                ropes_to_test.push_back(current_content.clone());
+                                ropes_to_test.push_back((current_content.clone(), Some(e.clone())));
                             }
                             EvaluateErrorType::ExpectedCommaOrSemicolon => {
                                 add_to_prev_non_whitespace(";");
@@ -87,6 +85,8 @@ impl JsonnetASTGenerator {
                         }
                     }
                 }
+            } else {
+                return Err(anyhow!("Unable to fix ast"));
             }
         }
         Err(anyhow!("Unable to fix ast after 100 tries"))
