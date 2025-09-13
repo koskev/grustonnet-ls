@@ -97,6 +97,8 @@
             nativeBuildInputs
             ++ [
               cargo
+              rustc
+              cargo-tarpaulin
 
               go-jsonnet
               rust-analyzer
