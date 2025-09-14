@@ -16,6 +16,7 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
         * [ ] Return values
         * [ ] Function parameters e.g. std.map
     * [ ] Complete Loops
+        * [ ] Use `std.map` for loops
     * [x] All jsonnet imports
         * [ ] Properly handle completion if "/" is already in the string
     * [x] self
@@ -53,7 +54,7 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
         * Just evaluate it
     * [ ] Handle the stdlib the same as docsonnet?
 * [-] AST repair
-* [ ] Commands
+* [x] Commands
     * [x] Evaluate file
 * [ ] Missing LSP features
     * [ ] Code actions
@@ -78,3 +79,9 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
     * If you import `foo.libsonnet` and there is also a `foo.libsonnet` in the current working directory, evaluating the snippet will result in a diagnostic error
         * To reproduce `cat mydir/bar.jsonnet | jsonnet --jpath mydir -`
     * If there is a circular dependency go-jsonnet emits a strange error
+
+## Jsonnet Quirks
+* `tailstrict`
+    * not part of the spec apart from the reserved keyword
+    * no documentation at all
+    * in `foo(myArg()) tailstrict` forces myArg to be evaluated before the body, even if it is unused
