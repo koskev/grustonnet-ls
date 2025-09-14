@@ -99,12 +99,14 @@
               cargo
               rustc
               cargo-tarpaulin
+              clippy
 
               go-jsonnet
               rust-analyzer
               bacon
               tracy
             ];
+          RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
           LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
         };
       }
