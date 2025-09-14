@@ -1,4 +1,4 @@
-# **G**o **R**ust Js**onnet** **L**anguage **S**erver
+# **G**o **Rust** Js**onnet** **L**anguage **S**erver
 This is a jsonnet language server using the `go-jsonnet` implementation to generate the AST and evaluate jsonnet code
 
 ## Roadmap
@@ -38,15 +38,19 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
     * [ ] Indices
     * [x] Name after long objects
 * [x] Goto definition
-    * [ ] Goto file from import string
-    * Can go everything we can complete
+    * [x] Goto file from import string
+    * Can goto everything we can complete
 * [x] Find reference
-    * Can find references for everything we can goto
+    * [ ] Import strings
+    * Can find references for all identifiers we can goto
 * [x] Rename
-    * Can rename everything we can find the reference
+    * [ ] Rename imports if file is renamed
+    * [ ] Rename file if import is renamed
+    * Can rename all identifiers we can find the reference of
 * [ ] Signature Help
-* [ ] Docsonnet support
-    * [ ] How to handle the license issues? Docsonnet does not have an open source license
+* [x] Docsonnet support
+    * [x] How to handle the license issues? Docsonnet does not have an open source license
+        * Just evaluate it
     * [ ] Handle the stdlib the same as docsonnet?
 * [-] AST repair
 * [ ] Commands

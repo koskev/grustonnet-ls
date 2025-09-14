@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use bincode::{Decode, Encode};
 use language_server::cache::ASTNode;
+use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
@@ -258,12 +259,18 @@ impl<'a> Iterator for NodeIter<'a> {
                     _ => None,
                 };
             }
+            NodeKind::Import(import) => {
+                self.index += 1;
+                return match self.index {
+                    1 => Some(import.file.clone()),
+                    _ => None,
+                };
+            }
             NodeKind::LiteralString(_)
             | NodeKind::LiteralNumber(_)
             | NodeKind::LiteralBoolean(_)
             | NodeKind::LiteralNull
             | NodeKind::SelfNode
-            | NodeKind::Import(_)
             | NodeKind::ImportStr(_)
             | NodeKind::ImportBin(_)
             | NodeKind::Dollar

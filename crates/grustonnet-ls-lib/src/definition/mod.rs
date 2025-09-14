@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::path::Path;
 
 use anyhow::{Result, anyhow};
 use language_server::{cache::Cache, utils::UriHelper};
@@ -44,21 +45,46 @@ impl<'a> DefinitionProvider<'a> {
 
         let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.clone()));
 
-        // Special case: If we goto the name of a local function
-        // TODO: what about a function definition itself?
-        if let NodeKind::Function(_func) = document_stack
+        let top_node = document_stack
             .peek()
-            .ok_or(anyhow!("Empty document stack"))?
-            .node_kind
-            .as_ref()
-        {
-            // If we have a local with a function and want issue a definition on the local
-            // identifier we have to ignore the function node as it would
-            // resolve to the body content and location
-            // e.g. local goto_test(arg) = {};
-            //              ^
-            //             <goto>
-            let _ = document_stack.stack.pop();
+            .ok_or(anyhow!("Empty document stack"))?;
+        match top_node.node_kind.as_ref() {
+            // Special case: If we goto the name of a local function
+            // TODO: what about a function definition itself?
+            NodeKind::Function(_func) => {
+                // If we have a local with a function and want issue a definition on the local
+                // identifier we have to ignore the function node as it would
+                // resolve to the body content and location
+                // e.g. local goto_test(arg) = {};
+                //              ^
+                //             <goto>
+                let _ = document_stack.stack.pop();
+            }
+            NodeKind::LiteralString(import_str) => {
+                // If we have a literal string and the parent is an import, we find the file and go
+                // to it
+                // TODO: check parent
+
+                let jpaths = self
+                    .cache
+                    .ast_generator
+                    .jsonnet
+                    .get_evaluate_params(&top_node.node_base.loc_range.file_name)
+                    .jpaths;
+                for jpath in &jpaths {
+                    let p = Path::new(jpath).join(Path::new(&import_str.value));
+                    if p.exists() {
+                        return Ok(DefinitinInfo {
+                            name: "".into(),
+                            location: lsp_types::Location {
+                                uri: Uri::from_path(p).unwrap(),
+                                range: Range::default(),
+                            },
+                        });
+                    }
+                }
+            }
+            _ => (),
         }
 
         let (last_node, built_node) = document_stack.build_except_last(self.cache)?;
