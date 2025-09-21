@@ -3,7 +3,7 @@ use std::{sync::Arc, time::Instant};
 use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
-    completion::std::StdCompletion,
+    completion::{std::StdCompletion, stdlib::call_std_function},
     documentation::DocumentationInfo,
     node::{
         stack::NodeStack,
@@ -85,28 +85,6 @@ impl<'a> ResolveNodeIter<'a> {
 }
 
 impl<'a> ResolveNodeIter<'a> {
-    fn handle_extvar(&mut self, current_node: &Node, apply: &Apply) -> Option<Arc<Node>> {
-        let conf = self.cache.ast_generator.jsonnet.get_config();
-        let arg_node = apply.arguments.get_argument(0)?;
-        if let NodeKind::LiteralString(name_node) = arg_node.node_kind.as_ref() {
-            let val = conf.ext_code.get(&name_node.value)?;
-            // Get ast snippet and add to stack
-            let ext_node: Arc<Node> = self
-                .cache
-                .ast_generator
-                .jsonnet
-                .get_ast_snippet_binary(&current_node.node_base.loc_range.file_name, val)
-                .ok()?
-                .into();
-            self.search_stack.push(ext_node.clone());
-            Some(ext_node)
-        } else {
-            None
-        }
-    }
-}
-
-impl<'a> ResolveNodeIter<'a> {
     fn handle_self_super(&mut self, current_node: &Node, is_super: bool) -> Option<Arc<Node>> {
         // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
         // current object instead of the var object
@@ -181,10 +159,6 @@ impl<'a> ResolveNodeIter<'a> {
                 Some(current_node)
             }
             NodeKind::Var(var) => {
-                // TODO: For now we'll just return. In the future we need to evaluate the call
-                if var.is_std() {
-                    return Some(current_node);
-                }
                 if var.is_dollar() {
                     let dollar_node = Arc::new(Node {
                         node_base: current_node.node_base.clone(),
@@ -205,6 +179,10 @@ impl<'a> ResolveNodeIter<'a> {
                     self.search_stack.push(resolved.clone());
                     Some(resolved.clone())
                 } else {
+                    // TODO: For now we'll just return. In the future we need to evaluate the call
+                    if var.is_std() {
+                        return Some(current_node);
+                    }
                     log::warn!(
                         "Unable to resolve var {}",
                         var.id.clone().unwrap_or_default().0
@@ -224,7 +202,7 @@ impl<'a> ResolveNodeIter<'a> {
                 if let NodeKind::LiteralString(file) = import.file.node_kind.as_ref() {
                     let jpaths = self.cache.ast_generator.jsonnet.get_evaluate_params(&current_node.node_base.loc_range.file_name).jpaths;
                     let imported_node = jpaths.iter().find_map(|p| self.cache.get_document(
-                            &Uri::from_path(&format!("{}/{}", p, file.value)).ok()?).ok()?.ast)?;
+                            &Uri::from_path(format!("{}/{}", p, file.value)).ok()?).ok()?.ast)?;
 
                             log::debug!(
                                 "pushing import node {} for {}",
@@ -244,21 +222,18 @@ impl<'a> ResolveNodeIter<'a> {
                 // TODO: $std for loops etc.
 
                 let start_apply = Instant::now();
-                if let NodeKind::Index(idx) = apply.target.node_kind.as_ref() {
-                    if let NodeKind::Var(var) = idx.target.node_kind.as_ref()
+                if let NodeKind::Index(idx) = apply.target.node_kind.as_ref()
+                    && let NodeKind::Var(var) = idx.target.node_kind.as_ref()
                         && var.is_std()
                     {
                         // Handle the std node
-                        // extVar: We can't compile the node due to hidden fields
-                        let res =  match idx.get_name().unwrap_or_default().as_str() {
-                            "extVar" => self.handle_extvar(&current_node, apply),
-                            // TODO: just compile the node
-                            _ => None,
-                        };
-                        log::info!("Apply took for match {:?}", start_apply.elapsed());
-                        return res
+                        let res = call_std_function(&idx.get_name().unwrap_or_default(), apply.arguments.clone(), self.cache);
+                        if let Err(e) = &res {
+                            log::warn!("Failed to run std function {e}");
+                        }
+
+                        return res.ok()
                     }
-                }
 
                 self.search_stack.push(apply.target.clone());
                 log::trace!("Got apply {}", apply.target.node_kind);
