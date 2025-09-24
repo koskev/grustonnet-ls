@@ -1,16 +1,12 @@
 use std::{sync::Arc, time::Instant};
 
 use crate::{
-    bridge::GenerateAST,
     cache::JsonnetASTGenerator,
     completion::{std::StdCompletion, stdlib::call_std_function},
     documentation::DocumentationInfo,
     node::{
         stack::NodeStack,
-        types::{
-            desugared_object::DesugaredObjectField, function::Apply, node::Node,
-            node_kind::NodeKind,
-        },
+        types::{desugared_object::DesugaredObjectField, node::Node, node_kind::NodeKind},
     },
 };
 use anyhow::Result;
@@ -270,11 +266,26 @@ impl<'a> ResolveNodeIter<'a> {
                 Some(func.body.clone())
             }
             NodeKind::Binary(binary) => {
-                // TODO: resolve left and right and then merge
                 // TODO: handle array
-                self.next_nodes.push(binary.left.clone());
-                self.search_stack.push(binary.right.clone());
-                Some(binary.right.clone())
+                let resolved_left =
+                    ResolveNodeIter::new(binary.left.clone(), self.document_stack, self.cache).last();
+                let resolved_right =
+                    ResolveNodeIter::new(binary.right.clone(), self.document_stack, self.cache).last();
+                // Both are object
+                if let Some(resolved_left) = &resolved_left &&
+                    let Some(resolved_right) = &resolved_right &&
+                    let NodeKind::DesugaredObject(left) = resolved_left.node_kind.as_ref() &&
+                    let NodeKind::DesugaredObject(right) = resolved_right.node_kind.as_ref() {
+                        let merged_node = Arc::new(Node {
+                            node_base: binary.left.node_base.clone(),
+                            node_kind: Box::new(NodeKind::DesugaredObject(right.merge(left)))
+                    });
+                    // The node is completely resolved -> not need to push it to the search stack
+                    Some(merged_node)
+                } else {
+                    // Only one can be resolved e.g. due to unsupported statements
+                    resolved_right.or(resolved_left)
+                }
             }
             NodeKind::SuperIndex(_) => self.handle_self_super(&current_node, true),
             NodeKind::SelfNode => self.handle_self_super(&current_node, false),
@@ -344,6 +355,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             }
             log::info!("failed to handle node in {:?}", start.elapsed());
         }
+
         log::info!(
             "Search stack is empty. Checking if there are nodes to merge. Len {}",
             self.merge_nodes.len()
