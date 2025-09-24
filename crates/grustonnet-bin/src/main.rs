@@ -16,6 +16,14 @@ struct Args {
 
 #[tokio::main]
 async fn main() {
+    // At this point we are single threaded. Therefore this is safe
+    unsafe {
+        // Go seems to scan the stack an will panic upon encountering a 0x1 pointer.
+        // However, Rust does use this value in some cases
+        // If this turns out to be a problem we'll need to switch to an ipc based solution
+        std::env::set_var("GODEBUG", "invalidptr=0,cgocheck=0");
+    }
+
     #[cfg(feature = "tracing")]
     tracy_client::Client::start();
     let args = Args::parse();
