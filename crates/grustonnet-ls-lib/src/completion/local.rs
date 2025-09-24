@@ -270,6 +270,8 @@ impl<'a> ResolveNodeIter<'a> {
                 Some(func.body.clone())
             }
             NodeKind::Binary(binary) => {
+                // TODO: resolve left and right and then merge
+                // TODO: handle array
                 self.next_nodes.push(binary.left.clone());
                 self.search_stack.push(binary.right.clone());
                 Some(binary.right.clone())
@@ -282,6 +284,7 @@ impl<'a> ResolveNodeIter<'a> {
                 // TODO: this breaks outer assert. Is it even needed?
                 //self.next_nodes.push(cond.cond.clone());
                 self.next_nodes.push(cond.branch_false.clone());
+                // TODO: handle both cases the same as a binary
                 Some(resolved)
             }
             NodeKind::Dollar => {
@@ -417,6 +420,7 @@ impl<'a> Iterator for CallStackIter<'a> {
             None => call_node,
             Some(base_object) => match call_node.node_kind.as_ref() {
                 NodeKind::Index(idx) => {
+                    // TODO: always resolve the index to also handle functions etc in foo[bar]
                     match base_object.node_kind.as_ref() {
                         NodeKind::DesugaredObject(obj) => {
                             let index_name = idx.get_name()?;
