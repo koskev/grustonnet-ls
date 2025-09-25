@@ -337,3 +337,39 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
         None
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::sync::Arc;
+
+    use language_server::cache::Cache;
+    use pretty_assertions::assert_eq;
+
+    use crate::{
+        completion::local::resolve_node_iter::ResolveNodeIter,
+        node::{
+            stack::NodeStack,
+            types::{literals::LiteralString, node::Node, node_kind::NodeKind},
+        },
+    };
+
+    #[test]
+    fn test_resolve() {
+        let cache = Cache::default();
+        let node = Arc::new(Node {
+            node_kind: Box::new(NodeKind::LiteralString(LiteralString {
+                value: "test".into(),
+                ..Default::default()
+            })),
+            ..Default::default()
+        });
+        let mut stack = NodeStack {
+            stack: vec![node.clone()],
+        };
+        let resolved = ResolveNodeIter::new(node.clone(), &mut stack, &cache)
+            .last()
+            .unwrap();
+
+        assert_eq!(resolved.node_kind, node.node_kind);
+    }
+}
