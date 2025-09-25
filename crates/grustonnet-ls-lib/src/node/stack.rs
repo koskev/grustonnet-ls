@@ -5,7 +5,7 @@ use language_server::cache::Cache;
 
 use crate::{
     cache::JsonnetASTGenerator,
-    completion::local::CallStackIter,
+    completion::local::call_stack_iter::CallStackIter,
     node::types::{node::Node, node_kind::NodeKind},
 };
 

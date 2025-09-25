@@ -5,7 +5,7 @@ use lsp_types::Uri;
 
 use crate::{
     cache::JsonnetASTGenerator,
-    completion::local::CallStackIter,
+    completion::local::call_stack_iter::CallStackIter,
     node::types::{index::Index, literals::LiteralString, node::Node, node_kind::NodeKind},
 };
 
