@@ -66,22 +66,12 @@ impl<'a> Iterator for CallStackIter<'a> {
             None => call_node,
             Some(base_object) => match call_node.node_kind.as_ref() {
                 NodeKind::Index(idx) => {
-                    // TODO: always resolve the index to also handle functions etc in foo[bar]
-                    //let mut idx = idx.clone();
-                    //let mut document_stack = self.document_stack.clone();
-                    //let iter = CallStackIter::new(self.cache, &mut document_stack).unwrap();
-                    //let iter =
-                    //    ResolveNodeIter::new(base_object.clone(), self.document_stack, self.cache);
-                    //idx.index = iter.last().unwrap();
-                    //log::error!("new index: {}", idx.index.node_kind);
+                    // always resolve the index to also handle functions etc in foo[bar()]
+                    let mut idx = idx.clone();
+                    let mut stack = self.document_stack.clone();
+                    let iter = ResolveNodeIter::new(idx.index.clone(), &mut stack, self.cache);
+                    idx.index = iter.last()?;
 
-                    //idx.index = Arc::new(Node {
-                    //    node_base: idx.index.node_base.clone(),
-                    //    node_kind: Box::new(NodeKind::LiteralString(LiteralString {
-                    //        value: "first".into(),
-                    //        ..Default::default()
-                    //    })),
-                    //});
                     log::trace!(
                         "Index idx {} index targe {}",
                         idx.index.node_kind,

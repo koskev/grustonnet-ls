@@ -25,6 +25,7 @@ pub mod dollar;
 pub mod extcode;
 pub mod function;
 pub mod import;
+pub mod index;
 pub mod locals;
 pub mod object;
 pub mod selfnode;
