@@ -50,10 +50,6 @@ pub struct ResolveNodeIter<'a> {
     pub document_stack: &'a mut NodeStack,
     pub cache: &'a Cache<JsonnetASTGenerator>,
 
-    // TODO: Use a proper solution inside the binary case. Maybe a recursive Iterator?
-    /// DesugaredObject to merge (should all be from a binary)
-    merge_nodes: Vec<Arc<Node>>,
-
     /// Nodes to search with priority (used if a node returns multiple nodes. e.g. a binary)
     next_nodes: Vec<Arc<Node>>,
 
@@ -73,7 +69,6 @@ impl<'a> ResolveNodeIter<'a> {
             search_stack,
             document_stack,
             cache,
-            merge_nodes: vec![],
             next_nodes: vec![],
             iterations_left: 100_000,
         }
@@ -114,7 +109,7 @@ impl<'a> ResolveNodeIter<'a> {
                 log::error!("BUG: Binary is not there");
                 return None;
             };
-            let mut nodes: Vec<Arc<Node>> = binary
+            let nodes: Vec<Arc<Node>> = binary
                 .flatten()
                 .iter()
                 // Filter out self to avoid an endless loop
@@ -122,13 +117,28 @@ impl<'a> ResolveNodeIter<'a> {
                 .map(|n| (*n).clone())
                 .rev()
                 .collect();
-            let first_node = nodes.pop()?;
-            self.search_stack.push(first_node.clone());
-            if let Some(node) = nodes.pop() {
-                self.next_nodes.append(&mut nodes);
-                self.search_stack.push(node);
-            }
-            return Some(first_node);
+            // Now that we have all binary objects in an array: Compile each node and merge them.
+            // They have to be of the same type otherwise there is a compile error
+            let merged_node = nodes
+                .iter()
+                .filter_map(|node| {
+                    ResolveNodeIter::new(node.clone(), self.document_stack, self.cache).last()
+                })
+                .reduce(|acc, e| {
+                    if let NodeKind::DesugaredObject(obj1) = acc.node_kind.as_ref()
+                        && let NodeKind::DesugaredObject(obj2) = e.node_kind.as_ref()
+                    {
+                        let merged = obj2.merge(obj1);
+                        Node {
+                            node_base: acc.node_base.clone(),
+                            node_kind: Box::new(NodeKind::DesugaredObject(merged)),
+                        }
+                        .into()
+                    } else {
+                        acc
+                    }
+                });
+            return merged_node;
         }
         self.search_stack.push(found_object.clone());
         Some(found_object.clone())
@@ -151,7 +161,6 @@ impl<'a> ResolveNodeIter<'a> {
             }
             NodeKind::DesugaredObject(_obj) => {
                 log::debug!("Found desugared! {}", current_node.node_kind);
-                self.merge_nodes.push(current_node.clone());
                 Some(current_node)
             }
             NodeKind::Var(var) => {
@@ -355,25 +364,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             }
             log::info!("failed to handle node in {:?}", start.elapsed());
         }
-
-        log::info!(
-            "Search stack is empty. Checking if there are nodes to merge. Len {}",
-            self.merge_nodes.len()
-        );
-        let top_node = self.merge_nodes.pop()?;
-        let mut merged_node = (*top_node).clone();
-
-        let NodeKind::DesugaredObject(mut merged_object) = merged_node.node_kind.as_ref().clone()
-        else {
-            return None;
-        };
-        while let Some(other_node) = self.merge_nodes.pop() {
-            if let NodeKind::DesugaredObject(obj) = other_node.node_kind.as_ref() {
-                merged_object = merged_object.merge(obj);
-            }
-        }
-        merged_node.node_kind = Box::new(NodeKind::DesugaredObject(merged_object));
-        Some(merged_node.into())
+        None
     }
 }
 
@@ -433,6 +424,24 @@ impl<'a> Iterator for CallStackIter<'a> {
             Some(base_object) => match call_node.node_kind.as_ref() {
                 NodeKind::Index(idx) => {
                     // TODO: always resolve the index to also handle functions etc in foo[bar]
+                    //let mut idx = idx.clone();
+                    //let mut document_stack = self.document_stack.clone();
+                    //let iter = CallStackIter::new(self.cache, &mut document_stack).unwrap();
+                    //idx.index = iter.last().unwrap();
+                    //log::error!("new index: {}", idx.index.node_kind);
+
+                    //idx.index = Arc::new(Node {
+                    //    node_base: idx.index.node_base.clone(),
+                    //    node_kind: Box::new(NodeKind::LiteralString(LiteralString {
+                    //        value: "first".into(),
+                    //        ..Default::default()
+                    //    })),
+                    //});
+                    log::trace!(
+                        "Index idx {} index targe {}",
+                        idx.index.node_kind,
+                        idx.target.node_kind
+                    );
                     match base_object.node_kind.as_ref() {
                         NodeKind::DesugaredObject(obj) => {
                             let index_name = idx.get_name()?;
