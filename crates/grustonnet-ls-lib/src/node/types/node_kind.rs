@@ -109,6 +109,7 @@ impl Display for NodeKind {
                     binary.left.node_kind, binary.right.node_kind
                 )?;
             }
+            Self::Error(e) => write!(f, "{}", e.expr.node_kind)?,
             _ => (),
         };
         Ok(())
