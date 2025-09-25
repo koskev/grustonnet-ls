@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use bincode::{Decode, Encode};
 use language_server::cache::ASTNode;
-use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::node::{

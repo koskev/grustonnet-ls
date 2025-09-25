@@ -137,7 +137,7 @@ impl<'a> Completion for LocalCompletion<'a> {
                             documentation_node.body.clone(),
                         );
                         if let Some(doc_info) = doc_info
-                            && doc_info.help_text.len() > 0
+                            && !doc_info.help_text.is_empty()
                         {
                             detail = Some(doc_info.help_text);
                         }
