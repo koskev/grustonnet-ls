@@ -134,6 +134,7 @@ impl<'a> ResolveNodeIter<'a> {
                 Some(current_node)
             }
             NodeKind::Var(var) => {
+                log::debug!("Handling var {:?}", var.id);
                 if var.is_dollar() {
                     let dollar_node = Arc::new(Node {
                         node_base: current_node.node_base.clone(),

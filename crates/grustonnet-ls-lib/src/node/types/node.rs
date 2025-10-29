@@ -127,9 +127,10 @@ impl<'a> Iterator for NodeIter<'a> {
     type Item = Arc<Node>;
     fn next(&mut self) -> Option<Self::Item> {
         log::trace!(
-            "Next item {} at {:?}",
+            "Next item {} at {:?} ({})",
             self.root_node.node_kind,
-            self.root_node.node_base.loc_range.begin
+            self.root_node.node_base.loc_range.begin,
+            self.index,
         );
         if let Some(queue_node) = self.queue.pop() {
             return Some(queue_node);
@@ -198,11 +199,13 @@ impl<'a> Iterator for NodeIter<'a> {
             NodeKind::Apply(apply) => {
                 if self.index == 0 {
                     self.index += 1;
+                    log::trace!("Apply target {}", apply.target.node_kind);
                     return Some(apply.target.clone());
                 }
                 let mut offset = 1;
                 if let Some(arg) = apply.arguments.positional.get(self.index - offset) {
                     self.index += 1;
+                    log::trace!("Apply arg: {}", arg.expr.node_kind);
                     return Some(arg.expr.clone());
                 }
                 offset += apply.arguments.positional.len();
@@ -273,7 +276,9 @@ impl<'a> Iterator for NodeIter<'a> {
             | NodeKind::ImportStr(_)
             | NodeKind::ImportBin(_)
             | NodeKind::Dollar
-            | NodeKind::Other => (),
+            | NodeKind::Other => {
+                log::trace!("Unhandled {}", self.root_node.node_kind.variant_name())
+            }
         };
         None
     }

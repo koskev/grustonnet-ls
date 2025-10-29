@@ -111,6 +111,7 @@ impl<'a> Completion for LocalCompletion<'a> {
             top_node.node_kind.variant_name(),
             location
         );
+        log::trace!("Stack {}", stack);
         // TODO: get the current index and use it as the filter for the rest of the completion
         // TODO: Create call stack and get every stage for the completion. Get the first object and
         // use the second one as a filter

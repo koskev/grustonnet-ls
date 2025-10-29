@@ -75,7 +75,12 @@ impl<'a> CompletionInfo<'a> {
             info.completion_type = CompletionType::Local;
             log::debug!("Local completion!");
             if let Some(prev_node) = dot_node.get_prev_node() {
-                log::debug!("Prev node: {}", prev_node.grammar_name());
+                log::debug!(
+                    "Prev node: {} at [{},{}]",
+                    prev_node.grammar_name(),
+                    prev_node.start_position(),
+                    prev_node.end_position()
+                );
                 // If the prev node is an error (which it most likely is), just skip it
                 let mut prev_node = match NodeType::from(prev_node) {
                     NodeType::NodeError => prev_node.get_prev_node().unwrap_or(prev_node),
