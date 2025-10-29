@@ -75,7 +75,41 @@ impl Node {
     pub fn get_stack_by_position(&self, pos: &Location) -> NodeStack {
         let mut stack: NodeStack = self
             .iter()
-            .filter(|child| child.node_base.loc_range.in_range(pos))
+            .filter_map(|child| {
+                // If the child has a zero position we'll just apply the position of the parent and
+                // use this as the new child
+                let zero_pos = Location { line: 0, column: 0 };
+                // Only clone the child if the location is actually 0
+                // TODO: If we fix the position of LiteralString etc. we'll try to complete that,
+                // which is obviously wrong
+                let child = if child.node_base.loc_range.begin == zero_pos
+                    && child.node_base.loc_range.end == zero_pos
+                    && !(matches!(*child.node_kind, NodeKind::LiteralString(_))
+                        || matches!(*child.node_kind, NodeKind::LiteralNumber(_))
+                        || matches!(*child.node_kind, NodeKind::LiteralBoolean(_))
+                        || matches!(*child.node_kind, NodeKind::LiteralNull))
+                {
+                    let mut child = child.as_ref().clone();
+                    println!(
+                        "Replacing {:?} with {:?}",
+                        child.node_base.loc_range, self.node_base.loc_range
+                    );
+                    child.node_base.loc_range = self.node_base.loc_range.clone();
+                    child.into()
+                } else {
+                    child
+                };
+                let in_range = child.node_base.loc_range.in_range(pos);
+                log::trace!(
+                    "Child {} ({:?}) in range of {:?}? {}",
+                    child.node_kind.variant_name(),
+                    child.node_base.loc_range,
+                    pos,
+                    in_range
+                );
+
+                if in_range { Some(child) } else { None }
+            })
             .map(|child| child.get_stack_by_position(pos))
             .collect();
         stack.push_front(Arc::new(self.clone()));

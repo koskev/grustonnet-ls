@@ -283,3 +283,22 @@ fn function_default_arg_completion() {
     }
     .check();
 }
+
+#[test]
+fn function_inside_loop_desugared_func() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/inside_for.jsonnet".into(),
+        replace_string: "myVar.val".into(),
+        replace_by_string: "myVar.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "val".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
