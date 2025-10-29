@@ -302,3 +302,22 @@ fn function_inside_loop_desugared_func() {
     }
     .check();
 }
+
+#[test]
+fn function_inside_std_arg() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/inside_std_args.jsonnet".into(),
+        replace_string: "myVar.x".into(),
+        replace_by_string: "myVar.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "x".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
