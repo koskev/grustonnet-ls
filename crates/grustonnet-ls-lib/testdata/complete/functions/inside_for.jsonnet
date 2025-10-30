@@ -1,5 +1,5 @@
 local myVar = { val: 5 };
 [
-  myVar // entry
-  for x in []
+  myVar.val
+  for x in [1, 2]
 ]
