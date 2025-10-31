@@ -90,9 +90,10 @@ impl Node {
                         || matches!(*child.node_kind, NodeKind::LiteralNull))
                 {
                     let mut child = child.as_ref().clone();
-                    println!(
+                    log::trace!(
                         "Replacing {:?} with {:?}",
-                        child.node_base.loc_range, self.node_base.loc_range
+                        child.node_base.loc_range,
+                        self.node_base.loc_range
                     );
                     child.node_base.loc_range = self.node_base.loc_range.clone();
                     child.into()
