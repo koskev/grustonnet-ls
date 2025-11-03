@@ -220,6 +220,22 @@ impl<'a> Iterator for NodeIter<'a> {
                     }
                     // TODO: locals, asserts
                 }
+                let offset = obj.fields.len();
+                // Filter out the self nodes that are always present
+                // TODO: Check if these can be used and replace the current self/$/super logic
+                let filtered_locals: Vec<_> = obj
+                    .locals
+                    .iter()
+                    .filter(|b| {
+                        b.body
+                            .clone()
+                            .is_some_and(|n| !matches!(n.node_kind.as_ref(), NodeKind::SelfNode))
+                    })
+                    .collect();
+                if let Some(local) = filtered_locals.get(self.index - offset) {
+                    self.index += 1;
+                    return local.body.clone();
+                }
             }
             // Var has no children
             NodeKind::Var(_) => (),
