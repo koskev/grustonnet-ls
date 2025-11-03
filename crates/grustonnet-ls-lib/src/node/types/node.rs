@@ -218,7 +218,6 @@ impl<'a> Iterator for NodeIter<'a> {
                     } else {
                         return Some(field.body.clone());
                     }
-                    // TODO: locals, asserts
                 }
                 let offset = obj.fields.len();
                 // Filter out the self nodes that are always present
@@ -235,6 +234,12 @@ impl<'a> Iterator for NodeIter<'a> {
                 if let Some(local) = filtered_locals.get(self.index - offset) {
                     self.index += 1;
                     return local.body.clone();
+                }
+
+                let offset = offset + filtered_locals.len();
+                if let Some(assert) = obj.asserts.get(self.index - offset) {
+                    self.index += 1;
+                    return Some(assert.clone().into());
                 }
             }
             // Var has no children

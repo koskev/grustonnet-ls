@@ -56,3 +56,22 @@ fn local_in_object() {
     }
     .check();
 }
+
+#[test]
+fn assert_in_object() {
+    CompletionTestCase {
+        filename: "testdata/complete/object/assert_in_object.jsonnet".into(),
+        replace_string: "assert myVar.key".into(),
+        replace_by_string: "assert myVar.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "key".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
