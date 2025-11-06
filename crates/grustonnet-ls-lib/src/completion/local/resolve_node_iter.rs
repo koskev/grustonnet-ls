@@ -153,7 +153,8 @@ impl<'a> ResolveNodeIter<'a> {
                         resolved.node_base.loc_range.begin,
                     );
                     self.search_stack.push(resolved.clone());
-                    Some(resolved.clone())
+                    let resolved = CallStackIter::new(self.cache, &mut self.search_stack.clone())?.last()?;
+                    Some(resolved)
                 } else {
                     // TODO: For now we'll just return. In the future we need to evaluate the call
                     if var.is_std() {
@@ -252,16 +253,21 @@ impl<'a> ResolveNodeIter<'a> {
                 let resolved_right =
                     ResolveNodeIter::new(binary.right.clone(), self.document_stack, self.cache).last();
                 // Both are object
-                if let Some(resolved_left) = &resolved_left &&
-                    let Some(resolved_right) = &resolved_right &&
-                    let NodeKind::DesugaredObject(left) = resolved_left.node_kind.as_ref() &&
-                    let NodeKind::DesugaredObject(right) = resolved_right.node_kind.as_ref() {
+                if let Some(resolved_left) = &resolved_left && let Some(resolved_right) = &resolved_right {
+                    if let NodeKind::DesugaredObject(left) = resolved_left.node_kind.as_ref() && let NodeKind::DesugaredObject(right) = resolved_right.node_kind.as_ref() {
                         let merged_node = Arc::new(Node {
                             node_base: binary.left.node_base.clone(),
                             node_kind: Box::new(NodeKind::DesugaredObject(right.merge(left)))
-                    });
-                    // The node is completely resolved -> not need to push it to the search stack
-                    Some(merged_node)
+                        });
+                        // The node is completely resolved -> not need to push it to the search stack
+                        Some(merged_node)
+                    // If only left is an object return that
+                    } else if let NodeKind::DesugaredObject(_) = resolved_left.node_kind.as_ref() {
+                        Some(resolved_left.clone())
+                    // As a last resort just return the right and hope that helps
+                    } else {
+                        Some(resolved_right.clone())
+                    }
                 } else {
                     // Only one can be resolved e.g. due to unsupported statements
                     resolved_right.or(resolved_left)

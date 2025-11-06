@@ -22,6 +22,7 @@ pub mod binary;
 pub mod builder;
 pub mod conditional;
 pub mod dollar;
+pub mod errors;
 pub mod extcode;
 pub mod function;
 pub mod import;
