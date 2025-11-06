@@ -142,7 +142,6 @@ fn builder_simple_with_arg_chain() {
     .check();
 }
 
-
 #[test]
 fn builder_simple_mixed_arg_chain() {
     CompletionTestCase {
@@ -161,7 +160,6 @@ fn builder_simple_mixed_arg_chain() {
                     label: "key".to_string(),
                     ..Default::default()
                 },
-                
                 CompletionItem {
                     label: "withArg".to_string(),
                     ..Default::default()
@@ -208,18 +206,18 @@ fn nested_inner_call() {
             is_incomplete: false,
             items: vec![
                 CompletionItem {
-                label: "innerVal".to_string(),
-                detail: Some("0".into()),
-                ..Default::default()
-            },
+                    label: "innerVal".to_string(),
+                    detail: Some("0".into()),
+                    ..Default::default()
+                },
                 CompletionItem {
-                label: "withInnerFunc".to_string(),
-                ..Default::default()
-            },
+                    label: "withInnerFunc".to_string(),
+                    ..Default::default()
+                },
                 CompletionItem {
-                label: "endInner".to_string(),
-                ..Default::default()
-            }
+                    label: "endInner".to_string(),
+                    ..Default::default()
+                },
             ],
         },
         config: local_config(),
@@ -238,18 +236,18 @@ fn nested_inner_func() {
             is_incomplete: false,
             items: vec![
                 CompletionItem {
-                label: "innerVal".to_string(),
-                detail: Some("5".into()),
-                ..Default::default()
-            },
+                    label: "innerVal".to_string(),
+                    detail: Some("5".into()),
+                    ..Default::default()
+                },
                 CompletionItem {
-                label: "withInnerFunc".to_string(),
-                ..Default::default()
-            },
+                    label: "withInnerFunc".to_string(),
+                    ..Default::default()
+                },
                 CompletionItem {
-                label: "endInner".to_string(),
-                ..Default::default()
-            }
+                    label: "endInner".to_string(),
+                    ..Default::default()
+                },
             ],
         },
         config: local_config(),
@@ -257,7 +255,6 @@ fn nested_inner_func() {
     }
     .check();
 }
-
 
 #[test]
 fn nested_inner_end() {
@@ -269,23 +266,23 @@ fn nested_inner_end() {
             is_incomplete: false,
             items: vec![
                 CompletionItem {
-                label: "innerVal".to_string(),
-                // TODO: currently not supported
-                // detail: Some("5".into()),
-                ..Default::default()
-            },
-            CompletionItem {
-                label: "withArg".to_string(),
-                ..Default::default()
-            },
-            CompletionItem {
-                label: "withoutArg".to_string(),
-                ..Default::default()
-            },
+                    label: "innerVal".to_string(),
+                    // TODO: currently not supported
+                    // detail: Some("5".into()),
+                    ..Default::default()
+                },
                 CompletionItem {
-                label: "withInner".to_string(),
-                ..Default::default()
-            },
+                    label: "withArg".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "withoutArg".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "withInner".to_string(),
+                    ..Default::default()
+                },
             ],
         },
         config: local_config(),
