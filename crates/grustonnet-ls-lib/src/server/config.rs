@@ -52,6 +52,17 @@ pub struct InlayConfig {
     /// Enable inlay hints at the ends of long objects etc.
     pub name_hints: InlayNameConfig,
 }
+#[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(default)]
+pub struct SemanticTokensConfig {
+    #[default = true]
+    /// Enable semantic tokens like extra hints for imports, self, parameters etc.
+    pub semantic_tokens: bool,
+    #[default = false]
+    /// You should not use this option. This is only for editors that lack essential features. This
+    /// maps treesitter tokens to semantic tokens
+    pub treesitter_tokens: bool,
+}
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
@@ -93,6 +104,7 @@ pub struct Configuration {
     pub jsonnet: JsonnetConfig,
     pub format: FormatOptions,
     pub inlay: InlayConfig,
+    pub semantic_tokens: SemanticTokensConfig,
 }
 
 impl TryFrom<DidChangeConfigurationParams> for Configuration {

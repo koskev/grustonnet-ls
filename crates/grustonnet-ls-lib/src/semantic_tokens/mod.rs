@@ -101,7 +101,7 @@ pub fn get_token_map() -> SemanticTokensLegend {
 }
 
 #[derive(Default, Clone, Debug)]
-struct SemanticData {
+pub struct SemanticData {
     node_type: SemanticToken,
     node_modifier: Vec<SemanticModifier>,
     location: LocationRange,
@@ -109,8 +109,8 @@ struct SemanticData {
 }
 
 #[derive(Default, Clone, Debug)]
-struct SemanticDataList {
-    data: Vec<SemanticData>,
+pub struct SemanticDataList {
+    pub data: Vec<SemanticData>,
 }
 
 impl From<SemanticDataList> for lsp_types::SemanticTokens {
@@ -154,7 +154,7 @@ impl From<SemanticDataList> for lsp_types::SemanticTokens {
     }
 }
 
-pub fn get_tokens(root: Arc<Node>) -> SemanticTokens {
+pub fn get_tokens(root: Arc<Node>) -> SemanticDataList {
     let document_stack = root.get_complete_stack();
 
     let mut search_stack = document_stack.clone();
@@ -202,5 +202,7 @@ pub fn get_tokens(root: Arc<Node>) -> SemanticTokens {
         };
     }
 
-    tokens.into()
+    tokens
 }
+
+pub mod treesitter_bridge;

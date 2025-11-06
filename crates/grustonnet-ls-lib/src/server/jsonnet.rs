@@ -18,9 +18,9 @@ use lsp_types::{
     CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
     ExecuteCommandOptions, GotoDefinitionParams, GotoDefinitionResponse, InitializeParams,
-    InlayHint, InlayHintParams, OneOf, RelatedFullDocumentDiagnosticReport, SemanticTokensOptions,
-    SemanticTokensServerCapabilities, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions, Uri,
+    InlayHint, InlayHintParams, OneOf, RelatedFullDocumentDiagnosticReport, SemanticTokens,
+    SemanticTokensOptions, SemanticTokensServerCapabilities, ServerCapabilities,
+    TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
 
 use crate::{
@@ -37,7 +37,7 @@ use crate::{
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
     references::ReferenceProvider,
     rename::RenameProvider,
-    semantic_tokens::{self},
+    semantic_tokens::{self, SemanticDataList},
     server::config::Configuration,
     utils,
 };
@@ -362,12 +362,23 @@ impl LSPServer for JsonnetServer {
         &self,
         params: <lsp_types::request::SemanticTokensFullRequest as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
+        let config = self.configuration.read().unwrap();
         let start = Instant::now();
         let doc = self.cache.get_document(&params.text_document.uri)?;
         let root = doc.get_ast()?;
-        let tokens = semantic_tokens::get_tokens(root);
+        let mut tokens = SemanticDataList::default();
+        if config.semantic_tokens.semantic_tokens {
+            tokens.data.extend(semantic_tokens::get_tokens(root).data);
+        }
+        if config.semantic_tokens.treesitter_tokens {
+            tokens
+                .data
+                .extend(semantic_tokens::treesitter_bridge::get_tokens(doc));
+        }
+
         log::info!("Getting semantic tokens took {:?}", start.elapsed());
-        Ok(tokens.into())
+        let semantic_tokens: SemanticTokens = tokens.into();
+        Ok(semantic_tokens.into())
     }
 
     fn references(
