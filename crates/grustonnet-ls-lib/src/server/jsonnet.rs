@@ -373,7 +373,7 @@ impl LSPServer for JsonnetServer {
         if config.semantic_tokens.treesitter_tokens {
             tokens
                 .data
-                .extend(semantic_tokens::treesitter_bridge::get_tokens(doc));
+                .extend(semantic_tokens::treesitter_bridge::get_tokens(doc).data);
         }
 
         log::info!("Getting semantic tokens took {:?}", start.elapsed());
