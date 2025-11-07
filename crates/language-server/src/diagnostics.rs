@@ -14,7 +14,22 @@ use lsp_types::{
 use crate::utils::hashqueue::HashQueue;
 
 pub trait Diagnostics: Send + Sync {
-    fn diagnostics(&self, uri: &Uri) -> Vec<Diagnostic>;
+    fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult>;
+}
+
+#[derive(Debug, Default)]
+pub struct DiagnosticsResult {
+    pub diagnostics: lsp_types::Diagnostic,
+    pub code_actions: Vec<lsp_types::CodeAction>,
+}
+
+impl From<lsp_types::Diagnostic> for DiagnosticsResult {
+    fn from(value: lsp_types::Diagnostic) -> Self {
+        Self {
+            diagnostics: value,
+            ..Default::default()
+        }
+    }
 }
 
 pub type DiagnosticsList = Vec<Box<dyn Diagnostics>>;
@@ -44,7 +59,11 @@ impl DiagnosticsQueue {
             return;
         };
         log::trace!("Processing diagnostics for {:?}", uri);
-        let diags: Vec<Diagnostic> = list.iter().flat_map(|d| d.diagnostics(&uri)).collect();
+        let diags: Vec<Diagnostic> = list
+            .iter()
+            .flat_map(|d| d.diagnostics(&uri))
+            .map(|d| d.diagnostics)
+            .collect();
         // Always send the notification to clear old diagnostic messages
         self.sender
             .send(Message::Notification(Notification {

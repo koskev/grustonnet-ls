@@ -85,7 +85,7 @@ impl JsonnetServer {
             items.extend(diags);
         }
         // TODO: Filter messages with the same target but different severity
-        items
+        items.iter().map(|d| d.diagnostics.clone()).collect()
     }
 }
 

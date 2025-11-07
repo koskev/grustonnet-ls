@@ -30,7 +30,10 @@ impl DiagnosticsQueue {
         let Some((uri, list)) = self.queue.lock().unwrap().pop() else {
             return vec![];
         };
-        list.iter().flat_map(|d| d.diagnostics(&uri)).collect()
+        list.iter()
+            .flat_map(|d| d.diagnostics(&uri))
+            .map(|d| d.diagnostics)
+            .collect()
     }
 
     pub fn stop(&self) {

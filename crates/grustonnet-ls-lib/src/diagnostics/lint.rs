@@ -1,4 +1,7 @@
-use language_server::{cache::Cache, diagnostics::Diagnostics};
+use language_server::{
+    cache::Cache,
+    diagnostics::{Diagnostics, DiagnosticsResult},
+};
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
 use crate::{
@@ -16,7 +19,7 @@ impl LintDiagnostics {
 }
 
 impl LintDiagnostics {
-    fn get_diagnostics(&self, uri: &Uri) -> Option<Vec<lsp_types::Diagnostic>> {
+    fn get_diagnostics(&self, uri: &Uri) -> Option<Vec<DiagnosticsResult>> {
         let doc = self.cache.get_document(uri).unwrap();
         let stack = doc.get_ast().ok()?.get_complete_stack();
         let locals = stack
@@ -62,7 +65,7 @@ impl LintDiagnostics {
                     code_description: Some(CodeDescription { href: uri.clone() }),
                     severity: Some(DiagnosticSeverity::WARNING),
                     ..Default::default()
-                })
+                }.into())
                 })
                 .collect(),
         )
@@ -70,7 +73,7 @@ impl LintDiagnostics {
 }
 
 impl Diagnostics for LintDiagnostics {
-    fn diagnostics(&self, uri: &Uri) -> Vec<lsp_types::Diagnostic> {
+    fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
         self.get_diagnostics(uri).unwrap_or_default()
     }
 }

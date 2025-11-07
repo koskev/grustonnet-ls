@@ -1,4 +1,7 @@
-use language_server::{cache::Cache, diagnostics::Diagnostics};
+use language_server::{
+    cache::Cache,
+    diagnostics::{Diagnostics, DiagnosticsResult},
+};
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
 use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
@@ -14,7 +17,7 @@ impl EvalDiagnostics {
 }
 
 impl Diagnostics for EvalDiagnostics {
-    fn diagnostics(&self, uri: &Uri) -> Vec<lsp_types::Diagnostic> {
+    fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
         let doc = self.cache.get_document(uri).unwrap();
         let res = self
             .cache
@@ -23,16 +26,19 @@ impl Diagnostics for EvalDiagnostics {
             .evaluate_snippet(&doc.filename, &doc.content);
 
         if let Err(diag_err) = res {
-            return vec![Diagnostic {
-                range: Range {
-                    start: diag_err.start.into(),
-                    end: diag_err.end.into(),
-                },
-                message: diag_err.message,
-                code_description: Some(CodeDescription { href: uri.clone() }),
-                severity: Some(DiagnosticSeverity::ERROR),
-                ..Default::default()
-            }];
+            return vec![
+                Diagnostic {
+                    range: Range {
+                        start: diag_err.start.into(),
+                        end: diag_err.end.into(),
+                    },
+                    message: diag_err.message,
+                    code_description: Some(CodeDescription { href: uri.clone() }),
+                    severity: Some(DiagnosticSeverity::ERROR),
+                    ..Default::default()
+                }
+                .into(),
+            ];
         }
 
         vec![]
