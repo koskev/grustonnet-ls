@@ -1,28 +1,27 @@
 use std::{
-    collections::HashMap,
     sync::{Arc, RwLock},
     time::Instant,
 };
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use bevy_tasks::TaskPool;
 use language_server::{
     cache::Cache,
     completion::Completion,
-    diagnostics::{Diagnostics, DiagnosticsQueue, DiagnosticsResult},
+    diagnostics::{Diagnostics, DiagnosticsQueue},
     server::{
         LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
     },
     utils::diff,
 };
 use lsp_types::{
-    CodeActionOrCommand, CodeActionProviderCapability, CodeActionResponse, CompletionList,
-    CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
-    DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
-    ExecuteCommandOptions, GotoDefinitionParams, GotoDefinitionResponse, InitializeParams,
-    InlayHint, InlayHintParams, OneOf, RelatedFullDocumentDiagnosticReport, SemanticTokens,
-    SemanticTokensOptions, SemanticTokensServerCapabilities, ServerCapabilities,
-    TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
+    CodeActionOrCommand, CodeActionProviderCapability, CompletionList, CompletionOptions,
+    CompletionParams, CompletionResponse, Diagnostic, DidChangeConfigurationParams,
+    DocumentDiagnosticParams, DocumentDiagnosticReportResult, ExecuteCommandOptions,
+    GotoDefinitionParams, GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams,
+    OneOf, RelatedFullDocumentDiagnosticReport, SemanticTokens, SemanticTokensOptions,
+    SemanticTokensServerCapabilities, ServerCapabilities, TextDocumentSyncKind,
+    TextDocumentSyncOptions, Uri,
 };
 
 use crate::{
@@ -35,7 +34,7 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     definition::DefinitionProvider,
-    diagnostics::{eval::EvalDiagnostics, go_lint::GoLintDiagnostics, lint::LintDiagnostics},
+    diagnostics::{eval::EvalDiagnostics, go_lint::GoLintDiagnostics, linters},
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
     node::location::LocationRange,
     references::ReferenceProvider,
@@ -84,7 +83,8 @@ impl JsonnetServer {
             items.extend(diags);
         }
         if config.diagnostics.enable_lint {
-            let diags = LintDiagnostics::new(self.cache.clone()).diagnostics(uri);
+            let diags =
+                linters::unused::UnusedDiagnostics::new(self.cache.clone()).diagnostics(uri);
             items.extend(diags);
         }
         // TODO: Filter messages with the same target but different severity
@@ -108,7 +108,9 @@ impl LSPServer for JsonnetServer {
             diags.push(Box::new(GoLintDiagnostics::new(self.cache.clone())));
         }
         if config.diagnostics.enable_lint {
-            diags.push(Box::new(LintDiagnostics::new(self.cache.clone())));
+            diags.push(Box::new(linters::unused::UnusedDiagnostics::new(
+                self.cache.clone(),
+            )));
         }
         if let Some(queue) = self.diagnostics_queue.as_ref() {
             queue.queue(uri.clone(), diags);
@@ -216,7 +218,6 @@ impl LSPServer for JsonnetServer {
         &self,
         params: DocumentDiagnosticParams,
     ) -> Result<LSPResponse, LSPError> {
-        log::error!("############ DIAG");
         Ok(
             DocumentDiagnosticReportResult::Report(lsp_types::DocumentDiagnosticReport::Full(
                 RelatedFullDocumentDiagnosticReport {

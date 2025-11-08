@@ -18,17 +18,17 @@ use crate::{
     references::ReferenceProvider,
 };
 
-pub struct LintDiagnostics {
+pub struct UnusedDiagnostics {
     cache: Cache<JsonnetASTGenerator>,
 }
 
-impl LintDiagnostics {
+impl UnusedDiagnostics {
     pub fn new(cache: Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
 }
 
-impl LintDiagnostics {
+impl UnusedDiagnostics {
     fn get_code_action(&self, uri: &Uri, local: &Local) -> Option<Vec<lsp_types::CodeAction>> {
         let mut pos = local.get_identifier_position()?;
         let name = local.get_name()?;
@@ -111,7 +111,7 @@ impl LintDiagnostics {
     }
 }
 
-impl Diagnostics for LintDiagnostics {
+impl Diagnostics for UnusedDiagnostics {
     fn get_name(&self) -> String {
         "lint".into()
     }

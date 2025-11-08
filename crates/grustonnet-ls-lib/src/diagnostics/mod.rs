@@ -12,7 +12,7 @@ use lsp_types::{Diagnostic, Uri};
 
 pub mod eval;
 pub mod go_lint;
-pub mod lint;
+pub mod linters;
 
 type DiagnosticsList = Vec<Box<dyn Diagnostics>>;
 
