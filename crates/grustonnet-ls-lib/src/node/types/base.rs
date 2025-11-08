@@ -1,7 +1,8 @@
 use bincode::{Decode, Encode};
+use jsonnet_location::LocationRange;
 use serde::{Deserialize, Serialize};
 
-use crate::node::{location::LocationRange, types::fodder::Fodder};
+use crate::node::types::fodder::Fodder;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", default)]

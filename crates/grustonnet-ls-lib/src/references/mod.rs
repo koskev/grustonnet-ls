@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use anyhow::{Result, anyhow};
+use jsonnet_location::Location;
 use language_server::{cache::Cache, utils::rope::RopeHelper};
 use lsp_types::{Range, Uri};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -9,9 +10,7 @@ use ropey::Rope;
 use tracy_client::{set_thread_name, span};
 
 use crate::{
-    cache::JsonnetASTGenerator,
-    definition::DefinitionProvider,
-    node::{location::Location, types::node_kind::NodeKind},
+    cache::JsonnetASTGenerator, definition::DefinitionProvider, node::types::node_kind::NodeKind,
     utils,
 };
 pub struct ReferenceProvider<'a> {

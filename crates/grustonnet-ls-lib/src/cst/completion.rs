@@ -1,11 +1,9 @@
+use jsonnet_location::Location;
 use language_server::utils::cst::CstNodeHelper;
 use ropey::Rope;
 use tree_sitter::{Node, Point};
 
-use crate::{
-    cst::{new_tree, node::JsonnetNode, node_type::NodeType},
-    node::location::Location,
-};
+use crate::cst::{new_tree, node::JsonnetNode, node_type::NodeType};
 
 #[derive(Debug, Default)]
 pub enum CompletionType {

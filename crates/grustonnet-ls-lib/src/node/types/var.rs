@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use bincode::{Decode, Encode};
+use jsonnet_location::LocationRange;
 use serde::{Deserialize, Serialize};
 
 use crate::node::{
-    location::LocationRange,
     stack::NodeStack,
     types::{Identifier, local_bind::LocalBind, node::Node, node_kind::NodeKind},
 };

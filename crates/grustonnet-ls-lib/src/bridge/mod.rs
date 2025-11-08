@@ -10,15 +10,13 @@ use std::{
 
 use anyhow::Result;
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue, FormatOptions};
+use jsonnet_location::Location;
 use language_server::server::LSPError;
 use lsp_server::ErrorCode;
 use name_variant::NamedVariant;
 use regex::Regex;
 
-use crate::{
-    node::{location::Location, types::node::Node},
-    server::config::JsonnetConfig,
-};
+use crate::{node::types::node::Node, server::config::JsonnetConfig};
 
 pub trait GenerateAST {
     fn get_ast(&self, filename: &str) -> Result<Node, EvaluateError>;
@@ -446,11 +444,9 @@ impl GenerateAST for GoJsonnet {
 mod test {
 
     use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl};
+    use jsonnet_location::{Location, LocationRange};
 
-    use crate::node::{
-        location::{Location, LocationRange},
-        types::{base::NodeBase, fodder::Fodder, node::Node},
-    };
+    use crate::node::types::{base::NodeBase, fodder::Fodder, node::Node};
 
     #[test]
     fn base_object() {

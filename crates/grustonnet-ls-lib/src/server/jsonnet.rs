@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::Result;
 use bevy_tasks::TaskPool;
+use jsonnet_location::LocationRange;
 use language_server::{
     cache::Cache,
     completion::Completion,
@@ -45,7 +46,6 @@ use crate::{
         },
     },
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
-    node::location::LocationRange,
     references::ReferenceProvider,
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},

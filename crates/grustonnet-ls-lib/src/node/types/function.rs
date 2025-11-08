@@ -1,14 +1,12 @@
 use std::sync::Arc;
 
 use bincode::{Decode, Encode};
+use jsonnet_location::LocationRange;
 use serde::{Deserialize, Serialize};
 
-use crate::node::{
-    location::LocationRange,
-    types::{
-        CommaSeparatedExpr, Identifier, Local, base::NodeBase, fodder::Fodder,
-        local_bind::LocalBind, node::Node, node_kind::NodeKind,
-    },
+use crate::node::types::{
+    CommaSeparatedExpr, Identifier, Local, base::NodeBase, fodder::Fodder, local_bind::LocalBind,
+    node::Node, node_kind::NodeKind,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]

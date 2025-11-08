@@ -1,6 +1,6 @@
 use tree_sitter::Point;
 
-use crate::node::location::Location;
+use crate::Location;
 
 impl From<Location> for Point {
     fn from(value: Location) -> Self {

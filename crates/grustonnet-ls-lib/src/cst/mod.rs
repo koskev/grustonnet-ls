@@ -1,7 +1,6 @@
 pub mod completion;
 pub mod node;
 pub mod node_type;
-pub mod point;
 
 pub fn new_tree(content: &str) -> Option<tree_sitter::Tree> {
     let mut parser = tree_sitter::Parser::new();

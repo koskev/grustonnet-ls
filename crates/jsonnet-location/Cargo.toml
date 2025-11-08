@@ -1,0 +1,10 @@
+[package]
+name = "jsonnet-location"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bincode = "2.0.1"
+lsp-types = { version = "0.97.0", features = ["proposed"] }
+serde = { version = "1.0.219", features = ["derive", "rc"] }
+tree-sitter = "0.22.6"

@@ -1,8 +1,9 @@
 use anyhow::Result;
+use jsonnet_location::LocationRange;
 use language_server::cache::Cache;
 use lsp_types::{InlayHint, Range, Uri};
 
-use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay, node::location::LocationRange};
+use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay};
 
 pub struct DebugInlay<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,

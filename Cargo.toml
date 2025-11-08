@@ -11,6 +11,7 @@ members = [
 "crates/grustonnet-bin",
 "crates/grustonnet-ls-lib",
 "crates/jsonnet-bridge",
+"crates/jsonnet-location",
 "crates/language-server",
 "crates/test-macros",
 ]

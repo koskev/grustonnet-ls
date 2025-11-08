@@ -1,20 +1,18 @@
 use std::collections::HashMap;
 
+use jsonnet_location::Location;
 use language_server::{
     cache::Cache,
     diagnostics::{Diagnostics, DiagnosticsResult},
 };
 use lsp_types::{
-    CodeActionKind, CodeDescription, Diagnostic, DiagnosticSeverity, Range, TextEdit, Uri,
-    WorkspaceEdit,
+    CodeActionKind, CodeDescription, Diagnostic, DiagnosticSeverity, DiagnosticTag, Range,
+    TextEdit, Uri, WorkspaceEdit,
 };
 
 use crate::{
     cache::JsonnetASTGenerator,
-    node::{
-        location::Location,
-        types::{Local, node_kind::NodeKind},
-    },
+    node::types::{Local, node_kind::NodeKind},
     references::ReferenceProvider,
 };
 
@@ -100,6 +98,9 @@ impl UnusedDiagnostics {
                             ),
                             code_description: Some(CodeDescription { href: uri.clone() }),
                             severity: Some(DiagnosticSeverity::WARNING),
+                            tags: Some(vec![
+                                DiagnosticTag::UNNECESSARY,
+                            ]),
                             ..Default::default()
                         },
                         code_actions: self.get_code_action(uri, local).unwrap_or_default(),

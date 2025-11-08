@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use jsonnet_location::Location;
 use language_server::{
     cache::Cache,
     diagnostics::{Diagnostics, DiagnosticsResult},
@@ -10,7 +11,7 @@ use lsp_types::{
 };
 use tree_sitter::{Query, QueryCursor, QueryMatch};
 
-use crate::{cache::JsonnetASTGenerator, cst::new_tree, node::location::Location};
+use crate::{cache::JsonnetASTGenerator, cst::new_tree};
 
 pub struct LocalFunctionDiagnostics {
     pub cache: Cache<JsonnetASTGenerator>,

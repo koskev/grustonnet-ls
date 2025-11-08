@@ -1,5 +1,6 @@
 use std::{collections::HashMap, marker::PhantomData};
 
+use jsonnet_location::Location;
 use language_server::diagnostics::DiagnosticsResult;
 use lsp_types::{
     CodeActionKind, Diagnostic, DiagnosticSeverity, Range, TextEdit, Uri, WorkspaceEdit,
@@ -7,7 +8,7 @@ use lsp_types::{
 
 use crate::{
     diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext},
-    node::{location::Location, types::Local},
+    node::types::Local,
 };
 
 pub trait VariableNaming: Send + Sync {
