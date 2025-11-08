@@ -788,6 +788,7 @@ dependencies = [
  "htmd",
  "itertools 0.14.0",
  "jsonnet-bridge",
+ "jsonnet-cst",
  "jsonnet-location",
  "jsonnet-std-docs",
  "language-server",
@@ -1219,6 +1220,18 @@ dependencies = [
  "schemars",
  "serde",
  "smart-default",
+]
+
+[[package]]
+name = "jsonnet-cst"
+version = "0.1.0"
+dependencies = [
+ "jsonnet-location",
+ "language-server",
+ "log",
+ "ropey",
+ "tree-sitter",
+ "tree-sitter-jsonnet",
 ]
 
 [[package]]

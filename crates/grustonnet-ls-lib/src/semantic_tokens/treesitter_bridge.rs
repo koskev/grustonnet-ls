@@ -1,6 +1,7 @@
 // You should not use this feature! It is just a bad workaround for editors that lack the most essential
 // features
 
+use jsonnet_cst::new_tree;
 use jsonnet_location::LocationRange;
 use language_server::cache::Document;
 use lazy_static::lazy_static;
@@ -8,7 +9,6 @@ use tree_sitter::{Query, QueryCursor};
 
 use crate::{
     cache::JsonnetASTGenerator,
-    cst::new_tree,
     semantic_tokens::{SemanticData, SemanticDataList},
 };
 

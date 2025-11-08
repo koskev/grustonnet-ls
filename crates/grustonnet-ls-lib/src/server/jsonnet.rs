@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::Result;
 use bevy_tasks::TaskPool;
+use jsonnet_cst::completion::{CompletionInfo, CompletionType};
 use jsonnet_location::LocationRange;
 use language_server::{
     cache::Cache,
@@ -33,7 +34,6 @@ use crate::{
         global::GlobalCompletion, import::ImportCompletion, keyword::KeywordCompletion,
         local::LocalCompletion,
     },
-    cst::completion::{CompletionInfo, CompletionType},
     definition::DefinitionProvider,
     diagnostics::{
         DiagnosticsHandler, JsonnetDiagnostics,

@@ -2,7 +2,6 @@ pub mod bridge;
 pub mod cache;
 pub mod command;
 pub mod completion;
-pub mod cst;
 pub mod definition;
 pub mod diagnostics;
 pub mod documentation;

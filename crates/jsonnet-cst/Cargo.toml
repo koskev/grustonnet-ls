@@ -1,0 +1,12 @@
+[package]
+name = "jsonnet-cst"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tree-sitter = "0.22.6"
+tree-sitter-jsonnet = {git = "https://github.com/sourcegraph/tree-sitter-jsonnet"}
+jsonnet-location = { path = "../jsonnet-location"}
+ropey = "1.6.1"
+log = "0.4.27"
+language-server = { path = "../language-server"}

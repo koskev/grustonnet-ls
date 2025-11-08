@@ -1,6 +1,6 @@
 use tree_sitter::{Node, Point};
 
-use crate::cst::node_type::NodeType;
+use crate::node_type::NodeType;
 
 pub trait JsonnetNode {
     fn is_symbol_node(&self) -> bool;

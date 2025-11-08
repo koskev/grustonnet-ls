@@ -3,7 +3,7 @@ use language_server::utils::cst::CstNodeHelper;
 use ropey::Rope;
 use tree_sitter::{Node, Point};
 
-use crate::cst::{new_tree, node::JsonnetNode, node_type::NodeType};
+use crate::{new_tree, node::JsonnetNode, node_type::NodeType};
 
 #[derive(Debug, Default)]
 pub enum CompletionType {
