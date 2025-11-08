@@ -34,13 +34,21 @@ use crate::{
     },
     cst::completion::{CompletionInfo, CompletionType},
     definition::DefinitionProvider,
-    diagnostics::{eval::EvalDiagnostics, go_lint::GoLintDiagnostics, linters},
+    diagnostics::{
+        DiagnosticsHandler, JsonnetDiagnostics,
+        eval::EvalDiagnostics,
+        go_lint::GoLintDiagnostics,
+        linters::{
+            self,
+            variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
+        },
+    },
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
     node::location::LocationRange,
     references::ReferenceProvider,
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},
-    server::config::Configuration,
+    server::config::{Configuration, VariableNaming},
     utils,
 };
 
@@ -112,6 +120,22 @@ impl LSPServer for JsonnetServer {
                 self.cache.clone(),
             )));
         }
+
+        let mut diagnostics_handler_diags: Vec<Box<dyn JsonnetDiagnostics>> = vec![];
+
+        if let Some(naming_diag) = match config.diagnostics.variable_naming {
+            VariableNaming::SnakeCase => Some(Box::new(VariableNamingDiagnostics::<
+                SnakeCaseDiagnostics,
+            >::new())),
+            VariableNaming::None => None,
+        } {
+            diagnostics_handler_diags.push(naming_diag);
+        }
+
+        diags.push(Box::new(DiagnosticsHandler {
+            cache: self.cache.clone(),
+            diags: diagnostics_handler_diags,
+        }));
         if let Some(queue) = self.diagnostics_queue.as_ref() {
             queue.queue(uri.clone(), diags);
         }

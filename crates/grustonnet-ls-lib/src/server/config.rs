@@ -23,6 +23,13 @@ pub struct CompletionConfig {
     pub hide_docsonnet_members: bool,
 }
 
+#[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]
+pub enum VariableNaming {
+    #[default]
+    None,
+    SnakeCase,
+}
+
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
 pub struct DiagnosticConfig {
@@ -37,6 +44,9 @@ pub struct DiagnosticConfig {
     #[default = true]
     /// Enable linting checks (currently limited to unused variables)
     pub enable_lint: bool,
+
+    /// Determines which type of variable naming diagnostics should be used
+    pub variable_naming: VariableNaming,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]

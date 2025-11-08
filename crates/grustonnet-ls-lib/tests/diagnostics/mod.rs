@@ -1,6 +1,5 @@
 use assert_unordered::assert_eq_unordered;
 use language_server::{server::LSPServer, utils::UriHelper};
-use pretty_assertions::assert_eq;
 use std::{
     fs::read_to_string,
     sync::{Arc, RwLock},
@@ -9,7 +8,7 @@ use std::{
 pub use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Uri};
 
 use grustonnet_ls_lib::server::{
-    config::{Configuration, DiagnosticConfig},
+    config::{Configuration, DiagnosticConfig, VariableNaming},
     jsonnet::JsonnetServer,
 };
 
@@ -34,6 +33,7 @@ impl Default for DiagnosticTestCase {
                 enable_eval: true,
                 enable_go_lint: true,
                 enable_lint: false,
+                variable_naming: VariableNaming::None,
             },
         }
     }
