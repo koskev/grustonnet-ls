@@ -59,6 +59,8 @@ impl Local {
         Some(self.binds.first()?.variable.0.clone())
     }
 
+    // TODO: The end might include the body even for non functions. Maybe just calculate it all
+    // the time? But changing it breaks other stuff
     pub fn get_identifier_position(&self) -> Option<LocationRange> {
         // If the first bind is a function we need to fix the position
         let bind = self.binds.first()?;

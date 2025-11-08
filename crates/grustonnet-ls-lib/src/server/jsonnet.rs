@@ -4,7 +4,7 @@ use std::{
     time::Instant,
 };
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use bevy_tasks::TaskPool;
 use language_server::{
     cache::Cache,
@@ -16,7 +16,8 @@ use language_server::{
     utils::diff,
 };
 use lsp_types::{
-    CompletionList, CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
+    CodeActionOrCommand, CodeActionProviderCapability, CodeActionResponse, CompletionList,
+    CompletionOptions, CompletionParams, CompletionResponse, Diagnostic,
     DidChangeConfigurationParams, DocumentDiagnosticParams, DocumentDiagnosticReportResult,
     ExecuteCommandOptions, GotoDefinitionParams, GotoDefinitionResponse, InitializeParams,
     InlayHint, InlayHintParams, OneOf, RelatedFullDocumentDiagnosticReport, SemanticTokens,
@@ -36,6 +37,7 @@ use crate::{
     definition::DefinitionProvider,
     diagnostics::{eval::EvalDiagnostics, go_lint::GoLintDiagnostics, lint::LintDiagnostics},
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
+    node::location::LocationRange,
     references::ReferenceProvider,
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},
@@ -159,6 +161,7 @@ impl LSPServer for JsonnetServer {
                 commands: vec!["jsonnet.evalFile".into()],
                 ..Default::default()
             }),
+            code_action_provider: Some(CodeActionProviderCapability::Simple(true)),
             ..Default::default()
         }
     }
@@ -213,6 +216,7 @@ impl LSPServer for JsonnetServer {
         &self,
         params: DocumentDiagnosticParams,
     ) -> Result<LSPResponse, LSPError> {
+        log::error!("############ DIAG");
         Ok(
             DocumentDiagnosticReportResult::Report(lsp_types::DocumentDiagnosticReport::Full(
                 RelatedFullDocumentDiagnosticReport {
@@ -448,5 +452,39 @@ impl LSPServer for JsonnetServer {
         params: <lsp_types::request::ExecuteCommand as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
         handle_command(&self.cache, params)
+    }
+
+    fn code_action(
+        &self,
+        params: <lsp_types::request::CodeActionRequest as lsp_types::request::Request>::Params,
+    ) -> Result<LSPResponse, LSPError> {
+        let actions: Vec<CodeActionOrCommand> = self
+            .diagnostics_queue
+            .clone()
+            .unwrap()
+            .current_diagnostics
+            .read()
+            .unwrap()
+            .iter()
+            .flat_map(|(_, d)| {
+                d.iter().flat_map(|d| {
+                    d.1.iter()
+                        .filter(|d| {
+                            let locrange: LocationRange = LocationRange {
+                                begin: d.diagnostics.range.start.into(),
+                                end: d.diagnostics.range.end.into(),
+                                ..Default::default()
+                            };
+                            locrange.in_range(&params.range.start.into())
+                        })
+                        .flat_map(|d| {
+                            d.code_actions
+                                .iter()
+                                .map(|action| CodeActionOrCommand::CodeAction(action.clone()))
+                        })
+                })
+            })
+            .collect();
+        Ok(actions.into())
     }
 }

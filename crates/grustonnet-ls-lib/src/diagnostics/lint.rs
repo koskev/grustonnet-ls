@@ -11,7 +11,10 @@ use lsp_types::{
 
 use crate::{
     cache::JsonnetASTGenerator,
-    node::types::{Local, node_kind::NodeKind},
+    node::{
+        location::Location,
+        types::{Local, node_kind::NodeKind},
+    },
     references::ReferenceProvider,
 };
 
@@ -27,15 +30,20 @@ impl LintDiagnostics {
 
 impl LintDiagnostics {
     fn get_code_action(&self, uri: &Uri, local: &Local) -> Option<Vec<lsp_types::CodeAction>> {
-        let pos = local.get_identifier_position()?;
+        let mut pos = local.get_identifier_position()?;
+        let name = local.get_name()?;
+        pos.end = Location {
+            line: pos.begin.line,
+            column: pos.begin.column + name.len() as i32,
+        };
         Some(vec![lsp_types::CodeAction {
-            title: "Mark as unused".into(),
+            title: format!("Mark variable \"{}\" as unused", name),
             kind: Some(CodeActionKind::REFACTOR),
             edit: Some(WorkspaceEdit {
                 changes: Some(HashMap::from([(
                     uri.clone(),
                     vec![TextEdit {
-                        new_text: format!("_{}", local.get_name()?),
+                        new_text: format!("_{}", name),
                         range: Range {
                             start: pos.begin.into(),
                             end: pos.end.into(),

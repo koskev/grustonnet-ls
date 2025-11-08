@@ -21,8 +21,9 @@ use lsp_types::{
         Notification as NotificationTrait, Progress,
     },
     request::{
-        Completion, DocumentDiagnosticRequest, ExecuteCommand, Formatting, GotoDefinition,
-        InlayHintRequest, References, Rename, Request as RequestTrait, SemanticTokensFullRequest,
+        CodeActionRequest, Completion, DocumentDiagnosticRequest, ExecuteCommand, Formatting,
+        GotoDefinition, InlayHintRequest, References, Rename, Request as RequestTrait,
+        SemanticTokensFullRequest,
     },
 };
 use rand::RngCore;
@@ -219,6 +220,7 @@ where
         Ok(())
     }
     fn handle_request(&self, req: Request) -> Result<LSPResponse, LSPError> {
+        // TODO: Add macro magic to prevent having to add this at two locations
         let mut req =
             lsp_handle_request!(self.server, completion, lsp_types::request::Completion, req);
         req = lsp_handle_request!(self.server, formatting, lsp_types::request::Formatting, req);
@@ -228,6 +230,7 @@ where
         req = lsp_handle_request!(self.server, rename, Rename, req);
         req = lsp_handle_request!(self.server, semantic_tokens, SemanticTokensFullRequest, req);
         req = lsp_handle_request!(self.server, execute_command, ExecuteCommand, req);
+        req = lsp_handle_request!(self.server, code_action, CodeActionRequest, req);
 
         Err(LSPError {
             error_code: ErrorCode::MethodNotFound as i32,
@@ -397,6 +400,7 @@ pub trait LSPServer {
     lsp_function_req!(rename, Rename);
     lsp_function_req!(semantic_tokens, SemanticTokensFullRequest);
     lsp_function_req!(execute_command, ExecuteCommand);
+    lsp_function_req!(code_action, CodeActionRequest);
 
     // Notifications
 
