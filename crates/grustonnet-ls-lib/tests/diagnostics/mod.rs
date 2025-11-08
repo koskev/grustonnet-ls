@@ -1,3 +1,4 @@
+use assert_unordered::assert_eq_unordered;
 use language_server::{server::LSPServer, utils::UriHelper};
 use pretty_assertions::assert_eq;
 use std::{
@@ -82,6 +83,6 @@ impl DiagnosticTestCase {
             .iter_mut()
             .for_each(|diag| diag.code_description = None);
 
-        assert_eq!(diagnositcs, self.expected);
+        assert_eq_unordered!(diagnositcs, self.expected.clone());
     }
 }

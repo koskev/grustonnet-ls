@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     sync::{Arc, RwLock},
     time::Instant,
 };
@@ -8,7 +9,7 @@ use bevy_tasks::TaskPool;
 use language_server::{
     cache::Cache,
     completion::Completion,
-    diagnostics::{Diagnostics, DiagnosticsQueue},
+    diagnostics::{Diagnostics, DiagnosticsQueue, DiagnosticsResult},
     server::{
         LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
     },

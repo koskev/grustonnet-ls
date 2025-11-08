@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     sync::{Arc, Mutex, RwLock},
     thread,
     time::Duration,
@@ -7,7 +8,7 @@ use std::{
 use crossbeam::channel::Sender;
 use lsp_server::{Message, Notification};
 use lsp_types::{
-    Diagnostic, PublishDiagnosticsParams, Uri,
+    PublishDiagnosticsParams, Uri,
     notification::{Notification as NotificationTrait, PublishDiagnostics},
 };
 
@@ -15,6 +16,7 @@ use crate::utils::hashqueue::HashQueue;
 
 pub trait Diagnostics: Send + Sync {
     fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult>;
+    fn get_name(&self) -> String;
 }
 
 #[derive(Debug, Default)]
@@ -34,9 +36,12 @@ impl From<lsp_types::Diagnostic> for DiagnosticsResult {
 
 pub type DiagnosticsList = Vec<Box<dyn Diagnostics>>;
 
+type CurrentDiagnostics = HashMap<Uri, HashMap<String, Vec<DiagnosticsResult>>>;
 #[derive(Clone)]
 pub struct DiagnosticsQueue {
     queue: Arc<Mutex<HashQueue<Uri, DiagnosticsList>>>,
+    /// Contains the current active diagnostics indexed by the identifier of the lint
+    pub current_diagnostics: Arc<RwLock<CurrentDiagnostics>>,
     running: Arc<RwLock<bool>>,
     sender: Sender<lsp_server::Message>,
 }
@@ -47,6 +52,7 @@ impl DiagnosticsQueue {
             queue: Arc::new(Mutex::new(HashQueue::new())),
             running: Arc::new(RwLock::new(false)),
             sender,
+            current_diagnostics: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
@@ -59,11 +65,19 @@ impl DiagnosticsQueue {
             return;
         };
         log::trace!("Processing diagnostics for {:?}", uri);
-        let diags: Vec<Diagnostic> = list
+
+        let mut binding = self.current_diagnostics.write().unwrap();
+        let current_diag_map = binding.entry(uri.clone()).or_default();
+
+        for diag in list {
+            *current_diag_map.entry(diag.get_name()).or_default() = diag.diagnostics(&uri)
+        }
+
+        let diags = current_diag_map
             .iter()
-            .flat_map(|d| d.diagnostics(&uri))
-            .map(|d| d.diagnostics)
+            .flat_map(|(_, diagresults)| diagresults.iter().map(|diag| diag.diagnostics.clone()))
             .collect();
+
         // Always send the notification to clear old diagnostic messages
         self.sender
             .send(Message::Notification(Notification {

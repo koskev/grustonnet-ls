@@ -17,6 +17,9 @@ impl GoLintDiagnostics {
 }
 
 impl Diagnostics for GoLintDiagnostics {
+    fn get_name(&self) -> String {
+        "GoLint".into()
+    }
     fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
         let doc = self.cache.get_document(uri).unwrap();
         let res = self

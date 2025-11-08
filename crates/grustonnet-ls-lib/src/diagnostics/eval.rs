@@ -17,6 +17,9 @@ impl EvalDiagnostics {
 }
 
 impl Diagnostics for EvalDiagnostics {
+    fn get_name(&self) -> String {
+        "EvalDiagnostics".into()
+    }
     fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
         let doc = self.cache.get_document(uri).unwrap();
         let res = self

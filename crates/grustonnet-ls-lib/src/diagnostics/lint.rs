@@ -1,11 +1,18 @@
+use std::collections::HashMap;
+
 use language_server::{
     cache::Cache,
     diagnostics::{Diagnostics, DiagnosticsResult},
 };
-use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
+use lsp_types::{
+    CodeActionKind, CodeDescription, Diagnostic, DiagnosticSeverity, Range, TextEdit, Uri,
+    WorkspaceEdit,
+};
 
 use crate::{
-    cache::JsonnetASTGenerator, node::types::node_kind::NodeKind, references::ReferenceProvider,
+    cache::JsonnetASTGenerator,
+    node::types::{Local, node_kind::NodeKind},
+    references::ReferenceProvider,
 };
 
 pub struct LintDiagnostics {
@@ -19,6 +26,27 @@ impl LintDiagnostics {
 }
 
 impl LintDiagnostics {
+    fn get_code_action(&self, uri: &Uri, local: &Local) -> Option<Vec<lsp_types::CodeAction>> {
+        let pos = local.get_identifier_position()?;
+        Some(vec![lsp_types::CodeAction {
+            title: "Mark as unused".into(),
+            kind: Some(CodeActionKind::REFACTOR),
+            edit: Some(WorkspaceEdit {
+                changes: Some(HashMap::from([(
+                    uri.clone(),
+                    vec![TextEdit {
+                        new_text: format!("_{}", local.get_name()?),
+                        range: Range {
+                            start: pos.begin.into(),
+                            end: pos.end.into(),
+                        },
+                    }],
+                )])),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }])
+    }
     fn get_diagnostics(&self, uri: &Uri) -> Option<Vec<DiagnosticsResult>> {
         let doc = self.cache.get_document(uri).unwrap();
         let stack = doc.get_ast().ok()?.get_complete_stack();
@@ -52,20 +80,23 @@ impl LintDiagnostics {
                     }
                 })
                 .filter_map(|local| {
-                    Some(Diagnostic {
-                    range: Range {
-                        start: local.get_identifier_position()?.begin.clone().into(),
-                        end: local.get_identifier_position()?.end.clone().into(),
-                    },
-                    // TODO: add code action
-                    message: format!(
-                        "Unused variable. If this is intentional prefix with an underscore: _{}",
-                        local.get_name().unwrap_or("<variable>".to_string())
-                    ),
-                    code_description: Some(CodeDescription { href: uri.clone() }),
-                    severity: Some(DiagnosticSeverity::WARNING),
-                    ..Default::default()
-                }.into())
+                    Some(DiagnosticsResult {
+                        diagnostics: Diagnostic {
+                            range: Range {
+                                start: local.get_identifier_position()?.begin.clone().into(),
+                                end: local.get_identifier_position()?.end.clone().into(),
+                            },
+                            message: format!(
+                                "Unused variable. If this is intentional prefix with an underscore: _{}",
+                                local.get_name().unwrap_or("<variable>".to_string())
+                            ),
+                            code_description: Some(CodeDescription { href: uri.clone() }),
+                            severity: Some(DiagnosticSeverity::WARNING),
+                            ..Default::default()
+                        },
+                        code_actions: self.get_code_action(uri, local).unwrap_or_default(),
+                        ..Default::default()
+                    })
                 })
                 .collect(),
         )
@@ -73,6 +104,9 @@ impl LintDiagnostics {
 }
 
 impl Diagnostics for LintDiagnostics {
+    fn get_name(&self) -> String {
+        "lint".into()
+    }
     fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
         self.get_diagnostics(uri).unwrap_or_default()
     }
