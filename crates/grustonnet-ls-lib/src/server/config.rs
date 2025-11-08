@@ -47,6 +47,10 @@ pub struct DiagnosticConfig {
 
     /// Determines which type of variable naming diagnostics should be used
     pub variable_naming: VariableNaming,
+
+    #[default = true]
+    /// Enable linting for correcting "local myFunc = function()" to "local myFunc()"
+    pub local_function: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]

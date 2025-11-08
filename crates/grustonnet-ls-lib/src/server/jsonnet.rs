@@ -36,6 +36,7 @@ use crate::{
     definition::DefinitionProvider,
     diagnostics::{
         DiagnosticsHandler, JsonnetDiagnostics,
+        cst_linters::local_function::LocalFunctionDiagnostics,
         eval::EvalDiagnostics,
         go_lint::GoLintDiagnostics,
         linters::{
@@ -130,6 +131,12 @@ impl LSPServer for JsonnetServer {
             VariableNaming::None => None,
         } {
             diagnostics_handler_diags.push(naming_diag);
+        }
+
+        if config.diagnostics.local_function {
+            diags.push(Box::new(LocalFunctionDiagnostics {
+                cache: self.cache.clone(),
+            }));
         }
 
         diags.push(Box::new(DiagnosticsHandler {

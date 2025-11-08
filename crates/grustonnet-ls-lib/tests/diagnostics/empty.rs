@@ -11,6 +11,7 @@ fn check_empty_diagnostics(val: &str) {
             enable_go_lint: true,
             enable_lint: true,
             variable_naming: VariableNaming::None,
+            local_function: false,
         },
     }
     .check();

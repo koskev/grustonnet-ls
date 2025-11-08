@@ -9,6 +9,7 @@ use crate::{
     node::types::{Local, node_kind::NodeKind},
 };
 
+pub mod cst_linters;
 pub mod eval;
 pub mod go_lint;
 pub mod linters;
