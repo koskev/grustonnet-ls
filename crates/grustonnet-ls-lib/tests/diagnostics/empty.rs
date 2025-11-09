@@ -9,10 +9,11 @@ fn check_empty_diagnostics(val: &str) {
         config: DiagnosticConfig {
             enable_eval: true,
             enable_go_lint: true,
-            enable_lint: true,
+            unused_variables: true,
             variable_naming: VariableNaming::None,
             local_function: false,
             prevent_dollar: false,
+            recursive_arguments: false,
         },
     }
     .check();
