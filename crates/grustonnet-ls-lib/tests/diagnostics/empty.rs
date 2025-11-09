@@ -12,6 +12,7 @@ fn check_empty_diagnostics(val: &str) {
             enable_lint: true,
             variable_naming: VariableNaming::None,
             local_function: false,
+            prevent_dollar: false,
         },
     }
     .check();

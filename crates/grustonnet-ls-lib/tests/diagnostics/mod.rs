@@ -35,6 +35,7 @@ impl Default for DiagnosticTestCase {
                 enable_lint: false,
                 variable_naming: VariableNaming::None,
                 local_function: false,
+                prevent_dollar: false,
             },
         }
     }

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use language_server::{
     cache::Cache,
     diagnostics::{Diagnostics, DiagnosticsResult},
@@ -6,7 +8,7 @@ use lsp_types::Uri;
 
 use crate::{
     cache::JsonnetASTGenerator,
-    node::types::{Local, node_kind::NodeKind},
+    node::types::{Local, node::Node, node_kind::NodeKind, var::Var},
 };
 
 pub mod cst_linters;
@@ -17,6 +19,9 @@ pub mod linters;
 pub struct JsonnetDiagnosticsContext {
     cache: Cache<JsonnetASTGenerator>,
     uri: Uri,
+
+    /// The generic node the function uses
+    node: Arc<Node>,
 }
 
 macro_rules! add_diag {
@@ -29,6 +34,7 @@ macro_rules! add_diag {
 /// This trait provides functions for jsonnet specific linters
 pub trait JsonnetDiagnostics: Send + Sync {
     add_diag!(check_local, local: &Local);
+    add_diag!(check_var, var: &Var);
 
     fn get_name(&self) -> String;
 }
@@ -49,14 +55,16 @@ impl Diagnostics for DiagnosticsHandler {
             return result;
         };
 
-        let ctx = JsonnetDiagnosticsContext {
-            cache: self.cache.clone(),
-            uri: uri.clone(),
-        };
         for node in ast.get_complete_stack().stack.iter() {
+            let ctx = JsonnetDiagnosticsContext {
+                cache: self.cache.clone(),
+                uri: uri.clone(),
+                node: node.clone(),
+            };
             for diag in self.diags.iter() {
                 let res = match node.node_kind.as_ref() {
                     NodeKind::Local(local) => diag.check_local(&ctx, local),
+                    NodeKind::Var(var) => diag.check_var(&ctx, var),
                     _ => None,
                 };
                 if let Some(res) = res {

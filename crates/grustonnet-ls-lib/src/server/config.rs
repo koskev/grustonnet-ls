@@ -51,6 +51,10 @@ pub struct DiagnosticConfig {
     #[default = true]
     /// Enable linting for correcting "local myFunc = function()" to "local myFunc()"
     pub local_function: bool,
+
+    #[default = true]
+    /// Check for $ and display a hint to not use it. Yes I just hate it this much
+    pub prevent_dollar: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]

@@ -42,6 +42,7 @@ use crate::{
         go_lint::GoLintDiagnostics,
         linters::{
             self,
+            dollar::DollarDiagnostics,
             variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
         },
     },
@@ -131,6 +132,10 @@ impl LSPServer for JsonnetServer {
             VariableNaming::None => None,
         } {
             diagnostics_handler_diags.push(naming_diag);
+        }
+
+        if config.diagnostics.prevent_dollar {
+            diagnostics_handler_diags.push(Box::new(DollarDiagnostics::default()));
         }
 
         if config.diagnostics.local_function {
