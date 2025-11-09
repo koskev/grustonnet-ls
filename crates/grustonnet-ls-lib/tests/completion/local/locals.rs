@@ -1,5 +1,4 @@
 use super::*;
-use std::collections::HashMap;
 
 #[test]
 fn simple_local() {
@@ -192,7 +191,6 @@ fn function_return_arg_ignored() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn function_return_arg_single() {
     CompletionTestCase {
         filename: "testdata/complete/functions/function_return_arg_single.jsonnet".into(),
