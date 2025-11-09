@@ -37,7 +37,7 @@ use crate::{
     definition::DefinitionProvider,
     diagnostics::{
         DiagnosticsHandler, JsonnetDiagnostics,
-        cst_linters::local_function::LocalFunctionDiagnostics,
+        cst_linters::local_function::{JsonnetDiagnosticFilter, LocalFunctionDiagnostics},
         eval::EvalDiagnostics,
         go_lint::GoLintDiagnostics,
         linters::{
@@ -62,12 +62,16 @@ pub struct JsonnetServer {
 
     pub configuration: Arc<RwLock<Configuration>>,
 
-    pub diagnostics_queue: Option<DiagnosticsQueue>,
+    pub diagnostics_queue: Option<DiagnosticsQueue<JsonnetDiagnosticFilter>>,
 }
 
 impl JsonnetServer {
     pub fn new(connection: LSPConnection) -> Self {
-        let diagnostics_queue = DiagnosticsQueue::new(connection.connection.sender.clone());
+        let cache = Cache::default();
+        let diagnostics_queue = DiagnosticsQueue::new(
+            connection.connection.sender.clone(),
+            JsonnetDiagnosticFilter::new(cache.clone()),
+        );
         let task_queue = diagnostics_queue.clone();
         bevy_tasks::ComputeTaskPool::get_or_init(bevy_tasks::TaskPool::default)
             .spawn(async move {
@@ -77,6 +81,7 @@ impl JsonnetServer {
         Self {
             diagnostics_queue: Some(diagnostics_queue),
             connection,
+            cache,
             ..Default::default()
         }
     }

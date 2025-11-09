@@ -14,12 +14,20 @@ use lsp_types::{
 
 use crate::utils::hashqueue::HashQueue;
 
+pub trait DiagnosticFilter {
+    fn filter_diagnostics(
+        &self,
+        uri: &Uri,
+        results: Vec<DiagnosticsResult>,
+    ) -> Vec<DiagnosticsResult>;
+}
+
 pub trait Diagnostics: Send + Sync {
     fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult>;
     fn get_name(&self) -> String;
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct DiagnosticsResult {
     pub diagnostics: lsp_types::Diagnostic,
     pub code_actions: Vec<lsp_types::CodeAction>,
@@ -38,21 +46,29 @@ pub type DiagnosticsList = Vec<Box<dyn Diagnostics>>;
 
 type CurrentDiagnostics = HashMap<Uri, HashMap<String, Vec<DiagnosticsResult>>>;
 #[derive(Clone)]
-pub struct DiagnosticsQueue {
+pub struct DiagnosticsQueue<F>
+where
+    F: DiagnosticFilter + Clone,
+{
     queue: Arc<Mutex<HashQueue<Uri, DiagnosticsList>>>,
     /// Contains the current active diagnostics indexed by the identifier of the lint
     pub current_diagnostics: Arc<RwLock<CurrentDiagnostics>>,
     running: Arc<RwLock<bool>>,
     sender: Sender<lsp_server::Message>,
+    filter: F,
 }
 
-impl DiagnosticsQueue {
-    pub fn new(sender: Sender<lsp_server::Message>) -> Self {
+impl<F> DiagnosticsQueue<F>
+where
+    F: DiagnosticFilter + Clone,
+{
+    pub fn new(sender: Sender<lsp_server::Message>, filter: F) -> Self {
         Self {
             queue: Arc::new(Mutex::new(HashQueue::new())),
             running: Arc::new(RwLock::new(false)),
             sender,
             current_diagnostics: Arc::new(RwLock::new(HashMap::new())),
+            filter,
         }
     }
 
@@ -75,7 +91,13 @@ impl DiagnosticsQueue {
 
         let diags = current_diag_map
             .iter()
-            .flat_map(|(_, diagresults)| diagresults.iter().map(|diag| diag.diagnostics.clone()))
+            .map(|(_, diags)| self.filter.filter_diagnostics(&uri, diags.to_vec()))
+            .flat_map(|diagresults| {
+                diagresults
+                    .iter()
+                    .map(|diag| diag.diagnostics.clone())
+                    .collect::<Vec<_>>()
+            })
             .collect();
 
         // Always send the notification to clear old diagnostic messages

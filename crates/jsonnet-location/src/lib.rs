@@ -71,6 +71,16 @@ impl From<LocationRange> for lsp_types::Range {
     }
 }
 
+impl From<Range> for LocationRange {
+    fn from(value: Range) -> Self {
+        Self {
+            begin: value.start.into(),
+            end: value.end.into(),
+            ..Default::default()
+        }
+    }
+}
+
 impl LocationRange {
     pub fn in_range(&self, location: &Location) -> bool {
         // Same line but before range
