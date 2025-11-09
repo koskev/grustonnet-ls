@@ -8,7 +8,13 @@ use lsp_types::Uri;
 
 use crate::{
     cache::JsonnetASTGenerator,
-    node::types::{Local, node::Node, node_kind::NodeKind, var::Var},
+    node::types::{
+        Local,
+        function::{Apply, Function},
+        node::Node,
+        node_kind::NodeKind,
+        var::Var,
+    },
 };
 
 pub mod cst_linters;
@@ -36,6 +42,8 @@ macro_rules! add_diag {
 pub trait JsonnetDiagnostics: Send + Sync {
     add_diag!(check_local, local: &Local);
     add_diag!(check_var, var: &Var);
+    add_diag!(check_apply, apply: &Apply);
+    add_diag!(check_function, function: &Function);
 
     fn get_name(&self) -> String;
 }
@@ -66,6 +74,8 @@ impl Diagnostics for DiagnosticsHandler {
                 let res = match node.node_kind.as_ref() {
                     NodeKind::Local(local) => diag.check_local(&ctx, local),
                     NodeKind::Var(var) => diag.check_var(&ctx, var),
+                    NodeKind::Apply(apply) => diag.check_apply(&ctx, apply),
+                    NodeKind::Function(function) => diag.check_function(&ctx, function),
                     _ => None,
                 };
                 if let Some(res) = res {

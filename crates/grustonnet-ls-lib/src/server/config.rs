@@ -55,6 +55,10 @@ pub struct DiagnosticConfig {
     #[default = true]
     /// Check for $ and display a hint to not use it. Yes I just hate it this much
     pub prevent_dollar: bool,
+
+    #[default = true]
+    /// Checks the default arguments of functions for recursions
+    pub recursive_arguments: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
