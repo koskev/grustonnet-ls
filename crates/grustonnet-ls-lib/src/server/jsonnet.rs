@@ -37,8 +37,9 @@ use crate::{
     definition::DefinitionProvider,
     diagnostics::{
         DiagnosticsHandler, JsonnetDiagnostics,
-        cst_linters::local_function::{JsonnetDiagnosticFilter, LocalFunctionDiagnostics},
+        cst_linters::local_function::LocalFunctionDiagnostics,
         eval::EvalDiagnostics,
+        filter::JsonnetDiagnosticFilter,
         go_lint::GoLintDiagnostics,
         linters::{
             self,

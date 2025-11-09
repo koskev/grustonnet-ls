@@ -13,6 +13,7 @@ use crate::{
 
 pub mod cst_linters;
 pub mod eval;
+pub mod filter;
 pub mod go_lint;
 pub mod linters;
 
