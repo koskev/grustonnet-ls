@@ -42,8 +42,8 @@ pub struct DiagnosticConfig {
     pub enable_go_lint: bool,
 
     #[default = true]
-    /// Enable linting checks (currently limited to unused variables)
-    pub enable_lint: bool,
+    /// Enable linting for unused variables
+    pub unused_variables: bool,
 
     /// Determines which type of variable naming diagnostics should be used
     pub variable_naming: VariableNaming,

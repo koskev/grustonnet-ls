@@ -36,7 +36,7 @@ use crate::{
     },
     definition::DefinitionProvider,
     diagnostics::{
-        DiagnosticsHandler, JsonnetDiagnostics,
+        ASTDiagnosticsHandler, JsonnetDiagnostics,
         cst_linters::local_function::LocalFunctionDiagnostics,
         eval::EvalDiagnostics,
         filter::JsonnetDiagnosticFilter,
@@ -99,7 +99,7 @@ impl JsonnetServer {
             let diags = GoLintDiagnostics::new(self.cache.clone()).diagnostics(uri);
             items.extend(diags);
         }
-        if config.diagnostics.enable_lint {
+        if config.diagnostics.unused_variables {
             let diags =
                 linters::unused::UnusedDiagnostics::new(self.cache.clone()).diagnostics(uri);
             items.extend(diags);
@@ -124,7 +124,7 @@ impl LSPServer for JsonnetServer {
         if config.diagnostics.enable_go_lint {
             diags.push(Box::new(GoLintDiagnostics::new(self.cache.clone())));
         }
-        if config.diagnostics.enable_lint {
+        if config.diagnostics.unused_variables {
             diags.push(Box::new(linters::unused::UnusedDiagnostics::new(
                 self.cache.clone(),
             )));
@@ -156,7 +156,7 @@ impl LSPServer for JsonnetServer {
             }));
         }
 
-        diags.push(Box::new(DiagnosticsHandler {
+        diags.push(Box::new(ASTDiagnosticsHandler {
             cache: self.cache.clone(),
             diags: diagnostics_handler_diags,
         }));

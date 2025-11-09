@@ -49,12 +49,12 @@ pub trait JsonnetDiagnostics: Send + Sync {
 }
 
 #[derive(Default)]
-pub struct DiagnosticsHandler {
+pub struct ASTDiagnosticsHandler {
     pub cache: Cache<JsonnetASTGenerator>,
     pub diags: Vec<Box<dyn JsonnetDiagnostics>>,
 }
 
-impl Diagnostics for DiagnosticsHandler {
+impl Diagnostics for ASTDiagnosticsHandler {
     fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
         let mut result = vec![];
         let Ok(doc) = self.cache.get_document(uri) else {
