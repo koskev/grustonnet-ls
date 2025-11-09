@@ -58,7 +58,7 @@ impl<'a> Inlay for ApplyInlay<'a> {
                             Some(InlayHint {
                                 position: apply_param.expr.node_base.loc_range.begin.clone().into(),
                                 label: lsp_types::InlayHintLabel::String(format!(
-                                    "{}:",
+                                    "{}=",
                                     // this probably happens for $std or a top level function without
                                     // any params. e.g. in crates/grustonnet-ls-lib/testdata/complete/import/nested_func.libsonnet
                                     names.get(i)?
