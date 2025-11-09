@@ -49,3 +49,22 @@ fn dollar_nested() {
     }
     .check();
 }
+
+#[test]
+fn dollar_import() {
+    CompletionTestCase {
+        filename: "testdata/complete/dollar/import.jsonnet".into(),
+        replace_string: "x: myLib.dollarKey.objKey".into(),
+        replace_by_string: "x: myLib.dollarKey.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "objKey".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
