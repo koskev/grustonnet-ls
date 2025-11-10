@@ -7,7 +7,7 @@ use grustonnet_ls_lib::{
 };
 use language_server::diagnostics::DiagnosticFilter;
 use language_server::utils::{UriHelper, rope::RopeHelper};
-use lsp_types::Uri;
+use lsp_types::{DiagnosticSeverity, Uri};
 use miette::{LabeledSpan, miette};
 use ropey::Rope;
 
@@ -18,6 +18,21 @@ struct Args {
 
     #[arg(long, short)]
     jpaths: Vec<String>,
+}
+
+trait SeverityMap {
+    fn to_miette(&self) -> miette::Severity;
+}
+
+impl SeverityMap for DiagnosticSeverity {
+    fn to_miette(&self) -> miette::Severity {
+        match *self {
+            DiagnosticSeverity::WARNING => miette::Severity::Warning,
+            DiagnosticSeverity::ERROR => miette::Severity::Error,
+            DiagnosticSeverity::INFORMATION | DiagnosticSeverity::HINT => miette::Severity::Advice,
+            _ => miette::Severity::default(),
+        }
+    }
 }
 
 #[tokio::main]
@@ -92,8 +107,12 @@ async fn main() {
                     start..end,
                     diag.diagnostics.message.clone()
                 ),],
-                severity = miette::Severity::Warning,
-                "Linter warning"
+                severity = diag
+                    .diagnostics
+                    .severity
+                    .unwrap_or(DiagnosticSeverity::ERROR)
+                    .to_miette(),
+                "Linter result"
             )
             .with_source_code(source);
             eprintln!("{:?}", report)
