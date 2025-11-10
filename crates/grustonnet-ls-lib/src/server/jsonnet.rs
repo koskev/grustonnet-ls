@@ -89,33 +89,19 @@ impl JsonnetServer {
     }
 
     pub fn get_diagnostics(&self, uri: &Uri) -> Vec<Diagnostic> {
-        let mut items = vec![];
-        let config = self.configuration.read().unwrap().clone();
-        if config.diagnostics.enable_eval {
-            let diags = EvalDiagnostics::new(self.cache.clone()).diagnostics(uri);
-            items.extend(diags);
-        }
-        if config.diagnostics.enable_go_lint {
-            let diags = GoLintDiagnostics::new(self.cache.clone()).diagnostics(uri);
-            items.extend(diags);
-        }
-        if config.diagnostics.unused_variables {
-            let diags =
-                linters::unused::UnusedDiagnostics::new(self.cache.clone()).diagnostics(uri);
-            items.extend(diags);
-        }
-        // TODO: Filter messages with the same target but different severity
-        items.iter().map(|d| d.diagnostics.clone()).collect()
-    }
-}
-
-impl LSPServer for JsonnetServer {
-    type AstGenerator = JsonnetASTGenerator;
-    fn connection(&self) -> &LSPConnection {
-        &self.connection
+        let diags = self.get_diagnostics_provider();
+        diags
+            .iter()
+            .flat_map(|diag| {
+                diag.diagnostics(uri)
+                    .iter()
+                    .map(|result| result.diagnostics.clone())
+                    .collect::<Vec<_>>()
+            })
+            .collect()
     }
 
-    fn queue_diagnostics(&self, uri: &Uri) {
+    fn get_diagnostics_provider(&self) -> Vec<Box<dyn Diagnostics>> {
         let config = self.configuration.read().unwrap().clone();
         let mut diags: Vec<Box<dyn Diagnostics>> = vec![];
         if config.diagnostics.enable_eval {
@@ -160,6 +146,18 @@ impl LSPServer for JsonnetServer {
             cache: self.cache.clone(),
             diags: diagnostics_handler_diags,
         }));
+        diags
+    }
+}
+
+impl LSPServer for JsonnetServer {
+    type AstGenerator = JsonnetASTGenerator;
+    fn connection(&self) -> &LSPConnection {
+        &self.connection
+    }
+
+    fn queue_diagnostics(&self, uri: &Uri) {
+        let diags = self.get_diagnostics_provider();
         if let Some(queue) = self.diagnostics_queue.as_ref() {
             queue.queue(uri.clone(), diags);
         }
