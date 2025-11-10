@@ -90,8 +90,8 @@ where
         }
 
         let diags = current_diag_map
-            .iter()
-            .map(|(_, diags)| self.filter.filter_diagnostics(&uri, diags.to_vec()))
+            .values()
+            .map(|diags| self.filter.filter_diagnostics(&uri, diags.to_vec()))
             .flat_map(|diagresults| {
                 diagresults
                     .iter()

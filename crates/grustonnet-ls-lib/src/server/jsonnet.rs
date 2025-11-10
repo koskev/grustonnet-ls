@@ -10,7 +10,7 @@ use jsonnet_location::LocationRange;
 use language_server::{
     cache::Cache,
     completion::Completion,
-    diagnostics::{Diagnostics, DiagnosticsQueue},
+    diagnostics::{Diagnostics, DiagnosticsQueue, DiagnosticsResult},
     server::{
         LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
     },
@@ -18,10 +18,10 @@ use language_server::{
 };
 use lsp_types::{
     CodeActionOrCommand, CodeActionProviderCapability, CompletionList, CompletionOptions,
-    CompletionParams, CompletionResponse, Diagnostic, DidChangeConfigurationParams,
-    DocumentDiagnosticParams, DocumentDiagnosticReportResult, ExecuteCommandOptions,
-    GotoDefinitionParams, GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams,
-    OneOf, RelatedFullDocumentDiagnosticReport, SemanticTokens, SemanticTokensOptions,
+    CompletionParams, CompletionResponse, DidChangeConfigurationParams, DocumentDiagnosticParams,
+    DocumentDiagnosticReportResult, ExecuteCommandOptions, GotoDefinitionParams,
+    GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams, OneOf,
+    RelatedFullDocumentDiagnosticReport, SemanticTokens, SemanticTokensOptions,
     SemanticTokensServerCapabilities, ServerCapabilities, TextDocumentSyncKind,
     TextDocumentSyncOptions, Uri,
 };
@@ -88,16 +88,11 @@ impl JsonnetServer {
         }
     }
 
-    pub fn get_diagnostics(&self, uri: &Uri) -> Vec<Diagnostic> {
+    pub fn get_diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
         let diags = self.get_diagnostics_provider();
         diags
             .iter()
-            .flat_map(|diag| {
-                diag.diagnostics(uri)
-                    .iter()
-                    .map(|result| result.diagnostics.clone())
-                    .collect::<Vec<_>>()
-            })
+            .flat_map(|diag| diag.diagnostics(uri))
             .collect()
     }
 
@@ -268,7 +263,11 @@ impl LSPServer for JsonnetServer {
             DocumentDiagnosticReportResult::Report(lsp_types::DocumentDiagnosticReport::Full(
                 RelatedFullDocumentDiagnosticReport {
                     full_document_diagnostic_report: lsp_types::FullDocumentDiagnosticReport {
-                        items: self.get_diagnostics(&params.text_document.uri),
+                        items: self
+                            .get_diagnostics(&params.text_document.uri)
+                            .into_iter()
+                            .map(|d| d.diagnostics)
+                            .collect(),
                         ..Default::default()
                     },
                     ..Default::default()

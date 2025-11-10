@@ -80,12 +80,17 @@ impl DiagnosticTestCase {
             })
             .unwrap();
 
-        let mut diagnositcs = server.get_diagnostics(&Uri::from_path(&self.filename).unwrap());
+        let diagnostics = server.get_diagnostics(&Uri::from_path(&self.filename).unwrap());
 
-        diagnositcs
-            .iter_mut()
-            .for_each(|diag| diag.code_description = None);
+        let diagnostics: Vec<Diagnostic> = diagnostics
+            .into_iter()
+            .map(|d| d.diagnostics)
+            .map(|mut diag| {
+                diag.code_description = None;
+                diag
+            })
+            .collect();
 
-        assert_eq_unordered!(diagnositcs, self.expected.clone());
+        assert_eq_unordered!(diagnostics, self.expected.clone());
     }
 }

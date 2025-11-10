@@ -9,6 +9,7 @@ needless_update = "allow"
 [workspace]
 members = [
 "crates/grustonnet-bin",
+"crates/grustonnet-lint",
 "crates/grustonnet-ls-lib",
 "crates/jsonnet-bridge",
 "crates/jsonnet-location",
