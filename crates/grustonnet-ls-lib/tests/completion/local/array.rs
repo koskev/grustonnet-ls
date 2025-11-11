@@ -91,3 +91,41 @@ fn simple_index_one_nested() {
     }
     .check();
 }
+
+#[test]
+fn inside_array_with_assert() {
+    CompletionTestCase {
+        filename: "testdata/complete/array/inside_array_with_assert.jsonnet".into(),
+        replace_string: "myVar,".into(),
+        replace_by_string: "myVar.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "key".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn inside_array_with_desugared_assert() {
+    CompletionTestCase {
+        filename: "testdata/complete/array/inside_array_with_desugared_assert.jsonnet".into(),
+        replace_string: "myVar // var".into(),
+        replace_by_string: "myVar.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "key".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}

@@ -113,6 +113,19 @@ impl Node {
             })
             .map(|child| child.get_stack_by_position(pos))
             .collect();
+
+        // In some cases (e.g. desugaring an `assert` the else case gets a valid range for the
+        // current pos, even if it is after the cursor. To fix that we just drop the last node if
+        // it is an `error`
+        // TODO: solve the actual problem?
+
+        if stack.stack.len() > 1
+            && let Some(top_node) = stack.peek()
+            && matches!(top_node.node_kind.as_ref(), NodeKind::Error(_))
+        {
+            stack.stack.pop();
+        }
+
         stack.push_front(Arc::new(self.clone()));
 
         stack
