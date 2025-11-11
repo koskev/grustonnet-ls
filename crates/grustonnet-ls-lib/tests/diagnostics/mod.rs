@@ -15,6 +15,7 @@ use grustonnet_ls_lib::server::{
 pub mod empty;
 pub mod error;
 pub mod runtime;
+pub mod snake;
 pub mod r#static;
 
 pub(crate) struct DiagnosticTestCase {
