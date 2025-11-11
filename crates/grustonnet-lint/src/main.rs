@@ -102,10 +102,19 @@ async fn main() {
             let rope = Rope::from_str(&source);
             let start = rope.get_index(diag.diagnostics.range.start);
             let end = rope.get_index(diag.diagnostics.range.end);
+            let fix_text = if !diag.code_actions.is_empty() {
+                Some(" (fix available in language server)".to_string())
+            } else {
+                None
+            };
             let report = miette!(
                 labels = vec![LabeledSpan::at(
                     start..end,
-                    diag.diagnostics.message.clone()
+                    format!(
+                        "{}{}",
+                        diag.diagnostics.message.clone(),
+                        fix_text.unwrap_or_default()
+                    )
                 ),],
                 severity = diag
                     .diagnostics
