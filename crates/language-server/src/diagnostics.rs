@@ -11,6 +11,7 @@ use lsp_types::{
     PublishDiagnosticsParams, Uri,
     notification::{Notification as NotificationTrait, PublishDiagnostics},
 };
+use mockall::automock;
 
 use crate::utils::hashqueue::HashQueue;
 
@@ -22,6 +23,20 @@ pub trait DiagnosticFilter {
     ) -> Vec<DiagnosticsResult>;
 }
 
+#[derive(Clone)]
+pub struct DummyFilter {}
+
+impl DiagnosticFilter for DummyFilter {
+    fn filter_diagnostics(
+        &self,
+        _: &Uri,
+        results: Vec<DiagnosticsResult>,
+    ) -> Vec<DiagnosticsResult> {
+        results
+    }
+}
+
+#[automock]
 pub trait Diagnostics: Send + Sync {
     fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult>;
     fn get_name(&self) -> String;
@@ -80,7 +95,7 @@ where
         let Some((uri, list)) = self.queue.lock().unwrap().pop() else {
             return;
         };
-        log::trace!("Processing diagnostics for {:?}", uri);
+        log::trace!("Processing diagnostics for {}", uri.path());
 
         let mut binding = self.current_diagnostics.write().unwrap();
         let current_diag_map = binding.entry(uri.clone()).or_default();
@@ -99,6 +114,8 @@ where
                     .collect::<Vec<_>>()
             })
             .collect();
+
+        log::trace!("Publishing diagnostics for {}: {:?}", uri.path(), diags);
 
         // Always send the notification to clear old diagnostic messages
         self.sender
