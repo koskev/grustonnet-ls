@@ -214,10 +214,10 @@ fn find_upwards(cwd: &str, suffix: &str) -> HashMap<String, String> {
                     .strip_suffix(suffix)
                     .unwrap()
                     .to_string();
-                if let Entry::Vacant(e) = files_found.entry(name) {
-                    if let Ok(content) = fs::read_to_string(found.path()) {
-                        e.insert(content);
-                    }
+                if let Entry::Vacant(e) = files_found.entry(name)
+                    && let Ok(content) = fs::read_to_string(found.path())
+                {
+                    e.insert(content);
                 }
             });
 
@@ -464,7 +464,7 @@ mod test {
                 "locrange" => {
                     let (result, _): (LocationRange, usize) =
                         bincode::decode_from_slice(&test_object.data, config)
-                            .expect(&format!("Got {:?}", test_object.data));
+                            .unwrap_or_else(|_| panic!("Got {:?}", test_object.data));
                     assert_eq!(result.file_name, "test");
                     assert_eq!(result.begin.line, 1);
                     assert_eq!(result.begin.column, 2);

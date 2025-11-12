@@ -25,7 +25,7 @@ pub mod go_lint;
 pub mod linters;
 
 pub struct JsonnetDiagnosticsContext {
-    cache: Cache<JsonnetASTGenerator>,
+    _cache: Cache<JsonnetASTGenerator>,
     uri: Uri,
 
     /// The generic node the function uses
@@ -76,7 +76,7 @@ impl Diagnostics for ASTDiagnosticsHandler {
 
         for node in ast.get_complete_stack().stack.iter() {
             let ctx = JsonnetDiagnosticsContext {
-                cache: self.cache.clone(),
+                _cache: self.cache.clone(),
                 uri: uri.clone(),
                 node: node.clone(),
                 root: ast.clone(),

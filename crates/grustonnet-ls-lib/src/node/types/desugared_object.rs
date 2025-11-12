@@ -56,7 +56,7 @@ impl Display for DesugaredObject {
             format!("{{ {} }}", body),
             FormatOptions::default(),
         );
-        if formatted.error_data.len() != 0 {
+        if !formatted.error_data.is_empty() {
             write!(f, "{{ {} }}", body)
         } else {
             let formatted_string = String::from_utf8(formatted.ast_data).unwrap_or_default();

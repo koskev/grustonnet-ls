@@ -90,10 +90,10 @@ impl<'a> CompletionInfo<'a> {
                 if NodeType::from(prev_node) == NodeType::NodeClosingBracket {
                     log::debug!("Got closing bracket");
                     // If next sibling is import we use this as the completion node
-                    if let Some(prev_sibling) = prev_node.prev_sibling() {
-                        if NodeType::from(prev_sibling) == NodeType::NodeImport {
-                            prev_node = prev_sibling
-                        }
+                    if let Some(prev_sibling) = prev_node.prev_sibling()
+                        && NodeType::from(prev_sibling) == NodeType::NodeImport
+                    {
+                        prev_node = prev_sibling
                     }
                 }
                 log::trace!(

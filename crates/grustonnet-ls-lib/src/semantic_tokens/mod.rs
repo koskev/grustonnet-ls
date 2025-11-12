@@ -8,7 +8,7 @@ use strum::{EnumDiscriminants, EnumIter, IntoEnumIterator};
 use crate::node::types::{node::Node, node_kind::NodeKind};
 
 macro_rules! token_enum {
-    ($name: ident, $lsp_type: expr, $($item: expr),*) => {
+    ($name: ident, $lsp_type: ty, $($item: expr),*) => {
         paste::paste! {
             #[derive(Default, Debug, EnumIter, EnumDiscriminants, NamedVariant, Clone)]
             pub enum $name {
@@ -30,6 +30,8 @@ macro_rules! token_enum {
                 }
             }
 
+            // TODO: convert to from
+            #[allow(clippy::from_over_into)]
             impl Into<$lsp_type> for $name {
                 fn into(self) -> $lsp_type {
                     let name = self.variant_name();
