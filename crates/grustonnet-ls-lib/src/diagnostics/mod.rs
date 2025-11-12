@@ -29,6 +29,9 @@ pub struct JsonnetDiagnosticsContext {
 
     /// The generic node the function uses
     node: Arc<Node>,
+
+    /// The root node of the current document
+    root: Arc<Node>,
 }
 
 macro_rules! add_diag {
@@ -69,6 +72,7 @@ impl Diagnostics for ASTDiagnosticsHandler {
                 cache: self.cache.clone(),
                 uri: uri.clone(),
                 node: node.clone(),
+                root: ast.clone(),
             };
             for diag in self.diags.iter() {
                 let res = match node.node_kind.as_ref() {

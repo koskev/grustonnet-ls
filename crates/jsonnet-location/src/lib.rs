@@ -1,5 +1,6 @@
 use bincode::{Decode, Encode};
-use lsp_types::{Position, Range};
+use language_server::utils::UriHelper;
+use lsp_types::{Position, Range, Uri};
 use serde::{Deserialize, Serialize};
 
 pub mod point;
@@ -77,6 +78,18 @@ impl From<Range> for LocationRange {
             begin: value.start.into(),
             end: value.end.into(),
             ..Default::default()
+        }
+    }
+}
+
+impl From<LocationRange> for lsp_types::Location {
+    fn from(val: LocationRange) -> Self {
+        lsp_types::Location {
+            uri: Uri::from_path(val.file_name).unwrap(),
+            range: Range {
+                start: val.begin.into(),
+                end: val.end.into(),
+            },
         }
     }
 }
