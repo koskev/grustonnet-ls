@@ -1,0 +1,3 @@
+{
+	local myVar = 5,
+}

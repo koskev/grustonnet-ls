@@ -17,6 +17,7 @@ pub mod error;
 pub mod runtime;
 pub mod snake;
 pub mod r#static;
+pub mod unused;
 
 pub(crate) struct DiagnosticTestCase {
     pub(crate) filename: String,

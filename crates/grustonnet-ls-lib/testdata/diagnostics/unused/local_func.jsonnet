@@ -1,0 +1,2 @@
+local myFunc() = 5;
+{}

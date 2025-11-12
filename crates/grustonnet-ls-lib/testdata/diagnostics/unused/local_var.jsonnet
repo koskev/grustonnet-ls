@@ -1,0 +1,2 @@
+local myVar = 5;
+{}
