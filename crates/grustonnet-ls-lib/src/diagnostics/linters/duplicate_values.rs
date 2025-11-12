@@ -10,11 +10,13 @@ use lsp_types::{Diagnostic, DiagnosticSeverity};
 use crate::{
     diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext},
     node::types::{literals::LiteralString, node::Node},
+    server::config::DuplicateDetectionConfig,
 };
 
 #[derive(Default)]
 pub struct DuplicateValuesDiagnostic {
-    seen_values: Arc<RwLock<HashMap<u64, Vec<Arc<Node>>>>>,
+    pub seen_values: Arc<RwLock<HashMap<u64, Vec<Arc<Node>>>>>,
+    pub config: DuplicateDetectionConfig,
 }
 
 impl JsonnetDiagnostics for DuplicateValuesDiagnostic {
@@ -28,7 +30,10 @@ impl JsonnetDiagnostics for DuplicateValuesDiagnostic {
         string: &LiteralString,
     ) -> Option<Vec<DiagnosticsResult>> {
         // Only "real" strings do have a location. All other are part of an index etc
-        if ctx.node.node_base.loc_range.is_valid() {
+        if ctx.node.node_base.loc_range.is_valid()
+            && string.value.len() >= self.config.min_len
+            && self.config.min_occurrences > 0
+        {
             let mut hasher = std::hash::DefaultHasher::new();
             string.value.hash(&mut hasher);
 
@@ -50,7 +55,8 @@ impl JsonnetDiagnostics for DuplicateValuesDiagnostic {
                 .read()
                 .unwrap()
                 .values()
-                .filter(|nodes| nodes.len() > 1)
+                // Add one to account for the original node
+                .filter(|nodes| nodes.len() + 1 > self.config.min_occurrences)
                 .flat_map(|nodes| {
                     nodes.iter().map(|node| DiagnosticsResult {
                         diagnostics: Diagnostic {

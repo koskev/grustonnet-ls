@@ -136,7 +136,11 @@ impl JsonnetServer {
         add_jsonnet_diag!(prevent_dollar, DollarDiagnostics);
         add_jsonnet_diag!(recursive_arguments, RecursiveArgumentDiagnostic);
         add_jsonnet_diag!(shadow_variable, ShadowVariableDiagnostics);
-        add_jsonnet_diag!(duplicate_detection, DuplicateValuesDiagnostic);
+
+        diagnostics_handler_diags.push(Box::new(DuplicateValuesDiagnostic {
+            config: config.diagnostics.duplicate_detection.clone(),
+            ..Default::default()
+        }));
 
         if config.diagnostics.local_function {
             diags.push(Box::new(LocalFunctionDiagnostics {
