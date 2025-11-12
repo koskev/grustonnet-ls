@@ -44,6 +44,7 @@ use crate::{
         linters::{
             self,
             dollar::DollarDiagnostics,
+            duplicate_values::DuplicateValuesDiagnostic,
             recursive_argument::RecursiveArgumentDiagnostic,
             shadow_variable::ShadowVariableDiagnostics,
             variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
@@ -135,6 +136,7 @@ impl JsonnetServer {
         add_jsonnet_diag!(prevent_dollar, DollarDiagnostics);
         add_jsonnet_diag!(recursive_arguments, RecursiveArgumentDiagnostic);
         add_jsonnet_diag!(shadow_variable, ShadowVariableDiagnostics);
+        add_jsonnet_diag!(duplicate_detection, DuplicateValuesDiagnostic);
 
         if config.diagnostics.local_function {
             diags.push(Box::new(LocalFunctionDiagnostics {

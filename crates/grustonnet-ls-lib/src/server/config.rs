@@ -63,6 +63,11 @@ pub struct DiagnosticConfig {
     #[default = true]
     /// Warns if a variable gets shadowed by another variable
     pub shadow_variable: bool,
+
+    #[default = true]
+    /// Warns if a literal value is used multiple times (currently limited to a single file and
+    /// literal strings)
+    pub duplicate_detection: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
