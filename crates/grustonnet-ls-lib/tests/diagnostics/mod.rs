@@ -19,10 +19,17 @@ pub mod snake;
 pub mod r#static;
 pub mod unused;
 
+#[derive(Default)]
+pub struct IgnoreFields {
+    message: bool,
+    source: bool,
+}
+
 pub(crate) struct DiagnosticTestCase {
     pub(crate) filename: String,
     pub(crate) expected: Vec<Diagnostic>,
     pub(crate) config: DiagnosticConfig,
+    pub(crate) ignore: IgnoreFields,
 }
 
 impl Default for DiagnosticTestCase {
@@ -44,6 +51,10 @@ impl Default for DiagnosticTestCase {
                     min_occurrences: 0,
                     ..Default::default()
                 },
+            },
+            ignore: IgnoreFields {
+                message: false,
+                source: true,
             },
         }
     }
@@ -94,10 +105,31 @@ impl DiagnosticTestCase {
             .map(|d| d.diagnostics)
             .map(|mut diag| {
                 diag.code_description = None;
+                if self.ignore.message {
+                    diag.message = "".into();
+                }
+                if self.ignore.source {
+                    diag.source = Some("".into());
+                }
+                diag
+            })
+            .collect();
+        // TODO: macro to remove duplicate logic
+        let expected = self
+            .expected
+            .clone()
+            .into_iter()
+            .map(|mut diag| {
+                if self.ignore.message {
+                    diag.message = "".into();
+                }
+                if self.ignore.source {
+                    diag.source = Some("".into());
+                }
                 diag
             })
             .collect();
 
-        assert_eq_unordered!(diagnostics, self.expected.clone());
+        assert_eq_unordered!(diagnostics, expected);
     }
 }

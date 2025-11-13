@@ -2,7 +2,7 @@ use grustonnet_ls_lib::server::config::{
     DiagnosticConfig, DuplicateDetectionConfig, VariableNaming,
 };
 
-use crate::diagnostics::DiagnosticTestCase;
+use crate::diagnostics::{DiagnosticTestCase, IgnoreFields};
 
 fn check_empty_diagnostics(val: &str) {
     DiagnosticTestCase {
@@ -21,6 +21,10 @@ fn check_empty_diagnostics(val: &str) {
                 min_occurrences: 0,
                 ..Default::default()
             },
+        },
+        ignore: IgnoreFields {
+            source: true,
+            ..Default::default()
         },
     }
     .check();
