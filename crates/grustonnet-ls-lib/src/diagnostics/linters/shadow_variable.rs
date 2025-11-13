@@ -1,5 +1,5 @@
 use language_server::diagnostics::DiagnosticsResult;
-use lsp_types::{Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity};
+use lsp_types::{Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Range};
 
 use crate::{
     diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext},
@@ -24,6 +24,7 @@ impl JsonnetDiagnostics for ShadowVariableDiagnostics {
             .get_stack_by_position(&ctx.node.node_base.loc_range.begin);
         stack.stack.pop(); // remove self
 
+        let bind_location = local.binds.first()?.loc_range.clone();
         // TODO: Currently this only considers locals and not parameters
         let shadowed_variables: Vec<_> = stack
             .stack
@@ -41,15 +42,22 @@ impl JsonnetDiagnostics for ShadowVariableDiagnostics {
         if !shadowed_variables.is_empty() {
             let mut diags = vec![DiagnosticsResult {
                 diagnostics: Diagnostic {
-                    range: ctx.node.node_base.loc_range.clone().into(),
+                    range: bind_location.clone().into(),
                     message: "This variable shadows other variables".into(),
                     severity: Some(DiagnosticSeverity::WARNING),
                     related_information: Some(
                         shadowed_variables
                             .iter()
-                            .map(|(shadowed_node, _)| DiagnosticRelatedInformation {
-                                message: "This variable is shadowed".into(),
-                                location: shadowed_node.node_base.loc_range.clone().into(),
+                            .filter_map(|(_, shadowed_local)| {
+                                Some(DiagnosticRelatedInformation {
+                                    message: "This variable is shadowed".into(),
+                                    location: shadowed_local
+                                        .binds
+                                        .first()?
+                                        .loc_range
+                                        .clone()
+                                        .into(),
+                                })
                             })
                             .collect(),
                     ),
@@ -58,23 +66,24 @@ impl JsonnetDiagnostics for ShadowVariableDiagnostics {
                 },
                 ..Default::default()
             }];
-            diags.extend(
-                shadowed_variables
-                    .iter()
-                    .map(|(shadowed_node, _)| DiagnosticsResult {
-                        diagnostics: Diagnostic {
-                            range: shadowed_node.node_base.loc_range.clone().into(),
-                            message: "This variable is shadowed".into(),
-                            severity: Some(DiagnosticSeverity::INFORMATION),
-                            related_information: Some(vec![DiagnosticRelatedInformation {
-                                location: ctx.node.node_base.loc_range.clone().into(),
-                                message: "This variable shadows other variables".into(),
-                            }]),
-                            ..Default::default()
+            diags.extend(shadowed_variables.iter().filter_map(|(_, shadowed_local)| {
+                Some(DiagnosticsResult {
+                    diagnostics: Diagnostic {
+                        range: Range {
+                            start: shadowed_local.binds.first()?.loc_range.begin.clone().into(),
+                            end: shadowed_local.binds.first()?.loc_range.end.clone().into(),
                         },
+                        message: "This variable is shadowed".into(),
+                        severity: Some(DiagnosticSeverity::INFORMATION),
+                        related_information: Some(vec![DiagnosticRelatedInformation {
+                            location: bind_location.clone().into(),
+                            message: "This variable shadows other variables".into(),
+                        }]),
                         ..Default::default()
-                    }),
-            );
+                    },
+                    ..Default::default()
+                })
+            }));
             Some(diags)
         } else {
             None
