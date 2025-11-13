@@ -81,6 +81,7 @@ impl LocalFunctionDiagnostics {
                 }),
                 ..Default::default()
             }],
+            ..Default::default()
         });
 
         Some(results)

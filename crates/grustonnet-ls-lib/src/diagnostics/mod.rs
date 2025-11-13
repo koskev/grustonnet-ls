@@ -92,7 +92,17 @@ impl Diagnostics for ASTDiagnosticsHandler {
                     _ => None,
                 };
                 if let Some(res) = res {
-                    result.extend(res);
+                    result.extend(res.into_iter().map(|mut r| {
+                        // If the diag never specified a source, we'll use the name of the
+                        // diagnostic
+                        if r.diagnostics.source.is_none() {
+                            r.diagnostics.source = Some(diag.get_name());
+                        }
+                        if r.uri.is_none() {
+                            r.uri = Some(uri.clone());
+                        }
+                        r
+                    }));
                 }
             }
         }

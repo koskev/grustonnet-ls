@@ -46,6 +46,7 @@ pub trait Diagnostics: Send + Sync {
 pub struct DiagnosticsResult {
     pub diagnostics: lsp_types::Diagnostic,
     pub code_actions: Vec<lsp_types::CodeAction>,
+    pub uri: Option<Uri>,
 }
 
 impl From<lsp_types::Diagnostic> for DiagnosticsResult {
