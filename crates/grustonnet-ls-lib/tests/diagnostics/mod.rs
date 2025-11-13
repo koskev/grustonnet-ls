@@ -13,6 +13,7 @@ use grustonnet_ls_lib::server::{
     jsonnet::JsonnetServer,
 };
 
+pub mod dollar;
 pub mod empty;
 pub mod error;
 pub mod runtime;
