@@ -16,6 +16,7 @@ use grustonnet_ls_lib::server::{
 pub mod dollar;
 pub mod empty;
 pub mod error;
+pub mod recursion;
 pub mod runtime;
 pub mod shadow;
 pub mod snake;

@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use grustonnet_ls_lib::{
     diagnostics::{JsonnetDiagnostics, linters::shadow_variable::ShadowVariableDiagnostics},
-    server::config::{DiagnosticConfig, VariableNaming},
+    server::config::DiagnosticConfig,
 };
 use lsp_types::{
     Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, Position, Range, Uri,
