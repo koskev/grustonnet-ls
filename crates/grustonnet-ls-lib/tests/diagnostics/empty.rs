@@ -1,4 +1,6 @@
-use grustonnet_ls_lib::server::config::{DiagnosticConfig, VariableNaming};
+use grustonnet_ls_lib::server::config::{
+    DiagnosticConfig, DuplicateDetectionConfig, VariableNaming,
+};
 
 use crate::diagnostics::DiagnosticTestCase;
 
@@ -15,7 +17,10 @@ fn check_empty_diagnostics(val: &str) {
             prevent_dollar: false,
             recursive_arguments: false,
             shadow_variable: false,
-            duplicate_detection: false,
+            duplicate_detection: DuplicateDetectionConfig {
+                min_occurrences: 0,
+                ..Default::default()
+            },
         },
     }
     .check();

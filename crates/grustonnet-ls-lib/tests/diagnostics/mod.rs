@@ -8,7 +8,7 @@ use std::{
 pub use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Uri};
 
 use grustonnet_ls_lib::server::{
-    config::{Configuration, DiagnosticConfig, VariableNaming},
+    config::{Configuration, DiagnosticConfig, DuplicateDetectionConfig, VariableNaming},
     jsonnet::JsonnetServer,
 };
 
@@ -40,7 +40,10 @@ impl Default for DiagnosticTestCase {
                 prevent_dollar: false,
                 recursive_arguments: false,
                 shadow_variable: false,
-                duplicate_detection: false,
+                duplicate_detection: DuplicateDetectionConfig {
+                    min_occurrences: 0,
+                    ..Default::default()
+                },
             },
         }
     }
