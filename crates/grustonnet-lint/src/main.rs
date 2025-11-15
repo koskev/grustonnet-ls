@@ -61,6 +61,19 @@ async fn main() {
 
     env_logger::Builder::from_env(Env::default().default_filter_or("fatal")).init();
 
+    let _ = miette::set_hook(Box::new(|_| {
+        Box::new(
+            miette::MietteHandlerOpts::new()
+                .terminal_links(true)
+                .unicode(false)
+                .color(true)
+                .context_lines(3)
+                .tab_width(4)
+                .break_words(true)
+                .build(),
+        )
+    }));
+
     let paths: Vec<PathBuf> = if args.path.is_dir() {
         glob::glob(&format!("{}/**/*.*sonnet", args.path.to_str().unwrap()))
             .unwrap()
