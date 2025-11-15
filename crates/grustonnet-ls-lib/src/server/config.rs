@@ -36,7 +36,7 @@ pub struct DuplicateDetectionConfig {
     #[default = 5]
     /// The minimal length for a string to be considered
     pub min_len: usize,
-    #[default = 3]
+    #[default = 5]
     /// The minimum number of occurrences for it to be considered a duplicate. Set to 0 to disable
     pub min_occurrences: usize,
 }
