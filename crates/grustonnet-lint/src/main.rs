@@ -107,23 +107,22 @@ async fn main() {
             } else {
                 None
             };
-            let report = miette!(
-                labels = vec![LabeledSpan::at(
-                    start..end,
-                    format!(
-                        "{}{}",
-                        diag.diagnostics.message.clone(),
-                        fix_text.unwrap_or_default()
-                    )
-                ),],
-                severity = diag
-                    .diagnostics
+            let mut miette_diag = miette::MietteDiagnostic::new("Linter result");
+            miette_diag.labels = Some(vec![LabeledSpan::at(
+                start..end,
+                format!(
+                    "{}{}",
+                    diag.diagnostics.message.clone(),
+                    fix_text.unwrap_or_default()
+                ),
+            )]);
+            miette_diag.severity = Some(
+                diag.diagnostics
                     .severity
                     .unwrap_or(DiagnosticSeverity::ERROR)
                     .to_miette(),
-                "Linter result"
-            )
-            .with_source_code(source);
+            );
+            let report = miette::Report::from(miette_diag).with_source_code(source);
             eprintln!("{:?}", report)
         }
     }
