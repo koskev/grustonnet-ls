@@ -1,5 +1,5 @@
-use grustonnet_ls_lib::server::config::CompletionConfig;
-use grustonnet_ls_lib::server::config::Configuration;
+use grustonnet_config::CompletionConfig;
+use grustonnet_config::Configuration;
 use lsp_types::CompletionItem;
 use lsp_types::CompletionList;
 

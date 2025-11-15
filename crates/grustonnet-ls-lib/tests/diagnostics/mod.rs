@@ -1,4 +1,7 @@
 use assert_unordered::assert_eq_unordered;
+use grustonnet_config::{
+    Configuration, DiagnosticConfig, DuplicateDetectionConfig, VariableNaming,
+};
 use language_server::{server::LSPServer, utils::UriHelper};
 use std::{
     fs::read_to_string,
@@ -8,10 +11,7 @@ use std::{
 
 pub use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Uri};
 
-use grustonnet_ls_lib::server::{
-    config::{Configuration, DiagnosticConfig, DuplicateDetectionConfig, VariableNaming},
-    jsonnet::JsonnetServer,
-};
+use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 
 pub mod dollar;
 pub mod empty;

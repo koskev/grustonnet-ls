@@ -4,7 +4,8 @@ use std::{
     sync::{Arc, Once, RwLock},
 };
 
-use grustonnet_ls_lib::server::{config::Configuration, jsonnet::JsonnetServer};
+use grustonnet_config::Configuration;
+use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 use language_server::{
     server::LSPServer,
     utils::{UriHelper, rope::RopeHelper},

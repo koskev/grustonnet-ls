@@ -1,6 +1,4 @@
-use grustonnet_ls_lib::server::config::{
-    DiagnosticConfig, DuplicateDetectionConfig, VariableNaming,
-};
+use grustonnet_config::{DiagnosticConfig, DuplicateDetectionConfig, VariableNaming};
 
 use crate::diagnostics::{DiagnosticTestCase, IgnoreFields};
 

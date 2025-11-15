@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::Result;
 use bevy_tasks::TaskPool;
+use grustonnet_config::{Configuration, VariableNaming};
 use jsonnet_cst::completion::{CompletionInfo, CompletionType};
 use jsonnet_location::LocationRange;
 use language_server::{
@@ -54,7 +55,6 @@ use crate::{
     references::ReferenceProvider,
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},
-    server::config::{Configuration, VariableNaming},
     utils,
 };
 

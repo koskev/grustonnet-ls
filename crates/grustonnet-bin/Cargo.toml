@@ -11,6 +11,7 @@ tracing = ["tracy-client", "grustonnet-ls-lib/tracing"]
 tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread", "net"] }
 env_logger = "0.11.8"
 grustonnet-ls-lib = { path = "../grustonnet-ls-lib"}
+grustonnet-config = { path = "../grustonnet-config"}
 language-server = { path = "../language-server"}
 schemars = "1.0.1"
 clap = { version = "4.5.40", features = ["derive"] }

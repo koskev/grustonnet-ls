@@ -789,12 +789,25 @@ dependencies = [
  "clap",
  "env_logger",
  "exec",
+ "grustonnet-config",
  "grustonnet-ls-lib",
  "language-server",
  "schemars",
  "serde_json",
  "tokio",
  "tracy-client",
+]
+
+[[package]]
+name = "grustonnet-config"
+version = "0.1.0"
+dependencies = [
+ "jsonnet-bridge",
+ "lsp-types",
+ "schemars",
+ "serde",
+ "serde_json",
+ "smart-default",
 ]
 
 [[package]]
@@ -826,6 +839,7 @@ dependencies = [
  "bevy_tasks",
  "bincode",
  "env_logger",
+ "grustonnet-config",
  "grustonnet-node",
  "htmd",
  "itertools 0.14.0",

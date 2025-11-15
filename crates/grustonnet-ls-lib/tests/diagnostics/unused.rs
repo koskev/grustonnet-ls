@@ -1,4 +1,4 @@
-use grustonnet_ls_lib::server::config::DiagnosticConfig;
+use grustonnet_config::DiagnosticConfig;
 use lsp_types::{Diagnostic, DiagnosticSeverity, DiagnosticTag, Position, Range};
 
 use crate::diagnostics::DiagnosticTestCase;

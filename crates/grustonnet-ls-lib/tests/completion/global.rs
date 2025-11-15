@@ -1,4 +1,4 @@
-use grustonnet_ls_lib::server::config::{CompletionConfig, Configuration};
+use grustonnet_config::{CompletionConfig, Configuration};
 use lsp_types::{CompletionItem, CompletionItemKind, CompletionList};
 
 use crate::completion::common::CompletionTestCase;

@@ -1,6 +1,7 @@
 use clap::Parser;
 use env_logger::Env;
-use grustonnet_ls_lib::server::{config::Configuration, jsonnet::JsonnetServer};
+use grustonnet_config::Configuration;
+use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 use language_server::server::{LSPConnection, LSPServerManager};
 use schemars::schema_for;
 

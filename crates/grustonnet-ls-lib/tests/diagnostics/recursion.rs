@@ -1,6 +1,6 @@
-use grustonnet_ls_lib::{
-    diagnostics::{JsonnetDiagnostics, linters::recursive_argument::RecursiveArgumentDiagnostic},
-    server::config::DiagnosticConfig,
+use grustonnet_config::DiagnosticConfig;
+use grustonnet_ls_lib::diagnostics::{
+    JsonnetDiagnostics, linters::recursive_argument::RecursiveArgumentDiagnostic,
 };
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
 

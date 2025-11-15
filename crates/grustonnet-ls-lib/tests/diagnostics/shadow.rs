@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-use grustonnet_ls_lib::{
-    diagnostics::{JsonnetDiagnostics, linters::shadow_variable::ShadowVariableDiagnostics},
-    server::config::DiagnosticConfig,
+use grustonnet_config::DiagnosticConfig;
+use grustonnet_ls_lib::diagnostics::{
+    JsonnetDiagnostics, linters::shadow_variable::ShadowVariableDiagnostics,
 };
 use lsp_types::{
     Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, Position, Range, Uri,

@@ -4,14 +4,12 @@ use std::{
     sync::{Arc, RwLock},
 };
 
+use grustonnet_config::DuplicateDetectionConfig;
 use grustonnet_node::types::{literals::LiteralString, node::Node};
 use language_server::diagnostics::DiagnosticsResult;
 use lsp_types::{Diagnostic, DiagnosticSeverity};
 
-use crate::{
-    diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext},
-    server::config::DuplicateDetectionConfig,
-};
+use crate::diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext};
 
 #[derive(Default)]
 pub struct DuplicateValuesDiagnostic {

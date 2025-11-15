@@ -9,6 +9,7 @@ use std::{
 };
 
 use anyhow::Result;
+use grustonnet_config::JsonnetConfig;
 use grustonnet_node::types::node::Node;
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue, FormatOptions};
 use jsonnet_location::Location;
@@ -16,8 +17,6 @@ use language_server::server::LSPError;
 use lsp_server::ErrorCode;
 use name_variant::NamedVariant;
 use regex::Regex;
-
-use crate::server::config::JsonnetConfig;
 
 pub trait GenerateAST {
     fn get_ast(&self, filename: &str) -> Result<Node, EvaluateError>;
