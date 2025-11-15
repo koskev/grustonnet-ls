@@ -4,7 +4,7 @@ use bincode::{Decode, Encode};
 use jsonnet_location::LocationRange;
 use serde::{Deserialize, Serialize};
 
-use crate::node::{
+use crate::{
     stack::NodeStack,
     types::{Identifier, local_bind::LocalBind, node::Node, node_kind::NodeKind},
 };

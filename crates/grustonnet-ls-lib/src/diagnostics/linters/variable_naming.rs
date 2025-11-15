@@ -1,15 +1,13 @@
 use std::{collections::HashMap, marker::PhantomData};
 
+use grustonnet_node::types::Local;
 use jsonnet_location::Location;
 use language_server::diagnostics::DiagnosticsResult;
 use lsp_types::{
     CodeActionKind, Diagnostic, DiagnosticSeverity, Range, TextEdit, Uri, WorkspaceEdit,
 };
 
-use crate::{
-    diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext},
-    node::types::Local,
-};
+use crate::diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext};
 
 pub trait VariableNaming: Send + Sync {
     fn rename(input: &str) -> String;

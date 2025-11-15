@@ -1,22 +1,20 @@
 use std::sync::Arc;
 
+use grustonnet_node::types::{
+    Local,
+    function::{Apply, Function},
+    literals::{LiteralNumber, LiteralString},
+    node::Node,
+    node_kind::NodeKind,
+    var::Var,
+};
 use language_server::{
     cache::Cache,
     diagnostics::{Diagnostics, DiagnosticsResult},
 };
 use lsp_types::Uri;
 
-use crate::{
-    cache::JsonnetASTGenerator,
-    node::types::{
-        Local,
-        function::{Apply, Function},
-        literals::{LiteralNumber, LiteralString},
-        node::Node,
-        node_kind::NodeKind,
-        var::Var,
-    },
-};
+use crate::cache::JsonnetASTGenerator;
 
 pub mod cst_linters;
 pub mod eval;

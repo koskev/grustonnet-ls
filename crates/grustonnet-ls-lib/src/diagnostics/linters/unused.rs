@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use grustonnet_node::types::{Local, node_kind::NodeKind};
 use jsonnet_location::Location;
 use language_server::{
     cache::Cache,
@@ -10,11 +11,7 @@ use lsp_types::{
     TextEdit, Uri, WorkspaceEdit,
 };
 
-use crate::{
-    cache::JsonnetASTGenerator,
-    node::types::{Local, node_kind::NodeKind},
-    references::ReferenceProvider,
-};
+use crate::{cache::JsonnetASTGenerator, references::ReferenceProvider};
 
 pub struct UnusedDiagnostics {
     cache: Cache<JsonnetASTGenerator>,

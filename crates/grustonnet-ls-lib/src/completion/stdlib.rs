@@ -1,21 +1,18 @@
 use std::sync::Arc;
 
 use anyhow::Result;
+use grustonnet_node::types::{
+    Array, CommaSeparatedExpr,
+    base::NodeBase,
+    function::{Apply, Arguments},
+    literals::{LiteralBoolean, LiteralNumber},
+    node::Node,
+    node_kind::NodeKind,
+};
 use itertools::Itertools;
 use language_server::cache::Cache;
 
-use crate::{
-    bridge::GenerateAST,
-    cache::JsonnetASTGenerator,
-    node::types::{
-        Array, CommaSeparatedExpr,
-        base::NodeBase,
-        function::{Apply, Arguments},
-        literals::{LiteralBoolean, LiteralNumber},
-        node::Node,
-        node_kind::NodeKind,
-    },
-};
+use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
 use thiserror::Error;
 
 #[derive(Error, Debug)]

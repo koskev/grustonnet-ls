@@ -1,10 +1,11 @@
 use anyhow::Result;
+use grustonnet_node::types::node_kind::NodeKind;
 use jsonnet_location::LocationRange;
 use language_server::cache::Cache;
 use lsp_types::{InlayHint, Range, Uri};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay, node::types::node_kind::NodeKind};
+use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay, node::Stackhelper};
 
 pub struct ApplyInlay<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,

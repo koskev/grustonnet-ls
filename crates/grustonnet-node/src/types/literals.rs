@@ -1,7 +1,7 @@
 use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
-use crate::node::types::{node::Node, node_kind::NodeKind};
+use crate::types::{node::Node, node_kind::NodeKind};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase")]

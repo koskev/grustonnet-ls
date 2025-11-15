@@ -826,6 +826,7 @@ dependencies = [
  "bevy_tasks",
  "bincode",
  "env_logger",
+ "grustonnet-node",
  "htmd",
  "itertools 0.14.0",
  "jsonnet-bridge",
@@ -859,6 +860,23 @@ dependencies = [
  "tree-sitter",
  "tree-sitter-jsonnet",
  "walkdir",
+]
+
+[[package]]
+name = "grustonnet-node"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "itertools 0.14.0",
+ "jsonnet-bridge",
+ "jsonnet-location",
+ "language-server",
+ "log",
+ "lsp-types",
+ "name-variant",
+ "serde",
+ "tree-sitter",
 ]
 
 [[package]]

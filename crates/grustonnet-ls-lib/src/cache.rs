@@ -1,13 +1,11 @@
 use std::{collections::VecDeque, sync::Arc};
 
 use anyhow::{Result, anyhow};
+use grustonnet_node::types::node::Node;
 use language_server::{cache::ASTGenerator, utils::rope::RopeHelper};
 use ropey::Rope;
 
-use crate::{
-    bridge::{EvaluateErrorType, GenerateAST, GoJsonnet},
-    node::types::node::Node,
-};
+use crate::bridge::{EvaluateErrorType, GenerateAST, GoJsonnet};
 
 #[derive(Default, Debug, Clone)]
 pub struct JsonnetASTGenerator {

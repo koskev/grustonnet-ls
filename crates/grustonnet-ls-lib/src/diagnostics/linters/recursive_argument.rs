@@ -1,10 +1,8 @@
+use grustonnet_node::types::{function::Function, node_kind::NodeKind};
 use language_server::diagnostics::DiagnosticsResult;
 use lsp_types::{Diagnostic, DiagnosticSeverity};
 
-use crate::{
-    diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext},
-    node::types::{function::Function, node_kind::NodeKind},
-};
+use crate::diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext};
 
 #[derive(Default, Debug)]
 pub struct RecursiveArgumentDiagnostic {}

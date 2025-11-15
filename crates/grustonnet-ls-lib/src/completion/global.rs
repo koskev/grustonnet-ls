@@ -1,13 +1,11 @@
+use grustonnet_node::types::{local_bind::LocalBind, node_kind::NodeKind};
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
 };
 use lsp_types::{CompletionItem, CompletionItemKind, CompletionItemLabelDetails, Position, Uri};
 
-use crate::{
-    cache::JsonnetASTGenerator,
-    node::types::{local_bind::LocalBind, node_kind::NodeKind},
-};
+use crate::cache::JsonnetASTGenerator;
 
 pub struct GlobalCompletion<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,

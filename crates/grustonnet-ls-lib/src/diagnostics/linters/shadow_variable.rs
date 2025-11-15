@@ -1,10 +1,8 @@
+use grustonnet_node::types::{Local, node_kind::NodeKind};
 use language_server::diagnostics::DiagnosticsResult;
 use lsp_types::{Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Range};
 
-use crate::{
-    diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext},
-    node::types::{Local, node_kind::NodeKind},
-};
+use crate::diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext};
 
 #[derive(Default)]
 pub struct ShadowVariableDiagnostics {}

@@ -23,6 +23,7 @@ name-variant = { path = "../name-variant"}
 jsonnet-bridge = { path = "../jsonnet-bridge"}
 jsonnet-location = { path = "../jsonnet-location"}
 jsonnet-cst = { path = "../jsonnet-cst"}
+grustonnet-node = { path = "../grustonnet-node"}
 language-server = { path = "../language-server"}
 paste = "1.0.15"
 ropey = "1.6.1"

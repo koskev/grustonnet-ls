@@ -4,12 +4,12 @@ use std::{
     sync::{Arc, RwLock},
 };
 
+use grustonnet_node::types::{literals::LiteralString, node::Node};
 use language_server::diagnostics::DiagnosticsResult;
 use lsp_types::{Diagnostic, DiagnosticSeverity};
 
 use crate::{
     diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext},
-    node::types::{literals::LiteralString, node::Node},
     server::config::DuplicateDetectionConfig,
 };
 

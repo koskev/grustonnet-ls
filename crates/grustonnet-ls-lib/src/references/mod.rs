@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use anyhow::{Result, anyhow};
+use grustonnet_node::types::node_kind::NodeKind;
 use jsonnet_location::Location;
 use language_server::{cache::Cache, utils::rope::RopeHelper};
 use lsp_types::{Range, Uri};
@@ -9,10 +10,7 @@ use ropey::Rope;
 #[cfg(feature = "tracing")]
 use tracy_client::{set_thread_name, span};
 
-use crate::{
-    cache::JsonnetASTGenerator, definition::DefinitionProvider, node::types::node_kind::NodeKind,
-    utils,
-};
+use crate::{cache::JsonnetASTGenerator, definition::DefinitionProvider, utils};
 pub struct ReferenceProvider<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,
     pub search_paths: &'a [String],

@@ -1,13 +1,12 @@
 use std::sync::Arc;
 
+use grustonnet_node::types::{
+    index::Index, literals::LiteralString, node::Node, node_kind::NodeKind,
+};
 use language_server::{cache::Cache, utils::UriHelper};
 use lsp_types::Uri;
 
-use crate::{
-    cache::JsonnetASTGenerator,
-    completion::local::call_stack_iter::CallStackIter,
-    node::types::{index::Index, literals::LiteralString, node::Node, node_kind::NodeKind},
-};
+use crate::{cache::JsonnetASTGenerator, completion::local::call_stack_iter::CallStackIter};
 
 pub struct DocumentationInfo {
     pub help_text: String,

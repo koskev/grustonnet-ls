@@ -1,15 +1,15 @@
 use std::{sync::Arc, time::Instant};
 
+use grustonnet_node::{
+    stack::NodeStack,
+    types::{node::Node, node_kind::NodeKind},
+};
 use language_server::{cache::Cache, utils::UriHelper};
 use lsp_types::Uri;
 
 use crate::{
     cache::JsonnetASTGenerator,
     completion::{local::call_stack_iter::CallStackIter, stdlib::call_std_function},
-    node::{
-        stack::NodeStack,
-        types::{node::Node, node_kind::NodeKind},
-    },
 };
 
 pub struct ResolveNodeIter<'a> {
@@ -349,16 +349,14 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
 mod test {
     use std::sync::Arc;
 
+    use grustonnet_node::{
+        stack::NodeStack,
+        types::{literals::LiteralString, node::Node, node_kind::NodeKind},
+    };
     use language_server::cache::Cache;
     use pretty_assertions::assert_eq;
 
-    use crate::{
-        completion::local::resolve_node_iter::ResolveNodeIter,
-        node::{
-            stack::NodeStack,
-            types::{literals::LiteralString, node::Node, node_kind::NodeKind},
-        },
-    };
+    use crate::completion::local::resolve_node_iter::ResolveNodeIter;
 
     #[test]
     fn test_resolve() {

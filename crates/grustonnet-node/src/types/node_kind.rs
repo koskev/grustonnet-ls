@@ -8,7 +8,7 @@ use lsp_types::CompletionItemKind;
 use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
 
-use crate::node::types::{
+use crate::types::{
     Array, Error, Identifier, Import, Local, Unary,
     binary::Binary,
     conditional::Conditional,

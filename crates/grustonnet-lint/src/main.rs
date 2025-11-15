@@ -8,7 +8,7 @@ use grustonnet_ls_lib::{
 use language_server::diagnostics::DiagnosticFilter;
 use language_server::utils::{UriHelper, rope::RopeHelper};
 use lsp_types::{DiagnosticSeverity, Uri};
-use miette::{LabeledSpan, miette};
+use miette::LabeledSpan;
 use ropey::Rope;
 
 #[derive(Parser, Debug)]

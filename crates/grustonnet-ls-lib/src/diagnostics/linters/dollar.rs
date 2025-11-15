@@ -1,9 +1,9 @@
+use grustonnet_node::types::var::Var;
 use language_server::diagnostics::DiagnosticsResult;
 use lsp_types::{Diagnostic, DiagnosticSeverity};
 
 use crate::{
     diagnostics::{JsonnetDiagnostics, JsonnetDiagnosticsContext},
-    node::types::var::Var,
 };
 
 #[derive(Debug, Default)]

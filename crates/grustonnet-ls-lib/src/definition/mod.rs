@@ -2,11 +2,12 @@ use std::fmt::Display;
 use std::path::Path;
 
 use anyhow::{Result, anyhow};
+use grustonnet_node::types::node_kind::NodeKind;
 use jsonnet_location::{Location, LocationRange};
 use language_server::{cache::Cache, utils::UriHelper};
 use lsp_types::{Range, Uri};
 
-use crate::{cache::JsonnetASTGenerator, node::types::node_kind::NodeKind};
+use crate::{cache::JsonnetASTGenerator, node::Stackhelper};
 
 pub struct DefinitionProvider<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,

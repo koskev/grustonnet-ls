@@ -1,15 +1,12 @@
 use std::sync::Arc;
 
+use grustonnet_node::{
+    stack::NodeStack,
+    types::{node::Node, node_kind::NodeKind},
+};
 use language_server::cache::Cache;
 
-use crate::{
-    cache::JsonnetASTGenerator,
-    completion::local::resolve_node_iter::ResolveNodeIter,
-    node::{
-        stack::NodeStack,
-        types::{node::Node, node_kind::NodeKind},
-    },
-};
+use crate::{cache::JsonnetASTGenerator, completion::local::resolve_node_iter::ResolveNodeIter};
 
 pub struct CallStackIter<'a> {
     pub call_stack: NodeStack,

@@ -1,11 +1,10 @@
 use std::sync::Arc;
 
+use grustonnet_node::types::{node::Node, node_kind::NodeKind};
 use jsonnet_location::LocationRange;
 use lsp_types::{SemanticTokenModifier, SemanticTokenType, SemanticTokens, SemanticTokensLegend};
 use name_variant::NamedVariant;
 use strum::{EnumDiscriminants, EnumIter, IntoEnumIterator};
-
-use crate::node::types::{node::Node, node_kind::NodeKind};
 
 macro_rules! token_enum {
     ($name: ident, $lsp_type: ty, $($item: expr),*) => {

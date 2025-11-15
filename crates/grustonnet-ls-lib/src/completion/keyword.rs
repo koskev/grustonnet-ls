@@ -1,15 +1,13 @@
 use std::fmt::Display;
 
+use grustonnet_node::{stack::NodeStack, types::node_kind::NodeKind};
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
 };
 use lsp_types::{CompletionItem, CompletionItemKind, CompletionList, Position, Uri};
 
-use crate::{
-    cache::JsonnetASTGenerator,
-    node::{stack::NodeStack, types::node_kind::NodeKind},
-};
+use crate::cache::JsonnetASTGenerator;
 
 pub struct KeywordCompletion<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,

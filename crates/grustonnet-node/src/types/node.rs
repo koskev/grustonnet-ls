@@ -5,7 +5,7 @@ use jsonnet_location::Location;
 use language_server::cache::ASTNode;
 use serde::{Deserialize, Serialize};
 
-use crate::node::{
+use crate::{
     stack::NodeStack,
     types::{base::NodeBase, node_kind::NodeKind},
 };

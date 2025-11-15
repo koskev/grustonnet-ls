@@ -7,12 +7,12 @@ use crate::{
         std::StdCompletion,
     },
     documentation::DocumentationInfo,
-    node::{
-        stack::NodeStack,
-        types::{desugared_object::DesugaredObjectField, node::Node, node_kind::NodeKind},
-    },
 };
 use anyhow::Result;
+use grustonnet_node::{
+    stack::NodeStack,
+    types::{desugared_object::DesugaredObjectField, node::Node, node_kind::NodeKind},
+};
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
