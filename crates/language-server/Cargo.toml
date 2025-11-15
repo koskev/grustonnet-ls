@@ -15,12 +15,10 @@ lsp-types = { version = "0.97.0", features = ["proposed"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 pretty_assertions = "1.4.1"
-env_logger = "0.11.8"
 log = "0.4.27"
 ropey = "1.6.1"
 similar = "2.7.0"
 tree-sitter = "0.22.6"
-paste = "1.0.15"
 crossbeam = "0.8.4"
 rand = "0.9.2"
 mockall = "0.13.1"
