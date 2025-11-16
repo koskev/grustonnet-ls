@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use jsonnet_bridge::go::FormatOptions;
 use lsp_types::DidChangeConfigurationParams;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -135,6 +134,43 @@ pub struct JsonnetConfig {
     #[default = false]
     /// Preload all jsonnet files in all jpaths to allow for faster cross file search
     pub preload_files: bool,
+}
+
+#[derive(rust2go::R2G, Serialize, Deserialize, SmartDefault, JsonSchema, Debug, Clone)]
+pub struct FormatOptions {
+    // Indent is the number of spaces for each level of indenation.
+    #[default = 2]
+    indent: i32,
+    // MaxBlankLines is the max allowed number of consecutive blank lines.
+    #[default = 2]
+    max_blank_lines: i32,
+    #[default = 1]
+    string_style: i32,
+    #[default = 1]
+    comment_style: i32,
+    // PrettyFieldNames causes fields to only be wrapped in '' when needed.
+    #[default = true]
+    pretty_field_names: bool,
+    // PadArrays causes arrays to be written like [ this ] instead of [this].
+    #[default = false]
+    pad_arrays: bool,
+    // PadObjects causes arrays to be written like { this } instead of {this}.
+    #[default = true]
+    pad_objects: bool,
+    // SortImports causes imports at the top of the file to be sorted in groups
+    // by filename.
+    #[default = true]
+    sort_imports: bool,
+    // UseImplicitPlus removes plus sign where it is not required.
+    #[default = true]
+    use_implicit_plus: bool,
+
+    #[default = false]
+    strip_everything: bool,
+    #[default = false]
+    strip_comments: bool,
+    #[default = false]
+    strip_all_but_comments: bool,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]

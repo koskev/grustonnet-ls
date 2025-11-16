@@ -802,8 +802,8 @@ dependencies = [
 name = "grustonnet-config"
 version = "0.1.0"
 dependencies = [
- "jsonnet-bridge",
  "lsp-types",
+ "rust2go",
  "schemars",
  "serde",
  "serde_json",
@@ -882,6 +882,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
+ "grustonnet-config",
  "itertools 0.14.0",
  "jsonnet-bridge",
  "jsonnet-location",
@@ -1292,6 +1293,7 @@ dependencies = [
 name = "jsonnet-bridge"
 version = "0.1.0"
 dependencies = [
+ "grustonnet-config",
  "jsonnet-location",
  "language-server",
  "lsp-server",

@@ -4,8 +4,9 @@ use std::{
 };
 
 use bincode::{Decode, Encode};
+use grustonnet_config::FormatOptions;
 use itertools::Itertools;
-use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, FormatOptions};
+use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl};
 use jsonnet_location::{Location, LocationRange};
 use serde::{Deserialize, Serialize};
 

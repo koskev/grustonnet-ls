@@ -15,3 +15,4 @@ anyhow = "1.0.98"
 itertools = "0.14.0"
 name-variant = { path = "../name-variant"}
 jsonnet-bridge = { path = "../jsonnet-bridge"}
+grustonnet-config = { path = "../grustonnet-config"}

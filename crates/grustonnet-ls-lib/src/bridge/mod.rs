@@ -8,11 +8,11 @@ use std::{
 };
 
 use anyhow::Result;
-use grustonnet_config::JsonnetConfig;
+use grustonnet_config::{FormatOptions, JsonnetConfig};
 use grustonnet_node::types::node::Node;
 use jsonnet_bridge::{
     evaluate_error::{EvaluateError, EvaluateErrorType},
-    go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue, FormatOptions},
+    go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue},
 };
 
 pub trait GenerateAST {
