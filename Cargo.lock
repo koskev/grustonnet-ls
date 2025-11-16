@@ -1292,6 +1292,12 @@ dependencies = [
 name = "jsonnet-bridge"
 version = "0.1.0"
 dependencies = [
+ "jsonnet-location",
+ "language-server",
+ "lsp-server",
+ "lsp-types",
+ "name-variant",
+ "regex",
  "rust2go",
  "schemars",
  "serde",

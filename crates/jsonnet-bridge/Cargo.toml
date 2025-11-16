@@ -8,6 +8,12 @@ rust2go = { version = "0.4.0" }
 schemars = "1.0.2"
 serde = { version = "1.0.219", features = ["derive"] }
 smart-default = "0.7.1"
+regex = "1.11.1"
+lsp-server = "0.7.8"
+name-variant = { path = "../name-variant"}
+lsp-types = { version = "0.97.0", features = ["proposed"] }
+language-server = { path = "../language-server"}
+jsonnet-location = { path = "../jsonnet-location"}
 
 [build-dependencies]
 rust2go = { version = "0.4.0", features = ["build"] }
