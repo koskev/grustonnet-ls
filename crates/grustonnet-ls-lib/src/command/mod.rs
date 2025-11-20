@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use language_server::{
     cache::Cache,
     server::{LSPError, LSPResponse},
@@ -30,7 +32,6 @@ pub fn handle_command(
     cache: &Cache<JsonnetASTGenerator>,
     params: <lsp_types::request::ExecuteCommand as lsp_types::request::Request>::Params,
 ) -> Result<LSPResponse, LSPError> {
-    #[allow(clippy::single_match)]
     match params.command.as_str() {
         "jsonnet.evalFile" => {
             if params.arguments.len() != 1 {
@@ -45,6 +46,43 @@ pub fn handle_command(
                 .jsonnet
                 .evaluate_snippet(&eval_file_arguments, &document.content)?;
             return Ok(eval_result.into());
+        }
+        "config.jpaths" => {
+            return Ok(cache
+                .ast_generator
+                .jsonnet
+                .params
+                .read()
+                .unwrap()
+                .jpaths
+                .clone()
+                .into());
+        }
+        "config.extcode" => {
+            return Ok(cache
+                .ast_generator
+                .jsonnet
+                .params
+                .read()
+                .unwrap()
+                .ext_code
+                .iter()
+                .map(|val| (val.name.clone(), val.value.clone()))
+                .collect::<HashMap<_, _>>()
+                .into());
+        }
+        "config.extvars" => {
+            return Ok(cache
+                .ast_generator
+                .jsonnet
+                .params
+                .read()
+                .unwrap()
+                .ext_vars
+                .iter()
+                .map(|val| (val.name.clone(), val.value.clone()))
+                .collect::<HashMap<_, _>>()
+                .into());
         }
         _ => {}
     }

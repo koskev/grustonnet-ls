@@ -212,7 +212,12 @@ impl LSPServer for JsonnetServer {
             references_provider: Some(OneOf::Left(true)),
             rename_provider: Some(OneOf::Left(true)),
             execute_command_provider: Some(ExecuteCommandOptions {
-                commands: vec!["jsonnet.evalFile".into()],
+                commands: vec![
+                    "jsonnet.evalFile".into(),
+                    "config.jpaths".into(),
+                    "config.extcode".into(),
+                    "config.extvars".into(),
+                ],
                 ..Default::default()
             }),
             code_action_provider: Some(CodeActionProviderCapability::Simple(true)),
