@@ -1,11 +1,10 @@
 use anyhow::Result;
-use grustonnet_node::types::node_kind::NodeKind;
 use jsonnet_location::LocationRange;
 use language_server::cache::Cache;
 use lsp_types::{InlayHint, Range, Uri};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay, node::Stackhelper};
+use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay, node::NodeHelper};
 
 pub struct ApplyInlay<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -35,17 +34,7 @@ impl<'a> Inlay for ApplyInlay<'a> {
             // For every apply node: Complete the node until we find an apply
             // First find the node in the document and get its stack
             .filter_map(|n| {
-                let NodeKind::Apply(apply_node) = n.node_kind.as_ref() else {
-                    return None;
-                };
-                let mut temp_stack =
-                    ast.get_stack_by_position(&apply_node.target.node_base.loc_range.end);
-                // TODO: If we have a().b().c().d() we will build the node way more than needed
-                let last_node = temp_stack.get_last_unbuilt_node(self.cache).ok()?;
-                // TODO: build the last node?
-                let NodeKind::Function(found_function) = last_node.node_kind.as_ref() else {
-                    return None;
-                };
+                let (apply_node, found_function) = n.get_apply_function(ast.clone(), self.cache)?;
                 let params = &found_function.parameters;
                 let names: Vec<&String> = params.iter().map(|p| &p.name.0).collect();
 
