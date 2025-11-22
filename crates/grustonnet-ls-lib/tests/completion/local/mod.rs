@@ -21,6 +21,7 @@ pub mod array;
 pub mod binary;
 pub mod builder;
 pub mod conditional;
+pub mod documentation;
 pub mod dollar;
 pub mod errors;
 pub mod extcode;
