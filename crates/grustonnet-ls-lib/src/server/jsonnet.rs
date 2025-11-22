@@ -37,7 +37,7 @@ use crate::{
     command::handle_command,
     completion::{
         global::GlobalCompletion, import::ImportCompletion, keyword::KeywordCompletion,
-        local::LocalCompletion,
+        local::LocalCompletion, snippets::docsonnet::DocsonnetSnippets,
     },
     definition::DefinitionProvider,
     diagnostics::{
@@ -323,6 +323,10 @@ impl LSPServer for JsonnetServer {
                 if config.completion.enable_keywords {
                     let keyword_completion = KeywordCompletion::new(&self.cache);
                     completion_list.push(Box::new(keyword_completion));
+                }
+
+                if config.completion.snippets.docsonnet {
+                    completion_list.push(Box::new(DocsonnetSnippets {}));
                 }
             }
             CompletionType::Local => {

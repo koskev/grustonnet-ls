@@ -7,6 +7,14 @@ use smart_default::SmartDefault;
 
 #[derive(Debug, Serialize, Deserialize, Clone, SmartDefault, JsonSchema)]
 #[serde(default)]
+pub struct SnippetConfig {
+    /// Enable docsonnet snippets for new values, functions, arguments etc.
+    #[default = true]
+    pub docsonnet: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, SmartDefault, JsonSchema)]
+#[serde(default)]
 pub struct CompletionConfig {
     #[default = true]
     /// Enable completion of keywords. E.g. import, local, etc.
@@ -20,6 +28,9 @@ pub struct CompletionConfig {
     #[default = true]
     /// Hides the docsonnet member in objects
     pub hide_docsonnet_members: bool,
+
+    /// Configures the completion of various snippets
+    pub snippets: SnippetConfig,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]
