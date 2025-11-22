@@ -62,10 +62,16 @@ pub struct Arguments {
 
 impl Apply {
     pub fn get_name(&self) -> Option<String> {
-        if let NodeKind::Index(idx) = self.target.node_kind.as_ref() {
-            idx.get_name()
-        } else {
-            None
+        match self.target.node_kind.as_ref() {
+            NodeKind::Index(idx) => idx.get_name(),
+            NodeKind::Var(var) => Some(var.id.clone()?.0),
+            _ => {
+                log::warn!(
+                    "Could not get name of apply with target {}",
+                    self.target.node_kind.variant_name()
+                );
+                None
+            }
         }
     }
 }
