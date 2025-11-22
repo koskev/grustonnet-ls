@@ -1,3 +1,4 @@
+use language_server::utils::cst::CstNodeHelper;
 use tree_sitter::{Node, Point};
 
 use crate::node_type::NodeType;
@@ -10,6 +11,8 @@ pub trait JsonnetNode {
     fn get_node_at(&self, point: Point) -> Option<Node<'_>>;
 
     fn is_inside_import(&self) -> Option<bool>;
+
+    fn get_param_pos(&self) -> u32;
 }
 
 impl<'a> JsonnetNode for Node<'a> {
@@ -44,5 +47,26 @@ impl<'a> JsonnetNode for Node<'a> {
         };
 
         Some(true)
+    }
+
+    fn get_param_pos(&self) -> u32 {
+        // If we hit the last bracket, we'll just use the previous node
+
+        let mut node = Some(*self);
+        if NodeType::from(*self) == NodeType::NodeClosingBracket {
+            node = self.get_prev_node();
+        }
+        let mut count = 0;
+        while let Some(curr_node) = node
+            && NodeType::from(curr_node) != NodeType::NodeOpeningBracket
+        {
+            node = curr_node.prev_named_sibling();
+            if let Some(node) = node
+                && !node.is_symbol_node()
+            {
+                count += 1;
+            }
+        }
+        count
     }
 }

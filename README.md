@@ -48,11 +48,12 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
     * [ ] Rename imports if file is renamed
     * [ ] Rename file if import is renamed
     * Can rename all identifiers we can find the reference of
-* [ ] Signature Help
+* [x] Signature Help
 * [x] Docsonnet support
     * [x] How to handle the license issues? Docsonnet does not have an open source license
         * Just evaluate it
     * [ ] Handle the stdlib the same as docsonnet?
+    * [ ] Signature help parameters
 * [-] AST repair
 * [x] Commands
     * [x] Evaluate file
