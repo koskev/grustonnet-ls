@@ -53,7 +53,7 @@ use crate::{
         },
     },
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
-    node::Stackhelper,
+    node::{NodeHelper, Stackhelper},
     references::ReferenceProvider,
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},
@@ -572,21 +572,8 @@ impl LSPServer for JsonnetServer {
             .stack
             .iter()
             .find_map(|n| {
-                let NodeKind::Apply(apply_node) = n.node_kind.as_ref() else {
-                    return None;
-                };
-                let mut temp_stack =
-                    ast.get_stack_by_position(&apply_node.target.node_base.loc_range.end);
-                // TODO: If we have a().b().c().d() we will build the node way more than needed
-                let mut last_node = temp_stack.get_last_unbuilt_node(&self.cache).ok()?;
-                if let NodeKind::Var(var) = last_node.node_kind.as_ref() {
-                    last_node = var.resolve(&mut temp_stack)?;
-                }
-
-                // TODO: build the last node?
-                let NodeKind::Function(found_function) = last_node.node_kind.as_ref() else {
-                    return None;
-                };
+                let (apply_node, found_function) =
+                    n.get_apply_function(ast.clone(), &self.cache)?;
                 let func_name = apply_node.get_name().unwrap_or("unknown".into());
                 let params = &found_function.parameters;
                 let names: Vec<String> = params.iter().map(|p| p.name.0.clone()).collect();

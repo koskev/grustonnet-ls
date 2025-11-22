@@ -3,7 +3,11 @@ use std::sync::Arc;
 use anyhow::{Result, anyhow};
 use grustonnet_node::{
     stack::NodeStack,
-    types::{node::Node, node_kind::NodeKind},
+    types::{
+        function::{Apply, Function},
+        node::Node,
+        node_kind::NodeKind,
+    },
 };
 use language_server::cache::Cache;
 
@@ -56,5 +60,38 @@ impl Stackhelper for NodeStack {
             }
         };
         Ok((last_node, built_node))
+    }
+}
+
+pub trait NodeHelper {
+    fn get_apply_function(
+        &self,
+        root_node: Arc<Node>,
+        cache: &Cache<JsonnetASTGenerator>,
+    ) -> Option<(Apply, Function)>;
+}
+
+impl NodeHelper for Node {
+    fn get_apply_function(
+        &self,
+        root_node: Arc<Node>,
+        cache: &Cache<JsonnetASTGenerator>,
+    ) -> Option<(Apply, Function)> {
+        let NodeKind::Apply(apply_node) = self.node_kind.as_ref() else {
+            return None;
+        };
+        let mut temp_stack =
+            root_node.get_stack_by_position(&apply_node.target.node_base.loc_range.end);
+        // TODO: If we have a().b().c().d() we will build the node way more than needed
+        let mut last_node = temp_stack.get_last_unbuilt_node(cache).ok()?;
+        if let NodeKind::Var(var) = last_node.node_kind.as_ref() {
+            last_node = var.resolve(&mut temp_stack)?;
+        }
+
+        // TODO: build the last node?
+        let NodeKind::Function(found_function) = last_node.node_kind.as_ref() else {
+            return None;
+        };
+        Some((apply_node.clone(), found_function.clone()))
     }
 }
