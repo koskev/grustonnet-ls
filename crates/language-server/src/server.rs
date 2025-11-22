@@ -23,7 +23,7 @@ use lsp_types::{
     request::{
         CodeActionRequest, Completion, DocumentDiagnosticRequest, ExecuteCommand, Formatting,
         GotoDefinition, InlayHintRequest, References, Rename, Request as RequestTrait,
-        SemanticTokensFullRequest,
+        SemanticTokensFullRequest, SignatureHelpRequest,
     },
 };
 use rand::RngCore;
@@ -231,6 +231,7 @@ where
         req = lsp_handle_request!(self.server, semantic_tokens, SemanticTokensFullRequest, req);
         req = lsp_handle_request!(self.server, execute_command, ExecuteCommand, req);
         req = lsp_handle_request!(self.server, code_action, CodeActionRequest, req);
+        req = lsp_handle_request!(self.server, signature_help, SignatureHelpRequest, req);
 
         Err(LSPError {
             error_code: ErrorCode::MethodNotFound as i32,
@@ -401,6 +402,7 @@ pub trait LSPServer {
     lsp_function_req!(semantic_tokens, SemanticTokensFullRequest);
     lsp_function_req!(execute_command, ExecuteCommand);
     lsp_function_req!(code_action, CodeActionRequest);
+    lsp_function_req!(signature_help, SignatureHelpRequest);
 
     // Notifications
 

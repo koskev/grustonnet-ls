@@ -3,9 +3,10 @@ use std::{
     time::Instant,
 };
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use bevy_tasks::TaskPool;
 use grustonnet_config::{Configuration, VariableNaming};
+use grustonnet_node::types::node_kind::NodeKind;
 use jsonnet_cst::completion::{CompletionInfo, CompletionType};
 use jsonnet_location::LocationRange;
 use language_server::{
@@ -23,8 +24,8 @@ use lsp_types::{
     DocumentDiagnosticReportResult, ExecuteCommandOptions, GotoDefinitionParams,
     GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams, OneOf,
     RelatedFullDocumentDiagnosticReport, SemanticTokens, SemanticTokensOptions,
-    SemanticTokensServerCapabilities, ServerCapabilities, TextDocumentSyncKind,
-    TextDocumentSyncOptions, Uri,
+    SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp, SignatureHelpOptions,
+    SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
 
 use crate::{
@@ -52,6 +53,7 @@ use crate::{
         },
     },
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
+    node::Stackhelper,
     references::ReferenceProvider,
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},
@@ -221,6 +223,10 @@ impl LSPServer for JsonnetServer {
                 ..Default::default()
             }),
             code_action_provider: Some(CodeActionProviderCapability::Simple(true)),
+            signature_help_provider: Some(SignatureHelpOptions {
+                retrigger_characters: Some(vec!["(".into(), ",".into()]),
+                ..Default::default()
+            }),
             ..Default::default()
         }
     }
@@ -548,5 +554,53 @@ impl LSPServer for JsonnetServer {
             })
             .collect();
         Ok(actions.into())
+    }
+
+    fn signature_help(
+        &self,
+        params: <lsp_types::request::SignatureHelpRequest as lsp_types::request::Request>::Params,
+    ) -> Result<LSPResponse, LSPError> {
+        let doc = self
+            .cache
+            .get_document(&params.text_document_position_params.text_document.uri)?;
+        let ast = doc.get_ast()?;
+
+        let stack =
+            ast.get_stack_by_position(&params.text_document_position_params.position.into());
+
+        Ok(stack
+            .stack
+            .iter()
+            .find_map(|n| {
+                let NodeKind::Apply(apply_node) = n.node_kind.as_ref() else {
+                    return None;
+                };
+                let mut temp_stack =
+                    ast.get_stack_by_position(&apply_node.target.node_base.loc_range.end);
+                // TODO: If we have a().b().c().d() we will build the node way more than needed
+                let mut last_node = temp_stack.get_last_unbuilt_node(&self.cache).ok()?;
+                if let NodeKind::Var(var) = last_node.node_kind.as_ref() {
+                    last_node = var.resolve(&mut temp_stack)?;
+                }
+
+                // TODO: build the last node?
+                let NodeKind::Function(found_function) = last_node.node_kind.as_ref() else {
+                    return None;
+                };
+                let func_name = apply_node.get_name().unwrap_or("unknown".into());
+                let params = &found_function.parameters;
+                let names: Vec<String> = params.iter().map(|p| p.name.0.clone()).collect();
+                Some(SignatureHelp {
+                    signatures: vec![SignatureInformation {
+                        label: format!("{}({})", func_name, names.join(", ")),
+                        active_parameter: None,
+                        documentation: None,
+                        parameters: None,
+                    }],
+                    active_signature: None,
+                    active_parameter: None,
+                })
+            })
+            .into())
     }
 }
