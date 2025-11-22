@@ -3,4 +3,5 @@ mod binary_comparison;
 mod completion;
 mod definition;
 mod diagnostics;
+mod inlay_hints;
 mod references;
