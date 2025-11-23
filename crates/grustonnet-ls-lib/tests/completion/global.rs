@@ -1,4 +1,4 @@
-use grustonnet_config::{CompletionConfig, Configuration};
+use grustonnet_config::{CompletionConfig, Configuration, SnippetConfig};
 use lsp_types::{CompletionItem, CompletionItemKind, CompletionList};
 
 use crate::completion::common::CompletionTestCase;
@@ -9,6 +9,7 @@ fn global_config() -> Configuration {
             enable_keywords: false,
             enable_global: true,
             enable_local: false,
+            snippets: SnippetConfig { docsonnet: false },
             ..Default::default()
         },
         ..Default::default()
