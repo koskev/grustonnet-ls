@@ -581,6 +581,13 @@ impl LSPServer for JsonnetServer {
             .iter()
             .find_map(|n| {
                 let apply_function_data = n.get_apply_function(ast.clone(), &self.cache)?;
+                //let doc_node = DocumentationInfo::find_docsonnet_node(
+                //    &self.cache,
+                //    apply_function_data.function_node,
+                //)
+                //.unwrap();
+                // TODO: this does only resolve the default argument and not the passed one
+                // let doc_info = DocumentationInfo::from_docsonnet_node_arg(&self.cache, doc_node, 0);
                 let func_name = apply_function_data
                     .apply
                     .get_name()

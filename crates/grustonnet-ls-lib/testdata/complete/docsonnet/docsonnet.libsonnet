@@ -8,11 +8,13 @@
     default: default,
   },
 
-  argument(type, name, default):: {
+  arg(name, type, default=null, help=''):: {
     assert std.contains(outerSelf.types, type),
     assert std.isString(name),
+    assert std.isString(help),
     type: type,
     name: name,
+    help: help,
     default: default,
   },
 
@@ -60,4 +62,9 @@
     'any',
     'function',
   ],
+
+
+  T:: {
+    any: 'any',
+  },
 }

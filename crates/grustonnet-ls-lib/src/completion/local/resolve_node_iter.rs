@@ -146,11 +146,12 @@ impl<'a> ResolveNodeIter<'a> {
 
                 if let Some(resolved) = var.resolve(self.document_stack) {
                     log::debug!(
-                        "{} Resolved to {:?} at {}:{:?}",
+                        "{} Resolved to {:?} at {}:{:?}: {}",
                         var.id.clone().unwrap_or_default().0,
                         resolved.node_kind.variant_name(),
                         resolved.node_base.loc_range.file_name,
                         resolved.node_base.loc_range.begin,
+                        resolved.node_kind,
                     );
                     self.search_stack.push(resolved.clone());
                     let resolved = CallStackIter::new(self.cache, &mut self.search_stack.clone())?.last()?;
