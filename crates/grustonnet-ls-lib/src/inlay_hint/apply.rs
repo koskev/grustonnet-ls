@@ -34,12 +34,13 @@ impl<'a> Inlay for ApplyInlay<'a> {
             // For every apply node: Complete the node until we find an apply
             // First find the node in the document and get its stack
             .filter_map(|n| {
-                let (apply_node, found_function) = n.get_apply_function(ast.clone(), self.cache)?;
-                let params = &found_function.parameters;
+                let apply_function_data = n.get_apply_function(ast.clone(), self.cache)?;
+                let params = &apply_function_data.function.parameters;
                 let names: Vec<&String> = params.iter().map(|p| &p.name.0).collect();
 
                 Some(
-                    apply_node
+                    apply_function_data
+                        .apply
                         .arguments
                         .positional
                         .iter()

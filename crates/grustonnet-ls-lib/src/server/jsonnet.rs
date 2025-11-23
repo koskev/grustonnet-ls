@@ -55,6 +55,7 @@ use crate::{
             variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
         },
     },
+    documentation::DocumentationInfo,
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
     node::{NodeHelper, Stackhelper},
     references::ReferenceProvider,
@@ -579,10 +580,12 @@ impl LSPServer for JsonnetServer {
             .stack
             .iter()
             .find_map(|n| {
-                let (apply_node, found_function) =
-                    n.get_apply_function(ast.clone(), &self.cache)?;
-                let func_name = apply_node.get_name().unwrap_or("unknown".into());
-                let func_params = &found_function.parameters;
+                let apply_function_data = n.get_apply_function(ast.clone(), &self.cache)?;
+                let func_name = apply_function_data
+                    .apply
+                    .get_name()
+                    .unwrap_or("unknown".into());
+                let func_params = &apply_function_data.function.parameters;
                 let names: Vec<String> = func_params.iter().map(|p| p.name.0.clone()).collect();
                 let cst_tree = jsonnet_cst::new_tree(&doc.content)?;
                 let cst_loc: Location = params.text_document_position_params.position.into();

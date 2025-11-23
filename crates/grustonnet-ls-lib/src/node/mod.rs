@@ -63,12 +63,18 @@ impl Stackhelper for NodeStack {
     }
 }
 
+pub struct ApplyFunctionData {
+    pub apply: Apply,
+    pub function: Function,
+    pub function_node: Arc<Node>,
+}
+
 pub trait NodeHelper {
     fn get_apply_function(
         &self,
         root_node: Arc<Node>,
         cache: &Cache<JsonnetASTGenerator>,
-    ) -> Option<(Apply, Function)>;
+    ) -> Option<ApplyFunctionData>;
 }
 
 impl NodeHelper for Node {
@@ -76,7 +82,7 @@ impl NodeHelper for Node {
         &self,
         root_node: Arc<Node>,
         cache: &Cache<JsonnetASTGenerator>,
-    ) -> Option<(Apply, Function)> {
+    ) -> Option<ApplyFunctionData> {
         let NodeKind::Apply(apply_node) = self.node_kind.as_ref() else {
             return None;
         };
@@ -92,6 +98,10 @@ impl NodeHelper for Node {
         let NodeKind::Function(found_function) = last_node.node_kind.as_ref() else {
             return None;
         };
-        Some((apply_node.clone(), found_function.clone()))
+        Some(ApplyFunctionData {
+            apply: apply_node.clone(),
+            function: found_function.clone(),
+            function_node: last_node.clone(),
+        })
     }
 }
