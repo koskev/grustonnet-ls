@@ -45,9 +45,12 @@ impl Display for DesugaredObject {
             .iter()
             .map(|f| {
                 format!(
-                    "{} : {}",
+                    "{} : {}, ",
                     f.get_name().unwrap_or_default(),
-                    f.body.node_kind.get_value().unwrap_or_default()
+                    f.body
+                        .node_kind
+                        .get_value()
+                        .unwrap_or(format!("<{}>", f.body.node_kind.variant_name()))
                 )
             })
             .collect::<String>();

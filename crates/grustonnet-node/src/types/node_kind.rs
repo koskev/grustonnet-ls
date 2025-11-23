@@ -80,6 +80,9 @@ impl Display for NodeKind {
             Self::LiteralString(s) => {
                 write!(f, "{}", s.value)?;
             }
+            Self::LiteralNumber(s) => {
+                write!(f, "{}", s.original_string)?;
+            }
             Self::Apply(apply) => {
                 write!(
                     f,
@@ -129,6 +132,7 @@ impl NodeKind {
             Self::LiteralNumber(litnum) => Some(litnum.original_string.clone()),
             Self::LiteralBoolean(litbool) => Some(litbool.value.to_string()),
             Self::DesugaredObject(obj) => Some(obj.to_string()),
+            Self::Var(var) => Some(format!("<Var:{}>", var.id.clone().unwrap_or_default().0)),
             _ => None,
         }
     }
