@@ -5,6 +5,9 @@ local myObj = {
   withoutArg():: {
     b: 5,
   },
+  withDefaultArg(myarg={ default: 3 }):: {
+    c: myarg,
+  },
 };
 
 {

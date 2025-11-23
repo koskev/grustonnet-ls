@@ -342,6 +342,56 @@ fn default_function_arg() {
 }
 
 #[test]
+fn default_function_arg_call_first() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults.jsonnet".into(),
+        replace_string: "z: myFunc(1, 2)".into(),
+        replace_by_string: "z: myFunc(1, 2).x.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn default_function_arg_call_second() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults.jsonnet".into(),
+        replace_string: "z: myFunc(1, 2)".into(),
+        replace_by_string: "z: myFunc(1, 2).y.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn default_function_arg_call_override() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_defaults.jsonnet".into(),
+        replace_string: "z: myFunc(1, 2)".into(),
+        replace_by_string: "z: myFunc(1, {myVal: 4}).y.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "myVal".into(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+#[test]
 fn function_return_arg_ignored() {
     CompletionTestCase {
         filename: "testdata/complete/functions/function_return_arg_ignored.jsonnet".into(),
@@ -396,6 +446,10 @@ fn function_return_arg_index() {
                     label: "withoutArg".to_string(),
                     ..Default::default()
                 },
+                CompletionItem {
+                    label: "withDefaultArg".to_string(),
+                    ..Default::default()
+                },
             ],
         },
         config: local_config(),
@@ -433,6 +487,60 @@ fn function_return_arg_index_unnamed_arg() {
             is_incomplete: false,
             items: vec![CompletionItem {
                 label: "a".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "broken"]
+fn function_return_arg_index_last() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_in_object.jsonnet".into(),
+        replace_string: "x: myObj".into(),
+        replace_by_string: "x: myObj.withArg(1).a.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "broken"]
+fn function_return_arg_index_with_default() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_in_object.jsonnet".into(),
+        replace_string: "x: myObj".into(),
+        replace_by_string: "x: myObj.withDefaultArg(1).c.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "broken"]
+fn function_return_arg_index_with_default_override() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_in_object.jsonnet".into(),
+        replace_string: "x: myObj".into(),
+        replace_by_string: "x: myObj.withDefaultArg({myVal: 5}).c.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "myVal".to_string(),
                 ..Default::default()
             }],
         },

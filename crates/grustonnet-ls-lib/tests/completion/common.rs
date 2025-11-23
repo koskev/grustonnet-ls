@@ -47,7 +47,8 @@ impl CompletionTestCase {
     pub(crate) fn check(&self) {
         setup();
         let server = self.create_server();
-        let file_content = read_to_string(&self.filename).unwrap();
+        let file_content = read_to_string(&self.filename)
+            .unwrap_or_else(|_| panic!("{} not found", self.filename));
         let file_uri = Uri::from_path(&self.filename).unwrap();
         server.configuration.write().unwrap().jsonnet.ext_code = self.ext_code.clone();
         server
