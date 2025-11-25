@@ -171,7 +171,7 @@ impl<'a> Completion for LocalCompletion<'a> {
         };
 
         let dur = start.elapsed();
-        log::info!("Local completion took {:?}", dur);
+        log::debug!("Local completion took {:?}", dur);
 
         Ok(CompletionList {
             items,

@@ -54,7 +54,7 @@ macro_rules! lsp_handle_request {
             Ok((_id, params)) => {
                 let start = Instant::now();
                 let resp = $server.$name(params);
-                log::info!("Request {} took {:?}", stringify!($name), start.elapsed());
+                log::debug!("Request {} took {:?}", stringify!($name), start.elapsed());
                 return resp;
             }
             Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
@@ -72,7 +72,7 @@ macro_rules! lsp_handle_notification {
                     Ok(_) => (),
                     Err(e) => log::error!("Notification failed: {:?}", e),
                 };
-                log::info!(
+                log::debug!(
                     "Notification {} took {:?}",
                     stringify!($name),
                     start.elapsed()
@@ -459,12 +459,12 @@ pub trait LSPServer {
             let start = Instant::now();
             self.cache()
                 .update_content(params.text_document.uri.clone(), rope.to_string().as_str());
-            log::info!("Updating content took {:?}", start.elapsed());
+            log::debug!("Updating content took {:?}", start.elapsed());
             let start = Instant::now();
             for uri in self.cache().get_loaded_lsp_uris() {
                 self.queue_diagnostics(&uri);
             }
-            log::info!("Publishing diagnostics took {:?}", start.elapsed());
+            log::debug!("Publishing diagnostics took {:?}", start.elapsed());
         }
         Ok(())
     }

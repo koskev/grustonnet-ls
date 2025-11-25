@@ -193,7 +193,7 @@ impl GenerateAST for GoJsonnet {
         let res =
             ASTBridgeImpl::get_ast_snippet_binary(source_file.to_string(), snippet.to_string());
         let dur = start.elapsed();
-        log::info!("Ast evaluation took {:?}", dur);
+        log::debug!("Ast evaluation took {:?}", dur);
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
@@ -209,7 +209,7 @@ impl GenerateAST for GoJsonnet {
         let res =
             ASTBridgeImpl::get_ast_snippet_binary(source_file.to_string(), snippet.to_string());
         let dur = start.elapsed();
-        log::info!("Ast evaluation took {:?}", dur);
+        log::debug!("Ast evaluation took {:?}", dur);
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
@@ -220,7 +220,7 @@ impl GenerateAST for GoJsonnet {
                 message: format!("Could not decode AST. This is most likely a bug: {e}"),
                 ..Default::default()
             })?;
-        log::info!("Deserializing took {:?}", start.elapsed());
+        log::debug!("Deserializing took {:?}", start.elapsed());
         Ok(node)
     }
 
@@ -228,7 +228,7 @@ impl GenerateAST for GoJsonnet {
         let start = Instant::now();
         let res = ASTBridgeImpl::get_ast_snippet(source_file.to_string(), snippet.to_string());
         let dur = start.elapsed();
-        log::info!("Ast evaluation took {:?}", dur);
+        log::debug!("Ast evaluation took {:?}", dur);
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
@@ -238,7 +238,7 @@ impl GenerateAST for GoJsonnet {
             message: format!("Could not decode AST. This is most likely a bug: {e}"),
             ..Default::default()
         })?;
-        log::info!("Deserializing took {:?}", start.elapsed());
+        log::debug!("Deserializing took {:?}", start.elapsed());
         Ok(node)
     }
 

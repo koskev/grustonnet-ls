@@ -85,7 +85,7 @@ impl<'a> ReferenceProvider<'a> {
         } else {
             utils::files::get_all_jsonnnet_files(self.search_paths)
         };
-        log::info!("Getting all files took {:?}", start.elapsed());
+        log::debug!("Getting all files took {:?}", start.elapsed());
         log::debug!(
             "Searching for references of {} at {} in {} files",
             identifier,
@@ -154,7 +154,7 @@ impl<'a> ReferenceProvider<'a> {
             })
             .collect();
 
-        log::info!("Calculating references took {:?}", start.elapsed());
+        log::debug!("Calculating references took {:?}", start.elapsed());
 
         if reference_locations.is_empty() {
             Ok(None)

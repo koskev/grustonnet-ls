@@ -116,7 +116,6 @@ impl<'a> ResolveNodeIter<'a> {
 
     fn handle_node(&mut self, current_node: Arc<Node>) -> Option<Arc<Node>> {
         let start = Instant::now();
-        log::info!("{}", current_node.node_kind.variant_name());
         let name = current_node.node_kind.variant_name();
         let result = match current_node.node_kind.as_ref() {
             NodeKind::Other => {
@@ -218,7 +217,7 @@ impl<'a> ResolveNodeIter<'a> {
                 // TODO: find function
                 // get names of positional arguments and push them to the document stack
 
-                log::info!("Apply took {:?}", start_apply.elapsed());
+                log::debug!("Apply took {:?}", start_apply.elapsed());
                 Some(apply.target.clone())
             }
             NodeKind::Function(func) => {
@@ -315,7 +314,7 @@ impl<'a> ResolveNodeIter<'a> {
             | NodeKind::Unary(_)
             | NodeKind::InSuper(_) => Some(current_node),
         };
-        log::info!("Handle node took {:?}: {}", start.elapsed(), name);
+        log::debug!("Handle node took {:?}: {}", start.elapsed(), name);
         result
     }
 }
@@ -333,14 +332,14 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             return Some(next_node);
         }
         while let Some(current_node) = self.search_stack.stack.pop() {
-            log::info!("Looking at {}", current_node.node_kind.variant_name());
+            log::debug!("Looking at {}", current_node.node_kind.variant_name());
             self.document_stack.push(current_node.clone());
             let start = Instant::now();
             if let Some(resolved) = self.handle_node(current_node) {
-                log::info!("Successfull handled node in {:?}", start.elapsed());
+                log::debug!("Successfull handled node in {:?}", start.elapsed());
                 return Some(resolved);
             }
-            log::info!("failed to handle node in {:?}", start.elapsed());
+            log::debug!("failed to handle node in {:?}", start.elapsed());
         }
         None
     }

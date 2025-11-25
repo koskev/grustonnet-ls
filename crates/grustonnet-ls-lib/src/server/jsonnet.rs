@@ -457,7 +457,7 @@ impl LSPServer for JsonnetServer {
                 .extend(semantic_tokens::treesitter_bridge::get_tokens(doc).data);
         }
 
-        log::info!("Getting semantic tokens took {:?}", start.elapsed());
+        log::debug!("Getting semantic tokens took {:?}", start.elapsed());
         let semantic_tokens: SemanticTokens = tokens.into();
         Ok(semantic_tokens.into())
     }
@@ -490,7 +490,7 @@ impl LSPServer for JsonnetServer {
             &params.text_document_position.text_document.uri,
             params.context.include_declaration,
         )?;
-        log::info!("Finding references took {:?}", start.elapsed());
+        log::debug!("Finding references took {:?}", start.elapsed());
 
         Ok(references.into())
     }
