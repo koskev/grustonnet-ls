@@ -1,0 +1,8 @@
+[package]
+name = "rust2go-env"
+version = "0.1.0"
+edition = "2024"
+
+[target.'cfg(unix)'.dependencies]
+exec = { version = "0.3.1" }
+

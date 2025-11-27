@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use anyhow::Result;
 use clap::Parser;
 use env_logger::Env;
 use grustonnet_ls_lib::{
@@ -10,6 +11,7 @@ use language_server::utils::{UriHelper, rope::RopeHelper};
 use lsp_types::{DiagnosticSeverity, Uri};
 use miette::LabeledSpan;
 use ropey::Rope;
+use rust2go_env::restart_with_fixed_env;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -37,23 +39,7 @@ impl SeverityMap for DiagnosticSeverity {
 
 #[tokio::main]
 async fn main() {
-    if std::env::var("GODEBUG").is_err() {
-        // At this point we are single threaded. Therefore this is safe
-        unsafe {
-            // Go seems to scan the stack an will panic upon encountering a 0x1 pointer.
-            // However, Rust does use this value in some cases
-            // If this turns out to be a problem we'll need to switch to an ipc based solution
-            std::env::set_var("GODEBUG", "invalidptr=0,cgocheck=0");
-        }
-
-        let exe = std::env::current_exe().expect("Could not get current exe");
-        let args = std::env::args();
-
-        let err = exec::execvp(exe, args);
-
-        eprintln!("Could not run execvp: {}", err);
-        std::process::exit(1);
-    }
+    restart_with_fixed_env();
 
     #[cfg(feature = "tracing")]
     tracy_client::Client::start();

@@ -13,11 +13,13 @@ env_logger = "0.11.8"
 grustonnet-ls-lib = { path = "../grustonnet-ls-lib"}
 grustonnet-config = { path = "../grustonnet-config"}
 language-server = { path = "../language-server"}
+rust2go-env = { path = "../rust2go-env"}
 schemars = "1.0.1"
 clap = { version = "4.5.40", features = ["derive"] }
 serde_json = "1.0.140"
 tracy-client = { version = "0.18.2", optional = true }
-exec = "0.3.1"
+[target.'cfg(unix)'.dependencies]
+exec = { version = "0.3.1" }
 
 [[bin]]
 name = "grustonnet-ls"
