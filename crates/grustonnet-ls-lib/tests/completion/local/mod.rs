@@ -1,5 +1,6 @@
 use grustonnet_config::CompletionConfig;
 use grustonnet_config::Configuration;
+use grustonnet_config::SnippetConfig;
 use lsp_types::CompletionItem;
 use lsp_types::CompletionList;
 
@@ -9,6 +10,7 @@ fn local_config() -> Configuration {
             enable_keywords: false,
             enable_global: false,
             enable_local: true,
+            snippets: SnippetConfig { docsonnet: false },
             ..Default::default()
         },
         ..Default::default()

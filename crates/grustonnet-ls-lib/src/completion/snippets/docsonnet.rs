@@ -1,11 +1,22 @@
-use language_server::completion::Completion;
+use language_server::{cache::Cache, completion::Completion};
 use lazy_static::lazy_static;
 use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionList, CompletionTextEdit, InsertTextFormat,
     Position, Range, TextEdit,
 };
 
-pub struct DocsonnetSnippets {}
+use crate::cache::JsonnetASTGenerator;
+use grustonnet_node::types::node_kind::NodeKind;
+
+pub struct DocsonnetSnippets<'a> {
+    cache: &'a Cache<JsonnetASTGenerator>,
+}
+
+impl<'a> DocsonnetSnippets<'a> {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
+        Self { cache }
+    }
+}
 
 lazy_static! {
     static ref DOCSONNET_SNIPPETS: Vec<(&'static str, &'static str)> = vec![
@@ -40,12 +51,23 @@ ${1:Name}(${3:Args}):: ${4: Default value},
     ];
 }
 
-impl Completion for DocsonnetSnippets {
+impl<'a> Completion for DocsonnetSnippets<'a> {
     fn complete(
         &self,
         location: lsp_types::Position,
-        _uri: &lsp_types::Uri,
+        uri: &lsp_types::Uri,
     ) -> language_server::completion::CompletionResult {
+        let doc = self.cache.get_document(uri).unwrap();
+
+        let stack = doc.get_ast()?.get_stack_by_position(&location.into());
+        let in_object = stack
+            .stack
+            .iter()
+            .any(|node| matches!(*node.node_kind, NodeKind::DesugaredObject(_)));
+        if !in_object {
+            return Ok(CompletionList::default());
+        }
+
         let start_location = Position {
             line: location.line,
             // Subtract one to be at the cursor and not one ahead
