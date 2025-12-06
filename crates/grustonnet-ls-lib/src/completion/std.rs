@@ -2,7 +2,7 @@ use jsonnet_std_docs::StdFunctions;
 use language_server::completion::{Completion, CompletionResult};
 use lsp_types::{CompletionItem, CompletionList, Documentation, Position, Uri};
 
-const STDLIB_DEFINITIONS: &str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
+pub const STDLIB_DEFINITIONS: &str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
 
 #[derive(Default)]
 pub struct StdCompletion;

@@ -11,7 +11,7 @@ use language_server::{
     utils::{UriHelper, rope::RopeHelper},
 };
 use lsp_types::{
-    CompletionList, PartialResultParams, Range, TextDocumentContentChangeEvent,
+    CompletionList, PartialResultParams, Position, Range, TextDocumentContentChangeEvent,
     TextDocumentIdentifier, TextDocumentPositionParams, Uri, WorkDoneProgressParams,
 };
 use pretty_assertions::assert_eq;
@@ -44,7 +44,8 @@ impl CompletionTestCase {
             ..Default::default()
         }
     }
-    pub(crate) fn check(&self) {
+
+    pub(crate) fn get_completions(&self) -> (CompletionList, Rope, Position) {
         setup();
         let server = self.create_server();
         let file_content = read_to_string(&self.filename)
@@ -105,9 +106,15 @@ impl CompletionTestCase {
                 partial_result_params: PartialResultParams::default(),
             })
             .unwrap();
-        let mut completion_list: CompletionList =
-            serde_json::from_value(completion_list.0).unwrap();
+        (
+            serde_json::from_value(completion_list.0).unwrap(),
+            rope,
+            completion_location,
+        )
+    }
 
+    pub(crate) fn check(&self) {
+        let (mut completion_list, rope, completion_location) = self.get_completions();
         for (item, expected) in completion_list
             .items
             .iter_mut()
