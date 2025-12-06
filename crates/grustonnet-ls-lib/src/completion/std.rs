@@ -41,3 +41,29 @@ impl Completion for StdCompletion {
         })
     }
 }
+
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod test {
+    use super::*;
+    macro_rules! check_function {
+        ($name:literal) => {
+            paste::paste! {
+                #[test]
+                fn [<test_std_func_$name>]() {
+                    let functions = StdFunctions::generate(STDLIB_DEFINITIONS);
+                    assert!(functions.functions.contains_key($name), "Std Lib does not contain {}", $name);
+
+                }
+            }
+        };
+    }
+
+    check_function!("isArray");
+    check_function!("isBoolean");
+    check_function!("isFunction");
+    check_function!("isNumber");
+    check_function!("isObject");
+    check_function!("isString");
+    check_function!("char");
+}
