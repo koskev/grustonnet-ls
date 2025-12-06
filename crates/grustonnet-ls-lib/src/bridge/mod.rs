@@ -107,11 +107,12 @@ impl GoJsonnet {
 
         // Find upwards
         let found_extcode = find_upwards(&self.root_dir.read().unwrap(), ".extcode.libsonnet");
-        config_lock.ext_code.extend(
-            found_extcode
-                .iter()
-                .map(|(a, b)| (a.to_string(), b.to_string())),
-        );
+        found_extcode.iter().for_each(|ext_code| {
+            config_lock
+                .ext_code
+                .entry(ext_code.0.clone())
+                .or_insert(ext_code.1.to_string());
+        });
 
         let mut jpaths = config.jpaths.clone();
         let root_dir = self.root_dir.read().unwrap();
