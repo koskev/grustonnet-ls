@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex, RwLock},
-    thread,
+    sync::{Arc, Condvar, Mutex, RwLock},
     time::Duration,
 };
 
@@ -66,7 +65,8 @@ pub struct DiagnosticsQueue<F>
 where
     F: DiagnosticFilter + Clone,
 {
-    queue: Arc<Mutex<HashQueue<Uri, DiagnosticsList>>>,
+    pub queue: Arc<Mutex<HashQueue<Uri, DiagnosticsList>>>,
+    cv: Arc<Condvar>,
     /// Contains the current active diagnostics indexed by the identifier of the lint
     pub current_diagnostics: Arc<RwLock<CurrentDiagnostics>>,
     running: Arc<RwLock<bool>>,
@@ -81,6 +81,7 @@ where
     pub fn new(sender: Sender<lsp_server::Message>, filter: F) -> Self {
         Self {
             queue: Arc::new(Mutex::new(HashQueue::new())),
+            cv: Arc::new(Condvar::new()),
             running: Arc::new(RwLock::new(false)),
             sender,
             current_diagnostics: Arc::new(RwLock::new(HashMap::new())),
@@ -90,12 +91,10 @@ where
 
     pub fn queue(&self, uri: Uri, diagnostics: DiagnosticsList) {
         self.queue.lock().unwrap().push(uri, diagnostics);
+        self.cv.notify_one();
     }
 
-    pub fn process_queue(&self) {
-        let Some((uri, list)) = self.queue.lock().unwrap().pop() else {
-            return;
-        };
+    pub fn process_queue(&self, uri: Uri, list: Vec<Box<dyn Diagnostics>>) {
         log::trace!("Processing diagnostics for {}", uri.path());
 
         let mut binding = self.current_diagnostics.write().unwrap();
@@ -138,10 +137,16 @@ where
 
     pub fn run(&self) {
         *self.running.write().unwrap() = true;
+        let mut lock = self.queue.lock().unwrap();
         while *self.running.read().unwrap() {
-            self.process_queue();
-            // TODO: Blocking wait until there is data?
-            thread::sleep(Duration::from_millis(10));
+            while let Some((uri, list)) = lock.pop() {
+                self.process_queue(uri, list);
+            }
+            lock = self
+                .cv
+                .wait_timeout(lock, Duration::from_millis(200))
+                .unwrap()
+                .0;
         }
     }
 }

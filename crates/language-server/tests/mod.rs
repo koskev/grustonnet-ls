@@ -42,7 +42,8 @@ impl DiagnosticsTest {
         assert!(rx.is_empty());
 
         for name in &names {
-            queue.process_queue();
+            let (uri, list) = queue.queue.lock().unwrap().pop().unwrap();
+            queue.process_queue(uri, list);
             let message = rx.try_recv().unwrap();
             let lsp_server::Message::Notification(notification) = message else {
                 panic!("message is not a notification");

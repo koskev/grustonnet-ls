@@ -536,7 +536,7 @@ impl LSPServer for JsonnetServer {
     ) -> Result<LSPResponse, LSPError> {
         let actions: Vec<CodeActionOrCommand> = self
             .diagnostics_queue
-            .clone()
+            .as_ref()
             .unwrap()
             .current_diagnostics
             .read()
