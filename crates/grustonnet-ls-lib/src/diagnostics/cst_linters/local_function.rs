@@ -60,8 +60,7 @@ impl LocalFunctionDiagnostics {
                     end: end.into(),
                 },
                 message: format!(
-                    "Instead of local {} = function() <body>, write local {}() = <body>",
-                    name, name
+                    "Instead of local {name} = function({params_content}) <body>, write local {name}({params_content}) = <body>",
                 ),
                 severity: Some(DiagnosticSeverity::HINT),
                 ..Default::default()
