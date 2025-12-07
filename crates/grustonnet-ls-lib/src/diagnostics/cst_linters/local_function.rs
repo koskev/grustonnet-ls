@@ -39,7 +39,7 @@ impl LocalFunctionDiagnostics {
         let params = cap
             .captures
             .iter()
-            .find(|c| c.index == query.capture_index_for_name("params").unwrap())?;
+            .find(|c| c.index == query.capture_index_for_name("params").unwrap());
         let params_end = cap
             .captures
             .iter()
@@ -47,7 +47,10 @@ impl LocalFunctionDiagnostics {
         let start: Location = bind.node.start_position().into();
         let end: Location = bind.node.end_position().into();
         let name = id.node.get_name(content)?;
-        let params_content = params.node.get_name(content)?;
+        let params_content = match params {
+            None => String::new(),
+            Some(params) => params.node.get_name(content)?,
+        };
         let bind_start: Location = bind.node.start_position().into();
         let params_end: Location = params_end.node.end_position().into();
         results.push(DiagnosticsResult {
@@ -104,7 +107,7 @@ impl Diagnostics for LocalFunctionDiagnostics {
         let Some(tree) = new_tree(&doc.content) else {
             return results;
         };
-        let query_source = r#"(bind (id) @id (anonymous_function (params) @params (")") @params_end) @func) @bind"#;
+        let query_source = r#"(bind (id) @id (anonymous_function (params)? @params (")") @params_end) @func) @bind"#;
         let query = Query::new(&tree.language(), query_source).expect("BUG: Invalid query");
         let mut cursor = QueryCursor::new();
         let captures = cursor.matches(&query, tree.root_node(), doc.content.as_bytes());
