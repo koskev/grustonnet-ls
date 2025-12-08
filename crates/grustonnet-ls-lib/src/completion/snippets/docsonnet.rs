@@ -47,6 +47,16 @@ ${1:Name}(${3:Args}):: ${4: Default value},
         (
             "newarg",
             r#"__.arg('${1:Name}', __.T.${2:any}, help='${3:Help}'),"#,
+        ),
+        (
+            "newobject",
+            r#"'#${1:Name}':: __.obj(
+    |||
+        ${2: Help Text}
+    |||,
+),
+${1:Name}: ${3: Default value},
+"#,
         )
     ];
 }
