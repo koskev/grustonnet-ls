@@ -44,8 +44,15 @@ pub fn handle_command(
             let eval_result = cache
                 .ast_generator
                 .jsonnet
-                .evaluate_snippet(&eval_file_arguments, &document.content)?;
-            return Ok(eval_result.into());
+                .evaluate_snippet(&eval_file_arguments, &document.content);
+            return match eval_result {
+                Ok(res) => Ok(res.into()),
+                Err(e) => Ok(format!(
+                    "File: {}\nStart: {:?}\nEnd: {:?}\nError: {}",
+                    e.filename, e.start, e.end, e.message
+                )
+                .into()),
+            };
         }
         "config.jpaths" => {
             return Ok(cache
