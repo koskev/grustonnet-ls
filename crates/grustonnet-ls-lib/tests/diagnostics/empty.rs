@@ -19,6 +19,7 @@ fn check_empty_diagnostics(val: &str) {
                 min_occurrences: 0,
                 ..Default::default()
             },
+            docsonnet_default: false,
         },
         ignore: IgnoreFields {
             source: true,

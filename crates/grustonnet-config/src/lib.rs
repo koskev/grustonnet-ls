@@ -85,6 +85,10 @@ pub struct DiagnosticConfig {
     /// Warns if a variable gets shadowed by another variable
     pub shadow_variable: bool,
 
+    #[default = true]
+    /// Warns if the docsonnet documentation has the wrong default variable
+    pub docsonnet_default: bool,
+
     /// Warns if a literal value is used multiple times (currently limited to a single file and
     /// literal strings)
     pub duplicate_detection: DuplicateDetectionConfig,

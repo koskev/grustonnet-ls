@@ -42,7 +42,9 @@ use crate::{
     definition::DefinitionProvider,
     diagnostics::{
         ASTDiagnosticsHandler, JsonnetDiagnostics,
-        cst_linters::local_function::LocalFunctionDiagnostics,
+        cst_linters::{
+            docsonnet_val::DocsonnetDefaultDiagnostics, local_function::LocalFunctionDiagnostics,
+        },
         eval::EvalDiagnostics,
         filter::JsonnetDiagnosticFilter,
         go_lint::GoLintDiagnostics,
@@ -150,6 +152,12 @@ impl JsonnetServer {
 
         if config.diagnostics.local_function {
             diags.push(Box::new(LocalFunctionDiagnostics {
+                cache: self.cache.clone(),
+            }));
+        }
+
+        if config.diagnostics.docsonnet_default {
+            diags.push(Box::new(DocsonnetDefaultDiagnostics {
                 cache: self.cache.clone(),
             }));
         }

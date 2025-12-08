@@ -13,6 +13,7 @@ pub use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Uri};
 
 use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 
+pub mod docsonnet_default;
 pub mod dollar;
 pub mod empty;
 pub mod error;
@@ -55,6 +56,7 @@ impl Default for DiagnosticTestCase {
                     min_occurrences: 0,
                     ..Default::default()
                 },
+                docsonnet_default: false,
             },
             ignore: IgnoreFields {
                 message: false,
