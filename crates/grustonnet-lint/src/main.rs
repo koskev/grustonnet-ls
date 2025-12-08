@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -13,6 +15,10 @@ use miette::LabeledSpan;
 use ropey::Rope;
 use rust2go_env::restart_with_fixed_env;
 
+use crate::code_quality::CodeClimate;
+
+pub mod code_quality;
+
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -20,6 +26,12 @@ struct Args {
 
     #[arg(long, short)]
     jpaths: Vec<String>,
+
+    #[arg(long, default_value_t = 2)]
+    fail_exit_code: i32,
+
+    #[arg(long, short)]
+    quality_file: Option<PathBuf>,
 }
 
 trait SeverityMap {
@@ -38,7 +50,7 @@ impl SeverityMap for DiagnosticSeverity {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     restart_with_fixed_env();
 
     #[cfg(feature = "tracing")]
@@ -82,6 +94,7 @@ async fn main() {
         .jsonnet
         .jpaths
         .extend(args.jpaths);
+    server.cache.ast_generator.jsonnet.set_root_dir(".");
     // TODO: this needs to go (how many TODOs do I have for this cursed config?)
     server
         .cache
@@ -89,9 +102,11 @@ async fn main() {
         .jsonnet
         .set_config(&server.configuration.read().unwrap().jsonnet);
     let filter = JsonnetDiagnosticFilter::new(server.cache.clone());
+    let mut code_climates = vec![];
     for path in &paths {
-        let diags = server.get_diagnostics(&Uri::from_path(path).unwrap());
-        let diags = filter.filter_diagnostics(&Uri::from_path(path).unwrap(), diags);
+        let uri = Uri::from_path(path).unwrap();
+        let diags = server.get_diagnostics(&uri);
+        let diags = filter.filter_diagnostics(&uri, diags);
         let content = std::fs::read_to_string(path).unwrap();
         if !diags.is_empty() {
             eprintln!("Lint results for {:?}", path);
@@ -124,5 +139,22 @@ async fn main() {
             let report = miette::Report::from(miette_diag).with_source_code(source);
             eprintln!("{:?}", report)
         }
+        code_climates.extend(
+            diags
+                .iter()
+                .map(|diag| CodeClimate::from_diagnostics_result(diag.clone(), &uri)),
+        );
     }
+
+    if let Some(quality_file) = args.quality_file {
+        let file = File::create(quality_file)?;
+        let mut writer = BufWriter::new(file);
+        serde_json::to_writer(&mut writer, &code_climates)?;
+        writer.flush()?;
+    }
+
+    if !code_climates.is_empty() {
+        std::process::exit(args.fail_exit_code);
+    }
+    Ok(())
 }
