@@ -22,16 +22,21 @@ class NeovimRecorder:
         self.socket_path = tempfile.mktemp()
         self.delay = delay
         self.input_file = input_file
-        self.output = output_file
+        self.output = f"{output_file}.cast"
+        print(f"Input file {input_file}")
 
     @contextmanager
     def record(self):
+#        self.asciinema_proc = subprocess.Popen([
+#            'tmux', 'new-session', '\\;', 'resize-window', '-x', '70', '-y', '20','\\;', 'attach', '\\;', 'send-keys', f"asciinema rec --command \"nvim --listen {self.socket_path} --cmd 'set noswapfile' {self.input_file}\" --overwrite {OUT_DIR}/self.output", "Enter"
+#            ])
         self.asciinema_proc = subprocess.Popen([
             'asciinema', 'rec',
             '--command', f'nvim --listen {self.socket_path} --cmd "set noswapfile" {self.input_file}',
             '--overwrite',
             OUT_DIR/self.output
             ])
+
         self.wait_for_nvim()
         self.nvim = pynvim.attach("socket", path=self.socket_path)
         time.sleep(0.5)
@@ -42,7 +47,9 @@ class NeovimRecorder:
             self._cleanup()
 
     def _cleanup(self):
+        print("Waiting for asciinema to close")
         self.asciinema_proc.wait()
+        print("Asciinema closed")
 
     def wait_for_nvim(self):
         while not os.path.exists(self.socket_path):
@@ -72,7 +79,7 @@ class NeovimRecorder:
         time.sleep(secs)
         return self
 
-    def go_definition(self):
+    def lsp_definition(self):
         self.nvim.command("lua vim.lsp.buf.definition()")
         return self
 
@@ -80,15 +87,15 @@ class NeovimRecorder:
         return self.escape().input(":q!").enter()
 
 def array_index():
-    with NeovimRecorder("../crates/grustonnet-ls-lib/testdata/complete/array/index.jsonnet", "array_index.out").record() as recorder:
+    with NeovimRecorder("../../crates/grustonnet-ls-lib/testdata/complete/array/index.jsonnet", "array_index").record() as recorder:
         recorder.input("GO").type("  y: myArr[0].").sleep(1).type("keyZero.").sleep(1).quit()
 def definition_import():
-    with NeovimRecorder("../crates/grustonnet-ls-lib/testdata/definition/import_simple.jsonnet ", "array_index.out").record() as recorder:
+    with NeovimRecorder("../../crates/grustonnet-ls-lib/testdata/definition/import_simple.jsonnet ", "array_index").record() as recorder:
         recorder.input("Gk5e").sleep(1).lsp_definition().sleep(1).quit()
 
 RECORDS = [
     array_index,
-    definition_import,
+    #definition_import,
 ]
 
 def build(func):

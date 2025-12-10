@@ -2,3 +2,6 @@
 .direnv
 *.profraw
 coverage
+
+node_modules
+__pycache__

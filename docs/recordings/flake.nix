@@ -2,7 +2,7 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    grustonnet.url = "..";
+    grustonnet.url = "../..";
   };
 
   outputs =
@@ -24,6 +24,7 @@
             customRC = ''
               lua <<EOF
                 vim.cmd[[colorscheme tokyonight]]
+                vim.lsp.inlay_hint.enable(true, nil)
                 vim.lsp.config['grustonnet'] = {
                   cmd = { "grustonnet-ls" },
                   filetypes = { 'jsonnet', 'libsonnet' },
@@ -36,16 +37,24 @@
                     documentation = { auto_show = true },
                     menu = {
                       draw = {
-                        columns = { { "label", "label_description", gap = 1 }, { "kind_icon", "kind", gap = 1 }, { "source_name" } },
+                        columns = { { "label", "label_description", gap = 1 }, { "source_name" } },
                       }
                     }
                   }
                   })
+                require('nvim-treesitter.configs').setup({
+                  highlight = {
+                    enable = true,
+                  }
+
+
+                })
               EOF
             '';
 
             packages.myPlugins.start = with pkgs.vimPlugins; [
-              (nvim-treesitter.withPlugins (parsers: builtins.attrValues { inherit (parsers) jsonnet; }))
+              nvim-treesitter
+              (nvim-treesitter.withPlugins (p: [ p.jsonnet ]))
               blink-cmp
               tokyonight-nvim
             ];

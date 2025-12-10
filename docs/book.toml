@@ -1,0 +1,9 @@
+[book]
+authors = ["Kevin"]
+language = "en"
+src = "src"
+title = "Grustonnet Documentation"
+
+[output.html]
+additional-css = ["./node_modules/asciinema-player/dist/bundle/asciinema-player.css"]
+additional-js = ["./node_modules/asciinema-player/dist/bundle/asciinema-player.min.js", "add_players.js"]
