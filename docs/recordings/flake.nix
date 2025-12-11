@@ -23,6 +23,34 @@
           configure = {
             customRC = ''
               lua <<EOF
+                require("snacks").setup({
+                  input = {}
+                })
+                require("telescope").setup({
+                  extensions = {
+                    ["ui-select"] = { layout_strategy = "center" },
+                  }
+                })
+                -- Uses telescope for all select dialogs
+                require("telescope").load_extension("ui-select")
+                require("tiny-inline-diagnostic").setup({
+                  options = {
+                    multilines = {
+                      enabled = true,
+                    }
+                  },
+                  signs = {
+                    left = "",
+                    right = "",
+                    diag = "●",
+                    arrow = "    ",
+                    up_arrow = "    ",
+                    vertical = " │",
+                    vertical_end = " ",
+                  }
+                })
+
+
                 vim.cmd[[colorscheme tokyonight]]
                 vim.lsp.inlay_hint.enable(true, nil)
                 vim.lsp.config['grustonnet'] = {
@@ -57,6 +85,10 @@
               (nvim-treesitter.withPlugins (p: [ p.jsonnet ]))
               blink-cmp
               tokyonight-nvim
+              snacks-nvim
+              telescope-nvim
+              telescope-ui-select-nvim
+              tiny-inline-diagnostic-nvim
             ];
           };
         };

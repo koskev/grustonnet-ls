@@ -7,6 +7,10 @@
 ### Builder pattern
 <div id="complete_builder_pattern" class="asciinema_player"></div>
 
+
+### Docsonnet
+<div id="complete_docsonnet_function" class="asciinema_player"></div>
+
 ## Go to definition
 
 ## Rename
@@ -18,3 +22,9 @@
 ## Semantic Tokens
 
 ## Diagnostics
+
+### Unused
+<div id="diag_unused" class="asciinema_player"></div>
+
+### Local function
+<div id="diag_function" class="asciinema_player"></div>

@@ -66,7 +66,7 @@ class NeovimRecorder:
 
 
     def input(self, input: str):
-        self.nvim.feedkeys(input, "n")
+        self.nvim.feedkeys(input, "m")
         return self
 
     def enter(self):
@@ -81,6 +81,14 @@ class NeovimRecorder:
 
     def lsp_definition(self):
         self.nvim.command("lua vim.lsp.buf.definition()")
+        return self
+
+    def lsp_rename(self):
+        self.nvim.command("lua vim.lsp.buf.rename()")
+        return self
+
+    def lsp_code_action(self):
+        self.nvim.command("lua vim.lsp.buf.code_action()")
         return self
 
     def quit(self):
