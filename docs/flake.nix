@@ -2,7 +2,7 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    grustonnet.url = "../..";
+    grustonnet.url = "..";
   };
 
   outputs =
@@ -101,6 +101,10 @@
           grustonnet.defaultPackage.${pkgs.system}
 
           neovim
+          tmux
+          bash
+          mdbook
+          nodejs
         ];
 
       in
