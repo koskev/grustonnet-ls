@@ -89,6 +89,31 @@ fn function_args() {
 }
 
 #[test]
+fn complete_args_in_object_func() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/function_in_object.jsonnet".into(),
+        replace_string: "a: myarg".into(),
+        replace_by_string: "a: mya".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "myObj".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "myarg".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: global_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
 fn inside_array_top() {
     CompletionTestCase {
         filename: "testdata/complete/array/inside_array.jsonnet".into(),

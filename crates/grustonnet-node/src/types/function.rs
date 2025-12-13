@@ -77,6 +77,15 @@ impl Apply {
 }
 
 impl Function {
+    pub fn get_local_bindings(&self) -> Vec<LocalBind> {
+        self.parameters
+            .iter()
+            .map(|param| LocalBind {
+                variable: param.name.clone(),
+                ..Default::default()
+            })
+            .collect()
+    }
     pub fn get_bind_for_arguments(&self, arguments: &Arguments) -> Option<Vec<Node>> {
         let mut bindings = vec![];
         for (i, expr) in arguments.positional.iter().enumerate() {

@@ -27,17 +27,25 @@ impl<'a> Completion for GlobalCompletion<'a> {
             .iter()
             .flat_map(|node| match &(*node.node_kind) {
                 NodeKind::Local(local) => local.binds.clone(),
-                NodeKind::DesugaredObject(obj) => obj.locals.clone(),
-                NodeKind::Function(func) => func
-                    .parameters
-                    .iter()
-                    .map(|param| LocalBind {
-                        variable: param.name.clone(),
-                        ..Default::default()
-                    })
-                    .collect(),
+                NodeKind::DesugaredObject(obj) => {
+                    let mut locals = obj.locals.clone();
+                    // For a DesugaredObject we need to find the field and check if the field is a
+                    // function. If it is, we'll just add the binding of that function to the vec
+                    if let Some(field_name) = obj.get_name_at(&pos.into())
+                        && let Some(field) = obj.get_field(&field_name)
+                        && let NodeKind::Function(func) = field.body.node_kind.as_ref()
+                    {
+                        locals.extend(func.get_local_bindings());
+                    }
+                    locals
+                }
+                NodeKind::Function(func) => func.get_local_bindings(),
                 _ => {
-                    eprintln!("No bind {}", node.node_kind.variant_name());
+                    log::warn!(
+                        "No bind for {} {}",
+                        node.node_kind.variant_name(),
+                        node.get_name()
+                    );
                     vec![]
                 }
             })
