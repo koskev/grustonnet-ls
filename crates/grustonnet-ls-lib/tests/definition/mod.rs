@@ -368,7 +368,6 @@ fn object_func_arg() {
 }
 
 #[test]
-#[ignore = "unsupported"]
 fn object_func_same_arg() {
     DefinitionTestCase {
         filename: "testdata/definition/object_func_arg.jsonnet".into(),

@@ -184,18 +184,15 @@ impl<'a> Iterator for NodeIter<'a> {
             return Some(queue_node);
         }
         let get_param_node = |param: &Parameter| -> Option<Arc<Node>> {
-            param.default_arg.clone()
-            // XXX: This breaks completion in for loops (and probably other function calls) and
-            // finds wrong references in other files
-            //Some(param.default_arg.clone().unwrap_or(Arc::new(Node {
-            //    node_base: NodeBase {
-            //        loc_range: param.loc_range.clone(),
-            //        ..Default::default()
-            //    },
-            //    node_kind: Box::new(NodeKind::Var(Var {
-            //        id: Some(param.name.clone()),
-            //    })),
-            //})))
+            Some(param.default_arg.clone().unwrap_or(Arc::new(Node {
+                node_base: NodeBase {
+                    loc_range: param.loc_range.clone(),
+                    ..Default::default()
+                },
+                node_kind: Box::new(NodeKind::Var(Var {
+                    id: Some(param.name.clone()),
+                })),
+            })))
         };
         match self.root_node.node_kind.as_ref() {
             NodeKind::Array(arr) => {
@@ -218,13 +215,14 @@ impl<'a> Iterator for NodeIter<'a> {
                 }
             }
             NodeKind::Function(func) => {
-                if self.index == 0 {
-                    self.index += 1;
-                    return Some(func.body.clone());
-                }
-                if let Some(param) = func.parameters.get(self.index - 1) {
+                // Add the params first, as they might be used in the body
+                if let Some(param) = func.parameters.get(self.index) {
                     self.index += 1;
                     return get_param_node(param);
+                }
+                if self.index == func.parameters.len() {
+                    self.index += 1;
+                    return Some(func.body.clone());
                 }
                 return None;
             }
