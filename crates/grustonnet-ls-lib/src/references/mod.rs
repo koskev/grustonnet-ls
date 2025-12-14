@@ -131,7 +131,7 @@ impl<'a> ReferenceProvider<'a> {
             // Execute a goto and compare it's position with the target position
             .filter(|loc| {
                 // If the range is identical to the target we can skip the rest
-                if target_info.location.range == loc.range {
+                if target_info.location == *loc {
                     return include_declaration;
                 }
                 let Ok(potential_location) =

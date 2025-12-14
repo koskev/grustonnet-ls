@@ -1,0 +1,5 @@
+{
+  myFunc(arg):: {
+    y: arg,
+  },
+}

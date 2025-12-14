@@ -213,3 +213,45 @@ fn object() {
     }
     .check();
 }
+
+#[test]
+// Previously some other files in complete/function were wrongfully found as a reference
+fn wrong_other_files() {
+    ReferenceTestCase {
+        filename: "testdata/references/function_in_object_reference.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 7,
+        },
+        targets: vec![
+            TargetInfo {
+                range: Range {
+                    start: Position {
+                        line: 1,
+                        character: 9,
+                    },
+                    end: Position {
+                        line: 1,
+                        character: 12,
+                    },
+                },
+                ..Default::default()
+            },
+            TargetInfo {
+                range: Range {
+                    start: Position {
+                        line: 2,
+                        character: 7,
+                    },
+                    end: Position {
+                        line: 2,
+                        character: 10,
+                    },
+                },
+                ..Default::default()
+            },
+        ],
+        ..Default::default()
+    }
+    .check();
+}
