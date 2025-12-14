@@ -1,0 +1,22 @@
+policies:
+  - type: commit
+    spec:
+      gpg:
+        required: true
+      spellcheck:
+        locale: US
+      conventional:
+        types:
+          - "fix"
+          - "feat"
+          - "chore"
+          - "ci"
+          - "docs"
+          - "doc"
+          - "style"
+          - "refactor"
+          - "perf"
+          - "test"
+        scopes:
+          - .*
+        descriptionLength: 72
