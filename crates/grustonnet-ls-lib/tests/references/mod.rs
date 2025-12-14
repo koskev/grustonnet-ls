@@ -132,6 +132,48 @@ fn simple() {
 }
 
 #[test]
+// Make sure the filename is checked
+fn simple_copy() {
+    ReferenceTestCase {
+        filename: "testdata/references/simple_copy.jsonnet".into(),
+        source: Position {
+            line: 5,
+            character: 7,
+        },
+        targets: vec![
+            TargetInfo {
+                range: Range {
+                    start: Position {
+                        line: 1,
+                        character: 6,
+                    },
+                    end: Position {
+                        line: 1,
+                        character: 10,
+                    },
+                },
+                ..Default::default()
+            },
+            TargetInfo {
+                range: Range {
+                    start: Position {
+                        line: 5,
+                        character: 5,
+                    },
+                    end: Position {
+                        line: 5,
+                        character: 9,
+                    },
+                },
+                ..Default::default()
+            },
+        ],
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
 fn object() {
     ReferenceTestCase {
         filename: "testdata/references/object.jsonnet".into(),
