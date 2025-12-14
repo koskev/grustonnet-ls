@@ -366,3 +366,21 @@ fn object_func_arg() {
     }
     .check();
 }
+
+#[test]
+#[ignore = "unsupported"]
+fn object_func_same_arg() {
+    DefinitionTestCase {
+        filename: "testdata/definition/object_func_arg.jsonnet".into(),
+        source: Position {
+            line: 1,
+            character: 13,
+        },
+        target: Position {
+            line: 1,
+            character: 9,
+        },
+        ..Default::default()
+    }
+    .check();
+}
