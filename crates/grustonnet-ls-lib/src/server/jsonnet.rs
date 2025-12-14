@@ -20,7 +20,6 @@ use language_server::{
     },
     utils::diff,
 };
-use log::error;
 use lsp_types::{
     CodeActionOrCommand, CodeActionProviderCapability, CompletionList, CompletionOptions,
     CompletionParams, CompletionResponse, DidChangeConfigurationParams, DocumentDiagnosticParams,
@@ -57,9 +56,8 @@ use crate::{
             variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
         },
     },
-    documentation::DocumentationInfo,
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
-    node::{NodeHelper, Stackhelper},
+    node::NodeHelper,
     references::ReferenceProvider,
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},

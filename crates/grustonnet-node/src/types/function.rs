@@ -104,7 +104,6 @@ impl Function {
                     ctx: "manually pushed".to_string(),
                     ..Default::default()
                 },
-                ..Default::default()
             });
         }
 

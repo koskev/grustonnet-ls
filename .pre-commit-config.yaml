@@ -24,3 +24,9 @@ repos:
         stages:
           - pre-push
         entry: make test
+      - id: clippy
+        name: clippy
+        language: rust
+        stages:
+          - pre-push
+        entry: make clippy

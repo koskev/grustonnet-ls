@@ -5,7 +5,7 @@ test:
 	cargo test
 
 clippy:
-	cargo clippy
+	cargo clippy -- --deny "warnings"
 
 install-hooks:
 	pre-commit install
