@@ -1,0 +1,5 @@
+{
+  myFunc(myArg):: {
+    field: myArg,
+  },
+}

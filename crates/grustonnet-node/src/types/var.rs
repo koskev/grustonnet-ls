@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     stack::NodeStack,
-    types::{Identifier, local_bind::LocalBind, node::Node, node_kind::NodeKind},
+    types::{
+        Identifier, function::Function, local_bind::LocalBind, node::Node, node_kind::NodeKind,
+    },
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
@@ -40,6 +42,7 @@ impl Var {
         let Some(id) = &self.id else {
             return None;
         };
+        let source_location_range = &document_stack.stack.last()?.node_base.loc_range;
         let get_node_with_id = |binds: &'a Vec<LocalBind>| -> Option<LocationRange> {
             let bind = binds.iter().find(|local| local.variable.0 == id.0)?;
             // If the bind is empty, we'll try the body which most likely has a valid location
@@ -49,23 +52,37 @@ impl Var {
                 Some(bind.clone().body?.node_base.loc_range.clone())
             }
         };
+        let handle_function = |func: &Function| -> Option<LocationRange> {
+            func.parameters.iter().find_map(|param| {
+                if let Some(name) = self.id.as_ref()
+                    && param.name == *name
+                {
+                    Some(param.loc_range.clone())
+                } else {
+                    None
+                }
+            })
+        };
         document_stack
             .stack
             .iter()
             .rev()
             .find_map(|node| match node.node_kind.as_ref() {
-                NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
+                NodeKind::DesugaredObject(obj) => {
+                    // Check if the object has a field in range that has a function as a field.
+                    // Then extract the parameters
+                    if let Some(field_name) = obj.get_name_at(&source_location_range.begin)
+                        && let Some(field) = obj.get_field(&field_name)
+                        && let NodeKind::Function(func) = field.body.node_kind.as_ref()
+                    {
+                        handle_function(func)
+                    } else {
+                        get_node_with_id(&obj.locals)
+                    }
+                }
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
 
-                NodeKind::Function(func) => func.parameters.iter().find_map(|param| {
-                    if let Some(name) = self.id.as_ref()
-                        && param.name == *name
-                    {
-                        Some(param.loc_range.clone())
-                    } else {
-                        None
-                    }
-                }),
+                NodeKind::Function(func) => handle_function(func),
                 _ => None,
             })
     }

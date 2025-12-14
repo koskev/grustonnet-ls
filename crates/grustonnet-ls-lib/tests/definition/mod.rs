@@ -349,3 +349,20 @@ fn local_func() {
     }
     .check();
 }
+
+#[test]
+fn object_func_arg() {
+    DefinitionTestCase {
+        filename: "testdata/definition/object_func_arg.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 11,
+        },
+        target: Position {
+            line: 1,
+            character: 9,
+        },
+        ..Default::default()
+    }
+    .check();
+}

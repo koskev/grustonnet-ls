@@ -83,6 +83,7 @@ impl<'a> DefinitionProvider<'a> {
             _ => (),
         }
 
+        // builds my.call.chain.<last_node>. Then uses "last_node" do determine the position
         let (last_node, built_node) = document_stack.build_except_last(self.cache)?;
 
         let index_name = last_node
@@ -103,7 +104,13 @@ impl<'a> DefinitionProvider<'a> {
                     .clone(),
             ),
             NodeKind::Local(local) => local.get_identifier_position(),
-            _ => None,
+            _ => {
+                log::debug!(
+                    "Unhandled goto definition type {}",
+                    built_node.node_kind.variant_name()
+                );
+                None
+            }
         }
         .ok_or(anyhow!(
             "Could not resolve location of {}",
