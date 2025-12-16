@@ -88,13 +88,22 @@ impl DesugaredObject {
     }
 
     pub fn get_name_at(&self, pos: &Location) -> Option<String> {
-        self.fields.iter().find_map(|field| {
-            if field.loc_range.in_range(pos) {
-                field.get_name()
-            } else {
-                None
-            }
-        })
+        self.fields
+            .iter()
+            .find_map(|field| {
+                if field.loc_range.in_range(pos) {
+                    field.get_name()
+                } else {
+                    None
+                }
+            })
+            .or(self.locals.iter().find_map(|local| {
+                if local.loc_range.in_range(pos) {
+                    Some(local.variable.0.clone())
+                } else {
+                    None
+                }
+            }))
     }
 
     pub fn get_field(&self, name: &str) -> Option<&DesugaredObjectField> {

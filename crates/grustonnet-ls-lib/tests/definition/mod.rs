@@ -383,3 +383,37 @@ fn object_func_same_arg() {
     }
     .check();
 }
+
+#[test]
+fn object_local_itself() {
+    DefinitionTestCase {
+        filename: "testdata/definition/object_local.jsonnet".into(),
+        source: Position {
+            line: 1,
+            character: 13,
+        },
+        target: Position {
+            line: 1,
+            character: 8,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn object_local_value() {
+    DefinitionTestCase {
+        filename: "testdata/definition/object_local.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 7,
+        },
+        target: Position {
+            line: 1,
+            character: 8,
+        },
+        ..Default::default()
+    }
+    .check();
+}

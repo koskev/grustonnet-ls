@@ -97,12 +97,20 @@ impl<'a> DefinitionProvider<'a> {
         );
         let location: LocationRange = match built_node.node_kind.as_ref() {
             NodeKind::Var(var) => var.resolve_location(&document_stack),
-            NodeKind::DesugaredObject(obj) => Some(
-                obj.get_field(&index_name)
-                    .ok_or(anyhow!("unable to get object field {}", index_name))?
-                    .loc_range
-                    .clone(),
-            ),
+            NodeKind::DesugaredObject(obj) => {
+                let found_local = obj
+                    .locals
+                    .iter()
+                    .find(|local| local.variable.0 == index_name);
+                Some(match found_local {
+                    Some(local) => local.loc_range.clone(),
+                    None => obj
+                        .get_field(&index_name)
+                        .ok_or(anyhow!("unable to get object field {}", index_name))?
+                        .loc_range
+                        .clone(),
+                })
+            }
             NodeKind::Local(local) => local.get_identifier_position(),
             _ => {
                 log::debug!(
