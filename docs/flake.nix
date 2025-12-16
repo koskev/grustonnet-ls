@@ -106,6 +106,7 @@
           bash
           mdbook
           nodejs
+          coreutils
         ];
 
       in
