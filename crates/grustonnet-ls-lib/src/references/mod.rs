@@ -51,7 +51,12 @@ impl<'a> ReferenceProvider<'a> {
                 })?,
                 false,
             ),
-            NodeKind::DesugaredObject(obj) => (obj.get_name_at(&pos)?, false),
+            NodeKind::DesugaredObject(obj) => {
+                let name = obj.get_name_at(&pos)?;
+                let is_local = obj.locals.iter().any(|bind| bind.variable.0 == name);
+
+                (name, is_local)
+            }
             _ => {
                 log::warn!(
                     "Unhandled identifier for {}",

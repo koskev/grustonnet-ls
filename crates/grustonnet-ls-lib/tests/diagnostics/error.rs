@@ -4,6 +4,11 @@ use super::*;
 fn error_circular_import() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/error_cases/circular.jsonnet".to_string(),
+        config: DiagnosticConfig {
+            enable_eval: true,
+            enable_go_lint: true,
+            ..disabled_diagnostics_config()
+        },
         expected: vec![
             Diagnostic {
             severity: Some(DiagnosticSeverity::ERROR),

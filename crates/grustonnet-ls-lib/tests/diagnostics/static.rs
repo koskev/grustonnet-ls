@@ -1,11 +1,17 @@
+use grustonnet_config::DiagnosticConfig;
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
 
-use crate::diagnostics::DiagnosticTestCase;
+use crate::diagnostics::{DiagnosticTestCase, disabled_diagnostics_config};
 
 #[test]
 fn empty() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/static/empty.jsonnet".to_string(),
+        config: DiagnosticConfig {
+            enable_eval: true,
+            enable_go_lint: true,
+            ..disabled_diagnostics_config()
+        },
         expected: vec![
             Diagnostic {
                 severity: Some(DiagnosticSeverity::ERROR),
@@ -27,6 +33,11 @@ fn empty() {
 fn syntax() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/static/syntax.jsonnet".to_string(),
+        config: DiagnosticConfig {
+            enable_eval: true,
+            enable_go_lint: true,
+            ..disabled_diagnostics_config()
+        },
         expected: vec![
             Diagnostic {
                 severity: Some(DiagnosticSeverity::ERROR),
@@ -68,6 +79,10 @@ fn syntax() {
 fn unused() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/static/unused.jsonnet".to_string(),
+        config: DiagnosticConfig {
+            enable_go_lint: true,
+            ..disabled_diagnostics_config()
+        },
         expected: vec![Diagnostic {
             severity: Some(DiagnosticSeverity::WARNING),
             range: Range {

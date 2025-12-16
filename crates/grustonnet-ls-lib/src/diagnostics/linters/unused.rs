@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
-use grustonnet_node::types::{Local, node_kind::NodeKind};
+use grustonnet_node::types::{Local, base::NodeBase, node::Node, node_kind::NodeKind};
 use jsonnet_location::Location;
 use language_server::{
     cache::Cache,
@@ -56,9 +56,31 @@ impl UnusedDiagnostics {
         let locals = stack
             .stack
             .iter()
+            .flat_map(|n| {
+                if let NodeKind::DesugaredObject(obj) = n.node_kind.as_ref() {
+                    obj.locals
+                        .iter()
+                        .filter(|bind| bind.variable.0 != "$")
+                        .map(|bind| {
+                            Arc::new(Node {
+                                node_base: NodeBase {
+                                    loc_range: bind.loc_range.clone(),
+                                    ..n.node_base.clone()
+                                },
+                                node_kind: Box::new(NodeKind::Local(Local {
+                                    binds: vec![bind.clone()],
+                                    ..Default::default()
+                                })),
+                            })
+                        })
+                        .collect()
+                } else {
+                    vec![n.clone()]
+                }
+            })
             .filter_map(|n| {
                 if let NodeKind::Local(loc) = n.node_kind.as_ref() {
-                    Some(loc)
+                    Some(loc.clone())
                 } else {
                     None
                 }
@@ -100,7 +122,7 @@ impl UnusedDiagnostics {
                             ]),
                             ..Default::default()
                         },
-                        code_actions: self.get_code_action(uri, local).unwrap_or_default(),
+                        code_actions: self.get_code_action(uri, &local).unwrap_or_default(),
                         ..Default::default()
                     })
                 })

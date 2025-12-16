@@ -1,6 +1,6 @@
-use grustonnet_config::{DiagnosticConfig, DuplicateDetectionConfig, VariableNaming};
+use grustonnet_config::DiagnosticConfig;
 
-use crate::diagnostics::{DiagnosticTestCase, IgnoreFields};
+use crate::diagnostics::{DiagnosticTestCase, IgnoreFields, disabled_diagnostics_config};
 
 fn check_empty_diagnostics(val: &str) {
     DiagnosticTestCase {
@@ -8,18 +8,8 @@ fn check_empty_diagnostics(val: &str) {
         expected: vec![],
         config: DiagnosticConfig {
             enable_eval: true,
-            enable_go_lint: true,
             unused_variables: true,
-            variable_naming: VariableNaming::None,
-            local_function: false,
-            prevent_dollar: false,
-            recursive_arguments: false,
-            shadow_variable: false,
-            duplicate_detection: DuplicateDetectionConfig {
-                min_occurrences: 0,
-                ..Default::default()
-            },
-            docsonnet_default: false,
+            ..disabled_diagnostics_config()
         },
         ignore: IgnoreFields {
             source: true,

@@ -1,6 +1,7 @@
 {
   new():: {
     local outer = self,
+    local _ = outer,
 
     withArg(arg):: self {
       key: arg,
@@ -12,6 +13,7 @@
 
     withInner():: {
       local inner = self,
+      local _ = inner,
       innerVal: 0,
 
       withInnerFunc():: inner {

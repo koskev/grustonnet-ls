@@ -87,6 +87,7 @@ impl DesugaredObject {
         new_object
     }
 
+    /// returns the name at the given position. Can either be a [`DesugaredObjectField`] or [`LocalBind`]
     pub fn get_name_at(&self, pos: &Location) -> Option<String> {
         self.fields
             .iter()

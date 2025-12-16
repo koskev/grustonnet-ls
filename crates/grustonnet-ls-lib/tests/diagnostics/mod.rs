@@ -37,27 +37,31 @@ pub(crate) struct DiagnosticTestCase {
     pub(crate) ignore: IgnoreFields,
 }
 
+fn disabled_diagnostics_config() -> DiagnosticConfig {
+    DiagnosticConfig {
+        enable_eval: false,
+        enable_go_lint: false,
+        unused_variables: false,
+        variable_naming: VariableNaming::None,
+        local_function: false,
+        prevent_dollar: false,
+        recursive_arguments: false,
+        shadow_variable: false,
+        duplicate_detection: DuplicateDetectionConfig {
+            min_occurrences: 0,
+            ..Default::default()
+        },
+        docsonnet_default: false,
+    }
+}
+
 impl Default for DiagnosticTestCase {
     fn default() -> Self {
         Self {
             filename: String::default(),
             expected: vec![],
             // TODO: Use this default for now to not touch the tests :)
-            config: DiagnosticConfig {
-                enable_eval: true,
-                enable_go_lint: true,
-                unused_variables: false,
-                variable_naming: VariableNaming::None,
-                local_function: false,
-                prevent_dollar: false,
-                recursive_arguments: false,
-                shadow_variable: false,
-                duplicate_detection: DuplicateDetectionConfig {
-                    min_occurrences: 0,
-                    ..Default::default()
-                },
-                docsonnet_default: false,
-            },
+            config: disabled_diagnostics_config(),
             ignore: IgnoreFields {
                 message: false,
                 source: true,

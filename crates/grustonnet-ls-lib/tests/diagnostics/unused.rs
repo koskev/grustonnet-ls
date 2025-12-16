@@ -1,7 +1,7 @@
 use grustonnet_config::DiagnosticConfig;
 use lsp_types::{Diagnostic, DiagnosticSeverity, DiagnosticTag, Position, Range};
 
-use crate::diagnostics::DiagnosticTestCase;
+use crate::diagnostics::{DiagnosticTestCase, disabled_diagnostics_config};
 
 const ERROR_MESSAGE: &str = "Unused variable. If this is intentional prefix with an underscore: _";
 
@@ -11,7 +11,7 @@ fn local_var() {
         filename: "testdata/diagnostics/unused/local_var.jsonnet".to_string(),
         config: DiagnosticConfig {
             unused_variables: true,
-            ..Default::default()
+            ..disabled_diagnostics_config()
         },
         expected: vec![Diagnostic {
             range: Range {
@@ -40,7 +40,7 @@ fn local_func() {
         filename: "testdata/diagnostics/unused/local_func.jsonnet".to_string(),
         config: DiagnosticConfig {
             unused_variables: true,
-            ..Default::default()
+            ..disabled_diagnostics_config()
         },
         expected: vec![Diagnostic {
             range: Range {
@@ -64,23 +64,22 @@ fn local_func() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn object_local_var() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/unused/object_local_var.jsonnet".to_string(),
         config: DiagnosticConfig {
             unused_variables: true,
-            ..Default::default()
+            ..disabled_diagnostics_config()
         },
         expected: vec![Diagnostic {
             range: Range {
                 start: Position {
                     line: 1,
-                    character: 6,
+                    character: 7,
                 },
                 end: Position {
                     line: 1,
-                    character: 15,
+                    character: 16,
                 },
             },
             severity: Some(DiagnosticSeverity::WARNING),

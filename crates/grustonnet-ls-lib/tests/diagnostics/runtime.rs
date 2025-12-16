@@ -1,11 +1,17 @@
+use grustonnet_config::DiagnosticConfig;
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
 
-use crate::diagnostics::DiagnosticTestCase;
+use crate::diagnostics::{DiagnosticTestCase, disabled_diagnostics_config};
 
 #[test]
 fn array() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/runtime/array.jsonnet".to_string(),
+        config: DiagnosticConfig {
+            enable_eval: true,
+            enable_go_lint: true,
+            ..disabled_diagnostics_config()
+        },
         expected: vec![Diagnostic {
             severity: Some(DiagnosticSeverity::ERROR),
             message: "Index 5 out of bounds, not within [0, 0)".to_string(),
@@ -30,6 +36,11 @@ fn array() {
 fn assert() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/runtime/assert.jsonnet".to_string(),
+        config: DiagnosticConfig {
+            enable_eval: true,
+            enable_go_lint: true,
+            ..disabled_diagnostics_config()
+        },
         expected: vec![Diagnostic {
             severity: Some(DiagnosticSeverity::ERROR),
             message: "Assertion failed".to_string(),
@@ -54,6 +65,11 @@ fn assert() {
 fn assert_nested() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/runtime/assert_nested.jsonnet".to_string(),
+        config: DiagnosticConfig {
+            enable_eval: true,
+            enable_go_lint: true,
+            ..disabled_diagnostics_config()
+        },
         expected: vec![Diagnostic {
             severity: Some(DiagnosticSeverity::ERROR),
             message: "Object assertion failed.".to_string(),
@@ -78,6 +94,11 @@ fn assert_nested() {
 fn assert_function() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/runtime/assert_function.jsonnet".to_string(),
+        config: DiagnosticConfig {
+            enable_eval: true,
+            enable_go_lint: true,
+            ..disabled_diagnostics_config()
+        },
         expected: vec![Diagnostic {
             severity: Some(DiagnosticSeverity::ERROR),
             message: "Object assertion failed.".to_string(),
