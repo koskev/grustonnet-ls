@@ -105,6 +105,7 @@
           tmux
           bash
           mdbook
+          git-cliff
           nodejs
           coreutils
         ];
