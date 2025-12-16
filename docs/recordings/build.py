@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser("simple_example")
 parser.add_argument("output", help="Output dir", type=str, default="out", nargs="?")
 args = parser.parse_args()
 
-OUT_DIR = pathlib.Path(args.output)
+OUT_DIR = pathlib.Path(args.output).absolute()
 
 class NeovimRecorder:
     def __init__(self, input_file, output_file, delay=0.1):
@@ -27,15 +27,18 @@ class NeovimRecorder:
 
     @contextmanager
     def record(self):
-#        self.asciinema_proc = subprocess.Popen([
-#            'tmux', 'new-session', '\\;', 'resize-window', '-x', '70', '-y', '20','\\;', 'attach', '\\;', 'send-keys', f"asciinema rec --command \"nvim --listen {self.socket_path} --cmd 'set noswapfile' {self.input_file}\" --overwrite {OUT_DIR}/self.output", "Enter"
-#            ])
+        file_name = os.path.basename(self.input_file)
+        dir = os.path.dirname(self.input_file)
+        if len(dir) == 0:
+            dir = None
         self.asciinema_proc = subprocess.Popen([
             'asciinema', 'rec',
-            '--command', f'nvim --listen {self.socket_path} --cmd "set noswapfile" {self.input_file}',
+            '--command', f'nvim --listen {self.socket_path} --cmd "set noswapfile" {file_name}',
             '--overwrite',
             OUT_DIR/self.output
-            ])
+            ],
+            cwd=dir
+        )
 
         self.wait_for_nvim()
         self.nvim = pynvim.attach("socket", path=self.socket_path)
@@ -81,6 +84,10 @@ class NeovimRecorder:
 
     def lsp_definition(self):
         self.nvim.command("lua vim.lsp.buf.definition()")
+        return self
+
+    def lsp_references(self):
+        self.nvim.command("lua require('telescope.builtin').lsp_references({include_declaration = true, include_current_line = true, trim_text = true})")
         return self
 
     def lsp_rename(self):

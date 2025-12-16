@@ -14,12 +14,10 @@
 ## Go to definition
 
 ## Rename
+<div id="rename_docsonnet" class="asciinema_player"></div>
 
 ## Find references
-
-## Inlay hints
-
-## Semantic Tokens
+<div id="references_docsonnet" class="asciinema_player"></div>
 
 ## Diagnostics
 
