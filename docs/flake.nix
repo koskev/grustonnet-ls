@@ -24,7 +24,8 @@
             customRC = ''
               lua <<EOF
                 require("snacks").setup({
-                  input = {}
+                  input = {},
+                  notifier = {}
                 })
                 require("telescope").setup({
                   extensions = {
