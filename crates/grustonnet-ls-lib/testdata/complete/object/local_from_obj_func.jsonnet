@@ -5,5 +5,5 @@ local myLocal = {
 {
   normalKey: myLocal,
   funcKey():: myLocal,
-  funcKey2(myArg):: myLocal,
+  funcKey2(myArg):: myArg,
 }

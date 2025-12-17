@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use grustonnet_config::UnusedVariablesConfig;
-use grustonnet_node::types::node_kind::NodeKind;
+use grustonnet_node::types::{function::Function, node_kind::NodeKind};
 use jsonnet_location::{Location, LocationRange};
 use language_server::{
     cache::Cache,
@@ -65,6 +65,15 @@ impl UnusedDiagnostics {
     fn get_diagnostics(&self, uri: &Uri) -> Option<Vec<DiagnosticsResult>> {
         let doc = self.cache.get_document(uri).unwrap();
         let stack = doc.get_ast().ok()?.get_complete_stack();
+        let handle_function = |func: &Function| -> Vec<PotentialUnused> {
+            func.parameters
+                .iter()
+                .map(|param| PotentialUnused {
+                    location: param.loc_range.clone(),
+                    name: param.name.0.clone(),
+                })
+                .collect()
+        };
         let locals = stack
             .stack
             .iter()
@@ -76,25 +85,24 @@ impl UnusedDiagnostics {
                 //        name: var.id.clone()?.0,
                 //    }])
                 //}
-                NodeKind::Function(func) if self.config.function_parameters => Some(
-                    func.parameters
-                        .iter()
-                        .map(|param| PotentialUnused {
-                            location: param.loc_range.clone(),
-                            name: param.name.0.clone(),
-                        })
-                        .collect(),
-                ),
-                NodeKind::DesugaredObject(obj) if self.config.locals => Some(
-                    obj.locals
+                NodeKind::Function(func) if self.config.function_parameters => {
+                    Some(handle_function(func))
+                }
+                NodeKind::DesugaredObject(obj) if self.config.locals => {
+                    let mut obj_positions: Vec<_> = obj
+                        .locals
                         .iter()
                         .filter(|bind| bind.variable.0 != "$")
                         .map(|bind| PotentialUnused {
                             location: bind.loc_range.clone(),
                             name: bind.variable.0.clone(),
                         })
-                        .collect(),
-                ),
+                        .collect();
+                    for obj_func in &obj.get_function_fields() {
+                        obj_positions.extend(handle_function(obj_func));
+                    }
+                    Some(obj_positions)
+                }
                 NodeKind::Local(loc) if self.config.locals => Some(vec![PotentialUnused {
                     location: loc.get_identifier_position()?,
                     name: loc.get_name()?,

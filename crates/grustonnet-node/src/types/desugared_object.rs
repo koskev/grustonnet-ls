@@ -10,7 +10,7 @@ use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl};
 use jsonnet_location::{Location, LocationRange};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{local_bind::LocalBind, node::Node, node_kind::NodeKind};
+use crate::types::{function::Function, local_bind::LocalBind, node::Node, node_kind::NodeKind};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
@@ -115,5 +115,27 @@ impl DesugaredObject {
                 false
             }
         })
+    }
+
+    pub fn get_function_at(&self, pos: &Location) -> Option<Function> {
+        let field = self.get_field(&self.get_name_at(pos)?)?;
+        if let NodeKind::Function(func) = field.body.node_kind.as_ref() {
+            Some(func.clone())
+        } else {
+            None
+        }
+    }
+
+    pub fn get_function_fields(&self) -> Vec<Function> {
+        self.fields
+            .iter()
+            .filter_map(|field| {
+                if let NodeKind::Function(func) = field.body.node_kind.as_ref() {
+                    Some(func.clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 }

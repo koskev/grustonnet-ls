@@ -122,7 +122,7 @@ fn local_func_unused() {
 }
 
 #[test]
-#[ignore = "not implemented"]
+//#[ignore = "not implemented"]
 fn object_func_unused() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/unused/object_func_unused.jsonnet".to_string(),
@@ -133,12 +133,12 @@ fn object_func_unused() {
         expected: vec![Diagnostic {
             range: Range {
                 start: Position {
-                    line: 0,
-                    character: 13,
+                    line: 1,
+                    character: 4,
                 },
                 end: Position {
-                    line: 0,
-                    character: 16,
+                    line: 1,
+                    character: 7,
                 },
             },
             severity: Some(DiagnosticSeverity::WARNING),

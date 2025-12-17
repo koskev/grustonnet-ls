@@ -71,11 +71,8 @@ impl Var {
                 NodeKind::DesugaredObject(obj) => {
                     // Check if the object has a field in range that has a function as a field.
                     // Then extract the parameters
-                    if let Some(field_name) = obj.get_name_at(&source_location_range.begin)
-                        && let Some(field) = obj.get_field(&field_name)
-                        && let NodeKind::Function(func) = field.body.node_kind.as_ref()
-                    {
-                        handle_function(func)
+                    if let Some(func) = obj.get_function_at(&source_location_range.begin) {
+                        handle_function(&func)
                     } else {
                         get_node_with_id(&obj.locals)
                     }

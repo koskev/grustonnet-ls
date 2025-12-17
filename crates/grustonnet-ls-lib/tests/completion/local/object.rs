@@ -23,7 +23,7 @@ fn function_in_object_without_arg() {
 fn function_in_object_with_arg() {
     CompletionTestCase {
         filename: "testdata/complete/object/local_from_obj_func.jsonnet".into(),
-        replace_string: "funcKey2(myArg):: myLocal".into(),
+        replace_string: "funcKey2(myArg):: myArg".into(),
         replace_by_string: "funcKey2(myArg):: myLocal.".into(),
         expected: CompletionList {
             is_incomplete: false,
