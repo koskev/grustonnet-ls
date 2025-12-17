@@ -1,7 +1,7 @@
-local myFunc(arg) = {
-	key: 5,
+local myFunc(_arg) = {
+  key: 5,
 };
 
 {
-	x: myFunc(1)
+  x: myFunc(1),
 }

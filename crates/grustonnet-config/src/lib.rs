@@ -53,6 +53,17 @@ pub struct DuplicateDetectionConfig {
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
+pub struct UnusedVariablesConfig {
+    #[default = true]
+    /// Enable linting for unused local variables
+    pub locals: bool,
+    #[default = true]
+    /// Enable linting for unused function parameters
+    pub function_parameters: bool,
+}
+
+#[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(default)]
 pub struct DiagnosticConfig {
     #[default = true]
     /// Enable diagnostics by evaluating the jsonnet file
@@ -62,9 +73,8 @@ pub struct DiagnosticConfig {
     /// some cases)
     pub enable_go_lint: bool,
 
-    #[default = true]
     /// Enable linting for unused variables
-    pub unused_variables: bool,
+    pub unused_variables: UnusedVariablesConfig,
 
     /// Determines which type of variable naming diagnostics should be used
     pub variable_naming: VariableNaming,

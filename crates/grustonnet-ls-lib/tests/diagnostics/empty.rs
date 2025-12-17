@@ -1,4 +1,4 @@
-use grustonnet_config::DiagnosticConfig;
+use grustonnet_config::{DiagnosticConfig, UnusedVariablesConfig};
 
 use crate::diagnostics::{DiagnosticTestCase, IgnoreFields, disabled_diagnostics_config};
 
@@ -8,7 +8,7 @@ fn check_empty_diagnostics(val: &str) {
         expected: vec![],
         config: DiagnosticConfig {
             enable_eval: true,
-            unused_variables: true,
+            unused_variables: UnusedVariablesConfig::default(),
             ..disabled_diagnostics_config()
         },
         ignore: IgnoreFields {

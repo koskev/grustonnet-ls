@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use grustonnet_config::UnusedVariablesConfig;
 use grustonnet_node::types::node_kind::NodeKind;
 use jsonnet_location::{Location, LocationRange};
 use language_server::{
@@ -15,14 +16,16 @@ use crate::{cache::JsonnetASTGenerator, references::ReferenceProvider};
 
 pub struct UnusedDiagnostics {
     cache: Cache<JsonnetASTGenerator>,
+    config: UnusedVariablesConfig,
 }
 
 impl UnusedDiagnostics {
-    pub fn new(cache: Cache<JsonnetASTGenerator>) -> Self {
-        Self { cache }
+    pub fn new(cache: Cache<JsonnetASTGenerator>, config: UnusedVariablesConfig) -> Self {
+        Self { cache, config }
     }
 }
 
+#[derive(Debug)]
 struct PotentialUnused {
     location: LocationRange,
     name: String,
@@ -66,7 +69,23 @@ impl UnusedDiagnostics {
             .stack
             .iter()
             .filter_map(|n| match n.node_kind.as_ref() {
-                NodeKind::DesugaredObject(obj) => Some(
+                // XXX: This breaks with for loops
+                //NodeKind::Var(var) => {
+                //    Some(vec![PotentialUnused {
+                //        location: n.node_base.loc_range.clone(),
+                //        name: var.id.clone()?.0,
+                //    }])
+                //}
+                NodeKind::Function(func) if self.config.function_parameters => Some(
+                    func.parameters
+                        .iter()
+                        .map(|param| PotentialUnused {
+                            location: param.loc_range.clone(),
+                            name: param.name.0.clone(),
+                        })
+                        .collect(),
+                ),
+                NodeKind::DesugaredObject(obj) if self.config.locals => Some(
                     obj.locals
                         .iter()
                         .filter(|bind| bind.variable.0 != "$")
@@ -76,14 +95,15 @@ impl UnusedDiagnostics {
                         })
                         .collect(),
                 ),
-                NodeKind::Local(loc) => Some(vec![PotentialUnused {
+                NodeKind::Local(loc) if self.config.locals => Some(vec![PotentialUnused {
                     location: loc.get_identifier_position()?,
                     name: loc.get_name()?,
                 }]),
                 _ => None,
             })
             .flatten()
-            .filter(|unused| !unused.name.starts_with("_"));
+            .filter(|unused| !unused.name.starts_with("_"))
+            .filter(|unused| !unused.name.starts_with("$"));
 
         let search_paths = vec![];
         let provider = ReferenceProvider::new(&self.cache, &search_paths);
@@ -91,7 +111,6 @@ impl UnusedDiagnostics {
         Some(
             locals
                 .filter(|local| {
-                    // TODO: There has to be some Rust magic for this
                     if let Ok(res) = provider.references(local.location.begin.clone(), uri, true)
                         && let Some(locations) = res
                         && locations.len() == 1

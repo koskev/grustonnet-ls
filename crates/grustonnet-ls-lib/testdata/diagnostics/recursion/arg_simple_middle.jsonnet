@@ -1,4 +1,4 @@
-local myFunc(arg1, arg=arg, arg3=1) = arg;
+local myFunc(arg1, arg=arg, arg3=1) = arg + arg1;
 {
-  x: myFunc(),
+  x: myFunc(1),
 }

@@ -39,7 +39,8 @@ impl<'a> ReferenceProvider<'a> {
 
         Some(match top_node.node_kind.as_ref() {
             NodeKind::LiteralString(s) => (s.value.clone(), false),
-            NodeKind::Var(var) => (var.id.clone()?.0, false),
+            // Vars are probably always local
+            NodeKind::Var(var) => (var.id.clone()?.0, true),
             NodeKind::Local(local) => (local.get_name()?, true),
             NodeKind::Function(func) => (
                 func.parameters.iter().find_map(|param| {
@@ -49,7 +50,7 @@ impl<'a> ReferenceProvider<'a> {
                         None
                     }
                 })?,
-                false,
+                true,
             ),
             NodeKind::DesugaredObject(obj) => {
                 let name = obj.get_name_at(&pos)?;
@@ -92,10 +93,11 @@ impl<'a> ReferenceProvider<'a> {
         };
         log::debug!("Getting all files took {:?}", start.elapsed());
         log::debug!(
-            "Searching for references of {} at {} in {} files",
+            "Searching for references of {} at {} in {} files local {}",
             identifier,
             target_info,
-            files.len()
+            files.len(),
+            is_local
         );
         let start = Instant::now();
         #[cfg(feature = "tracing")]

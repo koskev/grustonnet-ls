@@ -113,11 +113,10 @@ impl JsonnetServer {
         if config.diagnostics.enable_go_lint {
             diags.push(Box::new(GoLintDiagnostics::new(self.cache.clone())));
         }
-        if config.diagnostics.unused_variables {
-            diags.push(Box::new(linters::unused::UnusedDiagnostics::new(
-                self.cache.clone(),
-            )));
-        }
+        diags.push(Box::new(linters::unused::UnusedDiagnostics::new(
+            self.cache.clone(),
+            config.diagnostics.unused_variables,
+        )));
 
         // TODO: Add a macro for all those settings
         let mut diagnostics_handler_diags: Vec<Box<dyn JsonnetDiagnostics>> = vec![];

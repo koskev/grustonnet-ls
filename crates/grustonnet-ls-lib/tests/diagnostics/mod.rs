@@ -1,6 +1,7 @@
 use assert_unordered::assert_eq_unordered;
 use grustonnet_config::{
-    Configuration, DiagnosticConfig, DuplicateDetectionConfig, VariableNaming,
+    Configuration, DiagnosticConfig, DuplicateDetectionConfig, UnusedVariablesConfig,
+    VariableNaming,
 };
 use language_server::{server::LSPServer, utils::UriHelper};
 use std::{
@@ -41,7 +42,10 @@ fn disabled_diagnostics_config() -> DiagnosticConfig {
     DiagnosticConfig {
         enable_eval: false,
         enable_go_lint: false,
-        unused_variables: false,
+        unused_variables: UnusedVariablesConfig {
+            locals: false,
+            function_parameters: false,
+        },
         variable_naming: VariableNaming::None,
         local_function: false,
         prevent_dollar: false,
