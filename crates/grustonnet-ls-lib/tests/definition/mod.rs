@@ -417,3 +417,56 @@ fn object_local_value() {
     }
     .check();
 }
+
+#[test]
+fn for_loop_with_if() {
+    DefinitionTestCase {
+        filename: "testdata/definition/for_if_array.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 15,
+        },
+        target: Position {
+            line: 0,
+            character: 6,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "unsupported"]
+fn for_loop_var_in_body() {
+    DefinitionTestCase {
+        filename: "testdata/definition/for_if_array.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 3,
+        },
+        target: Position {
+            line: 2,
+            character: 2,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "unsupported"]
+fn for_loop_var_in_if() {
+    DefinitionTestCase {
+        filename: "testdata/definition/for_if_array.jsonnet".into(),
+        source: Position {
+            line: 4,
+            character: 8,
+        },
+        target: Position {
+            line: 2,
+            character: 2,
+        },
+        ..Default::default()
+    }
+    .check();
+}

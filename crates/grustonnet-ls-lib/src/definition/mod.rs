@@ -80,6 +80,11 @@ impl<'a> DefinitionProvider<'a> {
                     }
                 }
             }
+            NodeKind::Array(_) => {
+                // TODO: If we have a "for" with a trailing "if" we'll get the array on the top of the stack.
+                // No idea why
+                document_stack.stack.pop();
+            }
             _ => (),
         }
 
