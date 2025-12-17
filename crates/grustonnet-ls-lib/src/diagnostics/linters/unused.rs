@@ -1,7 +1,7 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
-use grustonnet_node::types::{Local, base::NodeBase, node::Node, node_kind::NodeKind};
-use jsonnet_location::Location;
+use grustonnet_node::types::node_kind::NodeKind;
+use jsonnet_location::{Location, LocationRange};
 use language_server::{
     cache::Cache,
     diagnostics::{Diagnostics, DiagnosticsResult},
@@ -23,10 +23,19 @@ impl UnusedDiagnostics {
     }
 }
 
+struct PotentialUnused {
+    location: LocationRange,
+    name: String,
+}
+
 impl UnusedDiagnostics {
-    fn get_code_action(&self, uri: &Uri, local: &Local) -> Option<Vec<lsp_types::CodeAction>> {
-        let mut pos = local.get_identifier_position()?;
-        let name = local.get_name()?;
+    fn get_code_action(
+        &self,
+        uri: &Uri,
+        unused: &PotentialUnused,
+    ) -> Option<Vec<lsp_types::CodeAction>> {
+        let mut pos = unused.location.clone();
+        let name = unused.name.clone();
         pos.end = Location {
             line: pos.begin.line,
             column: pos.begin.column + name.len() as i32,
@@ -56,36 +65,25 @@ impl UnusedDiagnostics {
         let locals = stack
             .stack
             .iter()
-            .flat_map(|n| {
-                if let NodeKind::DesugaredObject(obj) = n.node_kind.as_ref() {
+            .filter_map(|n| match n.node_kind.as_ref() {
+                NodeKind::DesugaredObject(obj) => Some(
                     obj.locals
                         .iter()
                         .filter(|bind| bind.variable.0 != "$")
-                        .map(|bind| {
-                            Arc::new(Node {
-                                node_base: NodeBase {
-                                    loc_range: bind.loc_range.clone(),
-                                    ..n.node_base.clone()
-                                },
-                                node_kind: Box::new(NodeKind::Local(Local {
-                                    binds: vec![bind.clone()],
-                                    ..Default::default()
-                                })),
-                            })
+                        .map(|bind| PotentialUnused {
+                            location: bind.loc_range.clone(),
+                            name: bind.variable.0.clone(),
                         })
-                        .collect()
-                } else {
-                    vec![n.clone()]
-                }
+                        .collect(),
+                ),
+                NodeKind::Local(loc) => Some(vec![PotentialUnused {
+                    location: loc.get_identifier_position()?,
+                    name: loc.get_name()?,
+                }]),
+                _ => None,
             })
-            .filter_map(|n| {
-                if let NodeKind::Local(loc) = n.node_kind.as_ref() {
-                    Some(loc.clone())
-                } else {
-                    None
-                }
-            })
-            .filter(|loc| !loc.get_name().unwrap_or_default().starts_with("_"));
+            .flatten()
+            .filter(|unused| !unused.name.starts_with("_"));
 
         let search_paths = vec![];
         let provider = ReferenceProvider::new(&self.cache, &search_paths);
@@ -94,8 +92,7 @@ impl UnusedDiagnostics {
             locals
                 .filter(|local| {
                     // TODO: There has to be some Rust magic for this
-                    if let Some(range) = local.get_identifier_position()
-                        && let Ok(res) = provider.references(range.begin.clone(), uri, true)
+                    if let Ok(res) = provider.references(local.location.begin.clone(), uri, true)
                         && let Some(locations) = res
                         && locations.len() == 1
                     {
@@ -104,16 +101,16 @@ impl UnusedDiagnostics {
                         false
                     }
                 })
-                .filter_map(|local| {
-                    Some(DiagnosticsResult {
+                .map(|local| {
+                    DiagnosticsResult {
                         diagnostics: Diagnostic {
                             range: Range {
-                                start: local.get_identifier_position()?.begin.clone().into(),
-                                end: local.get_identifier_position()?.end.clone().into(),
+                                start: local.location.begin.clone().into(),
+                                end: local.location.end.clone().into(),
                             },
                             message: format!(
                                 "Unused variable. If this is intentional prefix with an underscore: _{}",
-                                local.get_name().unwrap_or("<variable>".to_string())
+                                local.name
                             ),
                             code_description: Some(CodeDescription { href: uri.clone() }),
                             severity: Some(DiagnosticSeverity::WARNING),
@@ -124,7 +121,7 @@ impl UnusedDiagnostics {
                         },
                         code_actions: self.get_code_action(uri, &local).unwrap_or_default(),
                         ..Default::default()
-                    })
+                    }
                 })
                 .collect(),
         )
