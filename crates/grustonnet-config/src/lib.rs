@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use lsp_types::DidChangeConfigurationParams;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_with::{DefaultOnError, serde_as};
 use smart_default::SmartDefault;
 
 #[derive(Debug, Serialize, Deserialize, Clone, SmartDefault, JsonSchema)]
@@ -62,6 +63,7 @@ pub struct UnusedVariablesConfig {
     pub function_parameters: bool,
 }
 
+#[serde_as]
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
 pub struct DiagnosticConfig {
@@ -74,6 +76,7 @@ pub struct DiagnosticConfig {
     pub enable_go_lint: bool,
 
     /// Enable linting for unused variables
+    #[serde_as(deserialize_as = "DefaultOnError")]
     pub unused_variables: UnusedVariablesConfig,
 
     /// Determines which type of variable naming diagnostics should be used
