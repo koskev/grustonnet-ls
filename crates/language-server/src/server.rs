@@ -187,7 +187,7 @@ where
 
         let params: InitializeParams = serde_json::from_value(params).unwrap();
         self.server.handle_init_parameters(params);
-        eprintln!("starting example main loop");
+        log::info!("Starting main loop");
         for msg in &self.server.connection().connection.receiver {
             match msg {
                 Message::Request(req) => {
