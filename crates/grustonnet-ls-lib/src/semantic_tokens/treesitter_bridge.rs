@@ -5,6 +5,7 @@ use jsonnet_cst::new_tree;
 use jsonnet_location::LocationRange;
 use language_server::cache::Document;
 use lazy_static::lazy_static;
+use ropey::Rope;
 use tree_sitter::{Query, QueryCursor};
 
 use crate::{
@@ -14,12 +15,32 @@ use crate::{
 
 use super::{SemanticModifier, SemanticToken};
 
+macro_rules! add_keyword {
+    ($name:literal) => {
+        (
+            concat!(concat!("\"", $name), "\""),
+            SemanticToken::Keyword,
+            vec![],
+        )
+    };
+}
+
 lazy_static! {
     static ref TOKEN_MAP: Vec<(&'static str, SemanticToken, Vec<SemanticModifier>)> = vec![
         ("string", SemanticToken::String, vec![]),
         ("local", SemanticToken::Keyword, vec![]),
         ("fieldname", SemanticToken::Property, vec![]),
         ("error", SemanticToken::Keyword, vec![]),
+        add_keyword!("if"),
+        add_keyword!("then"),
+        add_keyword!("else"),
+        add_keyword!("import"),
+        add_keyword!("function"),
+        (
+            "self",
+            SemanticToken::Keyword,
+            vec![SemanticModifier::DefaultLibrary]
+        ),
     ];
 }
 
@@ -31,26 +52,24 @@ pub fn get_tokens(doc: Document<JsonnetASTGenerator>) -> SemanticDataList {
         .iter()
         .flat_map(|(node, token, modifier)| {
             let query_source = format!("({}) @token", node);
-            log::error!("SOURCE: {}", query_source);
-            let query = Query::new(&tree.language(), &query_source).expect("BUG: Invalid query");
+            let query = Query::new(&tree.language(), &query_source)
+                .unwrap_or_else(|_| panic!("BUG: Invalid query: {}", query_source));
             let mut cursor = QueryCursor::new();
             let captures = cursor.captures(&query, tree.root_node(), doc.content.as_bytes());
             captures
                 .flat_map(|(query_match, _)| {
-                    log::error!("Capture1");
                     query_match.captures.iter().map(|capture| {
-                        log::error!("Capture2 {:?}", capture);
+                        let start = capture.node.start_position();
+                        let end = capture.node.end_position();
+                        let rope = Rope::from_str(&doc.content);
+                        let idx_start = rope.line_to_char(start.row) + start.column;
+                        let idx_end = rope.line_to_char(end.row) + end.column;
                         SemanticData {
                             node_type: token.clone(),
                             node_modifier: modifier.clone(),
                             // TODO: why is length even needed? Can't we just calculate it from the
                             // location?
-                            length: capture
-                                .node
-                                .end_position()
-                                .column
-                                .saturating_sub(capture.node.start_position().column)
-                                as u32,
+                            length: idx_end.saturating_sub(idx_start) as u32,
                             location: LocationRange {
                                 begin: capture.node.start_position().into(),
                                 end: capture.node.end_position().into(),
