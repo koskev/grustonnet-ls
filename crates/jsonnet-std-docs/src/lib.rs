@@ -34,7 +34,7 @@ pub struct StdFunctions {
 
 impl StdFunctions {
     pub fn generate(data: &str) -> Self {
-        let lib: StdLib = serde_json::from_str(data).unwrap();
+        let lib: StdLib = serde_json::from_str(data).expect("STDLib data is in the wrong format");
 
         Self {
             functions: lib

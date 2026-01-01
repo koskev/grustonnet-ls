@@ -22,8 +22,8 @@ use lsp_types::{
     TextDocumentSyncCapability, TextDocumentSyncKind, Uri, WorkDoneProgress, WorkDoneProgressBegin,
     WorkDoneProgressEnd, WorkDoneProgressReport,
     notification::{
-        DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument,
-        Notification as NotificationTrait, Progress,
+        self, DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument,
+        DidOpenTextDocument, Notification as NotificationTrait, Progress,
     },
     request::{
         CodeActionRequest, Completion, DocumentDiagnosticRequest, ExecuteCommand, Formatting,
@@ -34,6 +34,7 @@ use lsp_types::{
 use rand::RngCore;
 use ropey::Rope;
 use serde::Serialize;
+use utils::MutexPanic;
 
 use crate::cache::{ASTGenerator, Cache};
 
@@ -182,7 +183,8 @@ where
     S: LSPServer,
 {
     pub fn run(&self) -> Result<()> {
-        let server_capabilities = serde_json::to_value(self.server.get_capabilities()).unwrap();
+        let server_capabilities = serde_json::to_value(self.server.get_capabilities())
+            .expect("Unable to get server capabilities");
         let params = self
             .server
             .connection()
@@ -190,7 +192,8 @@ where
             .initialize(server_capabilities)
             .expect("init connection");
 
-        let params: InitializeParams = serde_json::from_value(params).unwrap();
+        let params: InitializeParams =
+            serde_json::from_value(params).expect("InitializeParams are in the wrong format");
         self.server.handle_init_parameters(params);
         log::info!("Starting main loop");
         for msg in &self.server.connection().connection.receiver {
@@ -219,8 +222,8 @@ where
                 }
             }
         }
-        if let Some(threads) = self.server.connection().threads.lock().unwrap().take() {
-            threads.join().unwrap();
+        if let Some(threads) = self.server.connection().threads.lock_or_panic().take() {
+            let _ = threads.join();
         }
         Ok(())
     }
@@ -280,7 +283,8 @@ impl Default for LSPConnection {
 
 impl LSPConnection {
     pub fn new_network(port: u16) -> Self {
-        let (connection, io_threads) = Connection::listen(format!("127.0.0.1:{}", port)).unwrap();
+        let (connection, io_threads) = Connection::listen(format!("127.0.0.1:{}", port))
+            .expect("Could not create lsp connection");
         Self {
             connection,
             threads: Arc::new(Mutex::new(Some(io_threads))),
@@ -327,9 +331,9 @@ impl WorkProgressSender {
                         },
                     )),
                 })
-                .unwrap(),
+                .expect("ProgressParams is invalid"),
             }))
-            .unwrap();
+            .expect("Could not send notification");
     }
 
     pub fn work_progress(&mut self, percentage: u32, message: Option<String>) {
@@ -348,9 +352,9 @@ impl WorkProgressSender {
                             },
                         )),
                     })
-                    .unwrap(),
+                    .expect("Notification is invalid"),
                 }))
-                .unwrap();
+                .expect("Could not send notification");
         }
     }
     pub fn work_done(&self) {
@@ -365,9 +369,9 @@ impl WorkProgressSender {
                         },
                     )),
                 })
-                .unwrap(),
+                .expect("Notification is invalid"),
             }))
-            .unwrap();
+            .expect("Could not send notification");
     }
 }
 

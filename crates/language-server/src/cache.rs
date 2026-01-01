@@ -14,6 +14,7 @@ use std::{
 use anyhow::{Result, anyhow};
 use lsp_server::ErrorCode;
 use lsp_types::Uri;
+use utils::RwLockPanic;
 
 use crate::server::LSPError;
 
@@ -118,15 +119,15 @@ impl<G: ASTGenerator> Cache<G> {
     }
 
     pub fn set_document(&self, uri: Uri, doc: Document<G>) {
-        self.documents.write().unwrap().insert(uri, doc);
+        self.documents.write_or_panic().insert(uri, doc);
     }
 
     pub fn remove_document(&self, uri: &Uri) {
-        self.documents.write().unwrap().remove(uri);
+        self.documents.write_or_panic().remove(uri);
     }
 
     pub fn update_content(&self, uri: Uri, text: &str) {
-        let mut lock = self.documents.write().unwrap();
+        let mut lock = self.documents.write_or_panic();
         let doc = lock.entry(uri.clone()).or_insert(Document {
             filename: uri.path().as_str().into(),
             ..Default::default()
@@ -145,7 +146,7 @@ impl<G: ASTGenerator> Cache<G> {
         load_ast: bool,
     ) -> Result<Document<G>, LSPError> {
         // TODO: lock write only after we want to manually load
-        match self.documents.write().unwrap().entry(uri.clone()) {
+        match self.documents.write_or_panic().entry(uri.clone()) {
             Entry::Occupied(mut val) => {
                 // TODO: TEST!!
                 log::debug!("Loaded from cache {}", uri.path().as_str());
@@ -177,8 +178,7 @@ impl<G: ASTGenerator> Cache<G> {
     /// Get a list of all loaded uris by the lsp
     pub fn get_loaded_lsp_uris(&self) -> Vec<Uri> {
         self.documents
-            .read()
-            .unwrap()
+            .read_or_panic()
             .iter()
             .filter(|(_u, d)| d.manually_loaded_at.is_none())
             .map(|(u, _)| u.clone())

@@ -11,6 +11,7 @@ use language_server::diagnostics::{
 use lsp_types::Uri;
 use pretty_assertions::assert_eq;
 use rand::{Rng, distr::Alphabetic};
+use utils::MutexPanic;
 
 struct DiagnosticsTest {}
 
@@ -42,19 +43,22 @@ impl DiagnosticsTest {
             .collect();
         assert!(rx.is_empty());
         for name in &names {
-            queue.queue(Uri::from_str(name).unwrap(), self.get_diag_mock());
+            queue.queue(
+                Uri::from_str(name).expect("invalid uri"),
+                self.get_diag_mock(),
+            );
         }
         assert!(rx.is_empty());
 
         for name in &names {
-            let (uri, list) = queue.queue.lock().unwrap().pop().unwrap();
+            let (uri, list) = queue.queue.lock_or_panic().pop().expect("");
             queue.process_queue(uri, list);
-            let message = rx.try_recv().unwrap();
+            let message = rx.try_recv().expect("");
             let lsp_server::Message::Notification(notification) = message else {
                 panic!("message is not a notification");
             };
             let params: lsp_types::PublishDiagnosticsParams =
-                serde_json::from_value(notification.params).unwrap();
+                serde_json::from_value(notification.params).expect("");
             assert_eq!(params.uri.path().to_string(), *name);
             assert_eq!(params.diagnostics.len(), 1);
             assert_eq!(params.diagnostics[0].message, *name);

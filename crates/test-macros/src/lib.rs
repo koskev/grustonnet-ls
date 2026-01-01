@@ -39,7 +39,7 @@ fn sanitize_identifier(val: &str) -> String {
 pub fn generate_test_function_for_dir(input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(input as MacroInput);
     let target_func = args.func;
-    let root_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let root_dir = std::env::var("CARGO_MANIFEST_DIR").expect("No manifest dir set");
     let dir = format!("{}/{}", root_dir, args.dir.value());
 
     let path = fs::canonicalize(&dir).unwrap_or_else(|_| panic!("No abs path found for {dir}"));
@@ -64,11 +64,14 @@ pub fn generate_test_function_for_dir(input: TokenStream) -> TokenStream {
                     .file_name()
                     .unwrap_or(OsStr::new("unknown"))
                     .to_str()
-                    .unwrap(),
-                p.file_stem().expect("No stem").to_str().unwrap()
+                    .expect("to_str failed"),
+                p.file_stem()
+                    .expect("No stem")
+                    .to_str()
+                    .expect("to_str failed")
             ));
             let func_ident = Ident::new(&func_name, func_name.span());
-            let path_str = p.to_str().unwrap();
+            let path_str = p.to_str().expect("to_str failed");
 
             quote! {
                 #[test]

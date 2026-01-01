@@ -79,9 +79,9 @@ impl From<String> for EvaluateError {
 impl From<&str> for EvaluateError {
     fn from(value: &str) -> Self {
         if value.starts_with("RUNTIME ERROR") {
-            Self::from_runtime(value)
+            Self::from_runtime(value).unwrap_or(Self::unknwon_error(value))
         } else {
-            Self::from_static(value)
+            Self::from_static(value).unwrap_or(Self::unknwon_error(value))
         }
     }
 }
@@ -94,60 +94,53 @@ impl EvaluateError {
             ..Default::default()
         }
     }
-    fn from_runtime(value: &str) -> Self {
+    fn from_runtime(value: &str) -> Option<Self> {
         let uri_regex = r"(?m)RUNTIME ERROR: (?P<message>.*$)\n\s*(?P<uri>.*):";
         let location_regex = r"\(?(?P<line_start>\d+):(?P<column_start>\d+)\)?(?:-\(?(?:(?P<line_end>\d+):)?(?P<column_end>\d+)\)?)?";
         let regex = Regex::new(&format!("{uri_regex}{location_regex}+")).expect("Regex is wrong");
-        let captures = regex.captures(value);
+        let captures = regex.captures(value)?;
 
         // TODO: Support the whole stack
-
-        let Some(captures) = captures else {
-            return Self::unknwon_error(value);
-        };
 
         let mut line_end = captures["line_start"].parse().unwrap_or_default();
         if let Some(line_end_match) = captures.name("line_end") {
             line_end = line_end_match.as_str().parse().unwrap_or_default();
         }
 
-        Self {
+        Some(Self {
             filename: captures["uri"].parse().unwrap_or_default(),
             message: captures["message"].parse().unwrap_or_default(),
             start: Location {
-                line: captures["line_start"].parse().unwrap(),
-                column: captures["column_start"].parse().unwrap(),
+                line: captures["line_start"].parse().ok()?,
+                column: captures["column_start"].parse().ok()?,
             },
             end: Location {
                 line: line_end,
-                column: captures["column_end"].parse().unwrap(),
+                column: captures["column_end"].parse().ok()?,
             },
             ..Default::default()
-        }
+        })
     }
-    fn from_static(value: &str) -> Self {
-        let regex = Regex::new(r"(?m)((?P<filename>.*):)?(?P<line_start>\d+):(?P<column_start>\d+)(?:-(?P<column_end>\d+))? (?P<message>.*)").unwrap();
-        let captures = regex.captures(value);
+    fn from_static(value: &str) -> Option<Self> {
+        let regex = Regex::new(r"(?m)((?P<filename>.*):)?(?P<line_start>\d+):(?P<column_start>\d+)(?:-(?P<column_end>\d+))? (?P<message>.*)").expect("BUG: Regex is wrong");
+        let captures = regex.captures(value)?;
 
-        match captures {
-            Some(captures) => Self {
-                filename: captures
-                    .name("filename")
-                    .map_or(String::new(), |m| m.as_str().to_string()),
-                start: Location {
-                    line: captures["line_start"].parse().unwrap(),
-                    column: captures["column_start"].parse().unwrap(),
-                },
-                end: Location {
-                    line: captures["line_start"].parse().unwrap(),
-                    // TODO: Optional Column end
-                    column: captures["column_start"].parse().unwrap(),
-                },
-                message: captures["message"].to_string(),
-                error_type: captures["message"].into(),
+        Some(Self {
+            filename: captures
+                .name("filename")
+                .map_or(String::new(), |m| m.as_str().to_string()),
+            start: Location {
+                line: captures["line_start"].parse().ok()?,
+                column: captures["column_start"].parse().ok()?,
             },
-            None => Self::unknwon_error(value),
-        }
+            end: Location {
+                line: captures["line_start"].parse().ok()?,
+                // TODO: Optional Column end
+                column: captures["column_start"].parse().ok()?,
+            },
+            message: captures["message"].to_string(),
+            error_type: captures["message"].into(),
+        })
     }
 }
 

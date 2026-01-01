@@ -16,6 +16,7 @@ use lsp_types::{
     notification::{Notification as NotificationTrait, PublishDiagnostics},
 };
 use mockall::automock;
+use utils::{MutexPanic, RwLockPanic};
 
 use crate::utils::hashqueue::HashQueue;
 
@@ -95,14 +96,14 @@ where
     }
 
     pub fn queue(&self, uri: Uri, diagnostics: DiagnosticsList) {
-        self.queue.lock().unwrap().push(uri, diagnostics);
+        self.queue.lock_or_panic().push(uri, diagnostics);
         self.cv.notify_one();
     }
 
     pub fn process_queue(&self, uri: Uri, list: Vec<Box<dyn Diagnostics>>) {
         log::trace!("Processing diagnostics for {}", uri.path());
 
-        let mut binding = self.current_diagnostics.write().unwrap();
+        let mut binding = self.current_diagnostics.write_or_panic();
         let current_diag_map = binding.entry(uri.clone()).or_default();
 
         for diag in list {
@@ -131,26 +132,26 @@ where
                     diagnostics: diags,
                     version: None,
                 })
-                .unwrap(),
+                .expect("Unable to contert PublishDiagnosticsParams to json"),
             }))
-            .unwrap();
+            .expect("Unable to send notification");
     }
 
     pub fn stop(&self) {
-        *self.running.write().unwrap() = false;
+        *self.running.write_or_panic() = false;
     }
 
     pub fn run(&self) {
-        *self.running.write().unwrap() = true;
-        let mut lock = self.queue.lock().unwrap();
-        while *self.running.read().unwrap() {
+        *self.running.write_or_panic() = true;
+        let mut lock = self.queue.lock_or_panic();
+        while *self.running.read_or_panic() {
             while let Some((uri, list)) = lock.pop() {
                 self.process_queue(uri, list);
             }
             lock = self
                 .cv
                 .wait_timeout(lock, Duration::from_millis(200))
-                .unwrap()
+                .expect("Wait is poisoned")
                 .0;
         }
     }

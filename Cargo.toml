@@ -5,6 +5,8 @@ edition = "2024"
 [workspace.lints.clippy]
 uninlined_format_args = "allow"
 needless_update = "allow"
+unwrap_used = "warn"
+allow-unwrap-in-tests = "allow"
 
 [workspace.lints.rust]
 missing_docs = "warn"
@@ -18,6 +20,7 @@ members = [
 "crates/jsonnet-location",
 "crates/language-server",
 "crates/test-macros",
+"crates/utils",
 ]
 resolver = "3"
 
