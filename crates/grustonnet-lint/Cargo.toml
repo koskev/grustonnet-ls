@@ -2,6 +2,9 @@
 name = "grustonnet-lint"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [features]
 tracing = ["tracy-client", "grustonnet-ls-lib/tracing"]
 

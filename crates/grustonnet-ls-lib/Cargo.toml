@@ -3,9 +3,8 @@ name = "grustonnet-ls-lib"
 version = "0.1.0"
 edition = "2024"
 
-[lints.clippy]
-uninlined_format_args = "allow"
-needless_update = "allow"
+[lints]
+workspace = true
 
 [features]
 tracing = ["tracy-client"]

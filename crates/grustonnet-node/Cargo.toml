@@ -3,6 +3,9 @@ name = "grustonnet-node"
 version = "0.1.0"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [dependencies]
 bincode = "2.0.1"
 lsp-types = { version = "0.97.0", features = ["proposed"] }

@@ -3,6 +3,9 @@ name = "grustonnet-config"
 version = "0.1.0"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [dependencies]
 lsp-types = { version = "0.97.0", features = ["proposed"] }
 smart-default = "0.7.1"

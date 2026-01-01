@@ -3,6 +3,9 @@ name = "jsonnet-cst"
 version = "0.1.0"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [dependencies]
 tree-sitter = "0.22.6"
 tree-sitter-jsonnet = {git = "https://github.com/sourcegraph/tree-sitter-jsonnet"}

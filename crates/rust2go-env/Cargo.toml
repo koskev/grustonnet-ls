@@ -3,6 +3,9 @@ name = "rust2go-env"
 version = "0.1.0"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [target.'cfg(unix)'.dependencies]
 exec = { version = "0.3.1" }
 
