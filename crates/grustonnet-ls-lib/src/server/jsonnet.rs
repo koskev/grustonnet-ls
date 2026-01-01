@@ -8,6 +8,7 @@ use std::{
     time::Instant,
 };
 
+use ::utils::RwLockPanic;
 use anyhow::Result;
 use bevy_tasks::TaskPool;
 use grustonnet_config::{Configuration, VariableNaming};
@@ -110,7 +111,7 @@ impl JsonnetServer {
     }
 
     fn get_diagnostics_provider(&self) -> Vec<Box<dyn Diagnostics>> {
-        let config = self.configuration.read().unwrap().clone();
+        let config = self.configuration.read_or_panic().clone();
         let mut diags: Vec<Box<dyn Diagnostics>> = vec![];
         if config.diagnostics.enable_eval {
             diags.push(Box::new(EvalDiagnostics::new(self.cache.clone())));
@@ -267,7 +268,7 @@ impl LSPServer for JsonnetServer {
             .jsonnet
             .set_config(&new_config.jsonnet);
 
-        *self.configuration.write().unwrap() = new_config.clone();
+        *self.configuration.write_or_panic() = new_config.clone();
 
         log::info!(
             "Config changed. New Jpaths are {:?}",
@@ -334,7 +335,7 @@ impl LSPServer for JsonnetServer {
         let completion_info =
             CompletionInfo::new(&doc.content, params.text_document_position.position.into());
 
-        let config = self.configuration.read().unwrap().clone();
+        let config = self.configuration.read_or_panic().clone();
         let mut completion_list: Vec<Box<dyn Completion>> = vec![];
         match completion_info.completion_type {
             CompletionType::Global => {
@@ -409,7 +410,7 @@ impl LSPServer for JsonnetServer {
         params: <lsp_types::request::Formatting as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
         let uri = params.text_document.uri;
-        let options = &self.configuration.read().unwrap().format;
+        let options = &self.configuration.read_or_panic().format;
         let doc = self.cache.get_document(&uri)?;
         let formatted = match self.cache.ast_generator.jsonnet.format_snippet(
             uri.as_str(),
@@ -438,7 +439,7 @@ impl LSPServer for JsonnetServer {
 
     fn inlay_hint(&self, params: InlayHintParams) -> Result<LSPResponse, LSPError> {
         let mut hints: Vec<InlayHint> = vec![];
-        let config = self.configuration.read().unwrap();
+        let config = self.configuration.read_or_panic();
 
         if config.inlay.enable_debug {
             let debug_hints =
@@ -466,7 +467,7 @@ impl LSPServer for JsonnetServer {
         &self,
         params: <lsp_types::request::SemanticTokensFullRequest as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
-        let config = self.configuration.read().unwrap();
+        let config = self.configuration.read_or_panic();
         let start = Instant::now();
         let doc = self.cache.get_document(&params.text_document.uri)?;
         let root = doc.get_ast()?;
@@ -495,8 +496,7 @@ impl LSPServer for JsonnetServer {
             .ast_generator
             .jsonnet
             .params
-            .read()
-            .unwrap()
+            .read_or_panic()
             .jpaths
             .clone();
         search_paths.push(
@@ -504,8 +504,7 @@ impl LSPServer for JsonnetServer {
                 .ast_generator
                 .jsonnet
                 .root_dir
-                .read()
-                .unwrap()
+                .read_or_panic()
                 .clone(),
         );
         let references = ReferenceProvider::new(&self.cache, &search_paths).references(
@@ -527,8 +526,7 @@ impl LSPServer for JsonnetServer {
             .ast_generator
             .jsonnet
             .params
-            .read()
-            .unwrap()
+            .read_or_panic()
             .jpaths
             .clone();
         search_paths.push(
@@ -536,8 +534,7 @@ impl LSPServer for JsonnetServer {
                 .ast_generator
                 .jsonnet
                 .root_dir
-                .read()
-                .unwrap()
+                .read_or_panic()
                 .clone(),
         );
 
@@ -562,8 +559,7 @@ impl LSPServer for JsonnetServer {
             .as_ref()
             .unwrap()
             .current_diagnostics
-            .read()
-            .unwrap()
+            .read_or_panic()
             .iter()
             .flat_map(|(_, d)| {
                 d.iter().flat_map(|d| {

@@ -22,8 +22,8 @@ use lsp_types::{
     TextDocumentSyncCapability, TextDocumentSyncKind, Uri, WorkDoneProgress, WorkDoneProgressBegin,
     WorkDoneProgressEnd, WorkDoneProgressReport,
     notification::{
-        self, DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument,
-        DidOpenTextDocument, Notification as NotificationTrait, Progress,
+        DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument,
+        Notification as NotificationTrait, Progress,
     },
     request::{
         CodeActionRequest, Completion, DocumentDiagnosticRequest, ExecuteCommand, Formatting,

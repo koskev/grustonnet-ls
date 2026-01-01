@@ -25,6 +25,7 @@ jsonnet-cst = { path = "../jsonnet-cst"}
 grustonnet-node = { path = "../grustonnet-node"}
 grustonnet-config = { path = "../grustonnet-config"}
 language-server = { path = "../language-server"}
+utils = { path = "../utils"}
 paste = "1.0.15"
 ropey = "1.6.1"
 regex = "1.11.1"

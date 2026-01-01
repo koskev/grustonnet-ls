@@ -19,6 +19,7 @@ use jsonnet_bridge::{
     evaluate_error::{EvaluateError, EvaluateErrorType},
     go::{ASTBridge, ASTBridgeImpl, EvaluateParams, ExtValue},
 };
+use utils::RwLockPanic;
 
 pub trait GenerateAST {
     fn get_ast(&self, filename: &str) -> Result<Node, EvaluateError>;
@@ -99,19 +100,19 @@ impl GoJsonnet {
     }
 
     pub fn set_root_dir(&self, dir: &str) {
-        *self.root_dir.write().unwrap() = dir.to_string();
+        *self.root_dir.write_or_panic() = dir.to_string();
     }
 
     pub fn get_config(&self) -> JsonnetConfig {
-        self.config.read().unwrap().clone()
+        self.config.read_or_panic().clone()
     }
 
     pub fn set_config(&self, config: &JsonnetConfig) {
-        let mut config_lock = self.config.write().unwrap();
+        let mut config_lock = self.config.write_or_panic();
         *config_lock = config.clone();
 
         // Find upwards
-        let found_extcode = find_upwards(&self.root_dir.read().unwrap(), ".extcode.libsonnet");
+        let found_extcode = find_upwards(&self.root_dir.read_or_panic(), ".extcode.libsonnet");
         found_extcode.iter().for_each(|ext_code| {
             config_lock
                 .ext_code
@@ -120,7 +121,7 @@ impl GoJsonnet {
         });
 
         let mut jpaths = config.jpaths.clone();
-        let root_dir = self.root_dir.read().unwrap();
+        let root_dir = self.root_dir.read_or_panic();
         jpaths.extend(
             config
                 .default_root_jpaths
@@ -128,7 +129,7 @@ impl GoJsonnet {
                 .map(|p| format!("{root_dir}/{p}")),
         );
 
-        *self.params.write().unwrap() = EvaluateParams {
+        *self.params.write_or_panic() = EvaluateParams {
             ext_code: config
                 .ext_code
                 .iter()
@@ -151,7 +152,7 @@ impl GoJsonnet {
     }
 
     pub fn get_evaluate_params(&self, filepath: &str) -> EvaluateParams {
-        let mut params = self.params.read().unwrap().clone();
+        let mut params = self.params.read_or_panic().clone();
         // Add the current path of the file to the jpaths
         if let Ok(p) = fs::canonicalize(filepath)
             && p.is_file()

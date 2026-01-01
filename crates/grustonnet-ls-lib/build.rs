@@ -34,7 +34,7 @@ fn get_stdlib_urls(version: &str) -> Vec<(String, String)> {
 
 fn build_stdlib() {
     // Use gen dir to avoid downloading the file again after each change
-    let root_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let root_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR undefined");
     let gen_dir = format!("{root_dir}/gen");
     let gen_path = Path::new(&gen_dir);
     let _ = fs::create_dir(gen_path);

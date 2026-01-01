@@ -73,6 +73,7 @@ impl RopeHelper for Rope {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used)]
     use lsp_types::Position;
     use pretty_assertions::assert_eq;
     use ropey::Rope;

@@ -905,6 +905,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracy-client",
+ "utils",
 ]
 
 [[package]]
@@ -950,6 +951,7 @@ dependencies = [
  "tracy-client",
  "tree-sitter",
  "tree-sitter-jsonnet",
+ "utils",
  "walkdir",
 ]
 

@@ -13,6 +13,7 @@ use language_server::{
 use lsp_server::ErrorCode;
 use lsp_types::Uri;
 use thiserror::Error;
+use utils::RwLockPanic;
 
 use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
 
@@ -64,8 +65,7 @@ pub fn handle_command(
                 .ast_generator
                 .jsonnet
                 .params
-                .read()
-                .unwrap()
+                .read_or_panic()
                 .jpaths
                 .clone()
                 .into());
@@ -75,8 +75,7 @@ pub fn handle_command(
                 .ast_generator
                 .jsonnet
                 .params
-                .read()
-                .unwrap()
+                .read_or_panic()
                 .ext_code
                 .iter()
                 .map(|val| (val.name.clone(), val.value.clone()))
@@ -88,8 +87,7 @@ pub fn handle_command(
                 .ast_generator
                 .jsonnet
                 .params
-                .read()
-                .unwrap()
+                .read_or_panic()
                 .ext_vars
                 .iter()
                 .map(|val| (val.name.clone(), val.value.clone()))

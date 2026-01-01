@@ -6,6 +6,7 @@
 use language_server::{server::LSPServer, utils::UriHelper};
 use pretty_assertions::assert_eq;
 use std::fs::{self, read_to_string};
+use utils::RwLockPanic;
 
 use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 use lsp_types::{
@@ -39,7 +40,7 @@ impl DefinitionTestCase {
             .cache
             .ast_generator
             .jsonnet
-            .set_config(&server.configuration.read().unwrap().jsonnet);
+            .set_config(&server.configuration.read_or_panic().jsonnet);
         server
             .did_open(lsp_types::DidOpenTextDocumentParams {
                 text_document: lsp_types::TextDocumentItem {
