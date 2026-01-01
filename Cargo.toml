@@ -6,6 +6,9 @@ edition = "2024"
 uninlined_format_args = "allow"
 needless_update = "allow"
 
+[workspace.lints.rust]
+missing_docs = "warn"
+
 [workspace]
 members = [
 "crates/grustonnet-bin",
