@@ -1,4 +1,3 @@
-
 let elements = document.getElementsByClassName("asciinema_player")
 for (let element of elements) {
 	document.addEventListener('DOMContentLoaded', function() {
