@@ -57,6 +57,7 @@ use crate::{
             self,
             dollar::DollarDiagnostics,
             duplicate_values::DuplicateValuesDiagnostic,
+            object_function::ObjectFunctionDiagnostics,
             recursive_argument::RecursiveArgumentDiagnostic,
             shadow_variable::ShadowVariableDiagnostics,
             top_level_function::TopLevelFunctionDiagnostics,
@@ -134,6 +135,11 @@ impl JsonnetServer {
                     diagnostics_handler_diags.push(Box::new(<$diag>::default()));
                 }
             };
+            ($config_name: ident, $diag: ty, $cache: expr) => {
+                if config.diagnostics.$config_name {
+                    diagnostics_handler_diags.push(Box::new(<$diag>::new($cache)));
+                }
+            };
         }
 
         if let Some(naming_diag) = match config.diagnostics.variable_naming {
@@ -149,6 +155,11 @@ impl JsonnetServer {
         add_jsonnet_diag!(recursive_arguments, RecursiveArgumentDiagnostic);
         add_jsonnet_diag!(shadow_variable, ShadowVariableDiagnostics);
         add_jsonnet_diag!(top_level_function_args, TopLevelFunctionDiagnostics);
+        add_jsonnet_diag!(
+            object_function,
+            ObjectFunctionDiagnostics,
+            self.cache.clone()
+        );
 
         diagnostics_handler_diags.push(Box::new(DuplicateValuesDiagnostic {
             config: config.diagnostics.duplicate_detection.clone(),

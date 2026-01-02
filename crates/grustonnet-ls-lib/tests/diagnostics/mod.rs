@@ -24,6 +24,7 @@ pub mod docsonnet_default;
 pub mod dollar;
 pub mod empty;
 pub mod error;
+pub mod object_function;
 pub mod recursion;
 pub mod runtime;
 pub mod shadow;
@@ -64,6 +65,7 @@ fn disabled_diagnostics_config() -> DiagnosticConfig {
         },
         docsonnet_default: false,
         top_level_function_args: false,
+        object_function: false,
     }
 }
 

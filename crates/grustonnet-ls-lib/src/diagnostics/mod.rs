@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use grustonnet_node::types::{
     Local,
+    desugared_object::{DesugaredObject, DesugaredObjectField},
     function::{Apply, Function},
     literals::{LiteralNumber, LiteralString},
     node::Node,
@@ -53,6 +54,8 @@ pub trait JsonnetDiagnostics: Send + Sync {
     add_diag!(check_function, function: &Function);
     add_diag!(check_literal_number, num: &LiteralNumber);
     add_diag!(check_literal_string, str: &LiteralString);
+    add_diag!(check_desugared_object, obj: &DesugaredObject);
+    add_diag!(check_desugared_object_field, field: &DesugaredObjectField);
 
     fn check_after(&self) -> Option<Vec<DiagnosticsResult>> {
         None
@@ -92,6 +95,20 @@ impl Diagnostics for ASTDiagnosticsHandler {
                     NodeKind::Function(function) => diag.check_function(&ctx, function),
                     NodeKind::LiteralNumber(num) => diag.check_literal_number(&ctx, num),
                     NodeKind::LiteralString(str) => diag.check_literal_string(&ctx, str),
+                    NodeKind::DesugaredObject(obj) => {
+                        let mut diags = vec![];
+                        if let Some(obj_diags) = diag.check_desugared_object(&ctx, obj) {
+                            diags.extend(obj_diags);
+                        }
+
+                        let field_diags = obj
+                            .fields
+                            .iter()
+                            .filter_map(|field| diag.check_desugared_object_field(&ctx, field))
+                            .flatten();
+                        diags.extend(field_diags);
+                        Some(diags)
+                    }
                     _ => None,
                 };
                 if let Some(res) = res {
