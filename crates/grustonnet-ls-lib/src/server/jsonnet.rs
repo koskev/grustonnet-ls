@@ -59,6 +59,7 @@ use crate::{
             duplicate_values::DuplicateValuesDiagnostic,
             recursive_argument::RecursiveArgumentDiagnostic,
             shadow_variable::ShadowVariableDiagnostics,
+            top_level_function::TopLevelFunctionDiagnostics,
             variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
         },
     },
@@ -147,6 +148,7 @@ impl JsonnetServer {
         add_jsonnet_diag!(prevent_dollar, DollarDiagnostics);
         add_jsonnet_diag!(recursive_arguments, RecursiveArgumentDiagnostic);
         add_jsonnet_diag!(shadow_variable, ShadowVariableDiagnostics);
+        add_jsonnet_diag!(top_level_function_args, TopLevelFunctionDiagnostics);
 
         diagnostics_handler_diags.push(Box::new(DuplicateValuesDiagnostic {
             config: config.diagnostics.duplicate_detection.clone(),

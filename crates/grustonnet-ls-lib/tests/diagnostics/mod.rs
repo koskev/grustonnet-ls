@@ -29,6 +29,7 @@ pub mod runtime;
 pub mod shadow;
 pub mod snake;
 pub mod r#static;
+pub mod top_level_function;
 pub mod unused;
 
 #[derive(Default)]
@@ -62,6 +63,7 @@ fn disabled_diagnostics_config() -> DiagnosticConfig {
             ..Default::default()
         },
         docsonnet_default: false,
+        top_level_function_args: false,
     }
 }
 

@@ -71,6 +71,7 @@ pub struct UnusedVariablesConfig {
 #[serde_as]
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]
+/// Configuration for all diagnostic settings
 pub struct DiagnosticConfig {
     #[default = true]
     /// Enable diagnostics by evaluating the jsonnet file
@@ -110,6 +111,10 @@ pub struct DiagnosticConfig {
     /// Warns if a literal value is used multiple times (currently limited to a single file and
     /// literal strings)
     pub duplicate_detection: DuplicateDetectionConfig,
+
+    #[default = true]
+    /// Throws an error if a top level function is missing a default argument
+    pub top_level_function_args: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
