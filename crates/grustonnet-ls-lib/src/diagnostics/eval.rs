@@ -6,16 +6,19 @@
 use language_server::{
     cache::Cache,
     diagnostics::{Diagnostics, DiagnosticsResult},
+    utils::UriHelper,
 };
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
 
 use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
 
+/// Generate diagnostics by evaluating the file and parsing the jsonnet error messages
 pub struct EvalDiagnostics {
     cache: Cache<JsonnetASTGenerator>,
 }
 
 impl EvalDiagnostics {
+    /// Contructor
     pub fn new(cache: Cache<JsonnetASTGenerator>) -> Self {
         Self { cache }
     }
@@ -26,7 +29,9 @@ impl Diagnostics for EvalDiagnostics {
         "EvalDiagnostics".into()
     }
     fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
-        let doc = self.cache.get_document(uri).unwrap();
+        let Ok(doc) = self.cache.get_document(uri) else {
+            return vec![];
+        };
         let res = self
             .cache
             .ast_generator
@@ -34,6 +39,7 @@ impl Diagnostics for EvalDiagnostics {
             .evaluate_snippet(&doc.filename, &doc.content);
 
         if let Err(diag_err) = res {
+            let error_uri = Uri::from_path(diag_err.filename).unwrap_or(uri.clone());
             return vec![
                 Diagnostic {
                     range: Range {
@@ -41,7 +47,7 @@ impl Diagnostics for EvalDiagnostics {
                         end: diag_err.end.into(),
                     },
                     message: diag_err.message,
-                    code_description: Some(CodeDescription { href: uri.clone() }),
+                    code_description: Some(CodeDescription { href: error_uri }),
                     severity: Some(DiagnosticSeverity::ERROR),
                     ..Default::default()
                 }
