@@ -19,6 +19,7 @@ pub struct CallStackIter<'a> {
 
     pub document_stack: &'a mut NodeStack,
     pub cache: &'a Cache<JsonnetASTGenerator>,
+    pub iterations: u32,
 }
 
 impl<'a> CallStackIter<'a> {
@@ -37,6 +38,7 @@ impl<'a> CallStackIter<'a> {
             base_object: None,
             document_stack,
             call_stack,
+            iterations: 0,
         })
     }
 
@@ -50,6 +52,7 @@ impl<'a> CallStackIter<'a> {
             base_object: None,
             document_stack,
             call_stack,
+            iterations: 0,
         })
     }
 }
@@ -60,6 +63,10 @@ impl<'a> CallStackIter<'a> {
 impl<'a> Iterator for CallStackIter<'a> {
     type Item = Arc<Node>;
     fn next(&mut self) -> Option<Self::Item> {
+        self.iterations += 1;
+        if self.iterations > 10_000 {
+            return None;
+        }
         let call_node = self.call_stack.stack.pop()?;
         log::trace!("New call node: {}", call_node.node_kind);
         // Get the next object to complete. If we don't have a base object: Just use the call node
