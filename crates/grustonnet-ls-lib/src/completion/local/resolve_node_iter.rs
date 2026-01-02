@@ -269,11 +269,15 @@ impl<'a> ResolveNodeIter<'a> {
                     } else {
                         log::debug!("Failed to find bindings");
                     }
-                }
-                // Push the function body to the stack
-                self.search_stack.push(func.body.clone());
+                    // Push the function body to the stack
+                    self.search_stack.push(func.body.clone());
 
-                Some(func.body.clone())
+                   return Some(func.body.clone());
+                }
+
+                // TODO: why do we need the body on the stack in this case?
+                self.search_stack.push(func.body.clone());
+                return Some(current_node)
             }
             NodeKind::Binary(binary) => {
                 // TODO: handle array
