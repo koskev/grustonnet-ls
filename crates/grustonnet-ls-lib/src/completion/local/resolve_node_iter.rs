@@ -30,6 +30,10 @@ pub struct ResolveNodeIter<'a> {
 
     /// The number of max iterations to avoid endless loops not considered in the code
     pub iterations_left: u32,
+
+    // Count all the nodes we have seen. If it is above a threshold, we probably have infinite
+    // recursion
+    seen_nodes: NodeStack,
 }
 
 impl<'a> ResolveNodeIter<'a> {
@@ -46,6 +50,7 @@ impl<'a> ResolveNodeIter<'a> {
             cache,
             next_nodes: vec![],
             iterations_left: 100_000,
+            seen_nodes: NodeStack::default(),
         }
     }
 }
@@ -159,6 +164,25 @@ impl<'a> ResolveNodeIter<'a> {
                     );
                     self.search_stack.push(resolved.clone());
                     let resolved = CallStackIter::new(self.cache, &mut self.search_stack.clone())?.last()?;
+                    for stack_node in &self.search_stack.stack {
+                        // If the search stack still has the var we probably have infinite
+                        // recursion
+                        let recursion = stack_node.iter()
+                            .find_map(|node| {
+                                if let NodeKind::Var(var) = node.clone().node_kind.as_ref() {
+                                    Some(var.clone())
+                                } else {
+                                    None
+                                }
+                            }
+                        ).is_some_and(|found_var| found_var.id == var.id);
+                        if recursion {
+                            self.iterations_left = 0;
+                            self.document_stack.stack.clear();
+                            self.search_stack.stack.clear();
+                            return None;
+                        }
+                    }
                     Some(resolved)
                 } else {
                     // TODO: For now we'll just return. In the future we need to evaluate the call
@@ -337,8 +361,21 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
             return Some(next_node);
         }
         while let Some(current_node) = self.search_stack.stack.pop() {
+            self.seen_nodes.push(current_node.clone());
             log::debug!("Looking at {}", current_node.node_kind.variant_name());
             self.document_stack.push(current_node.clone());
+            let node_count = self
+                .seen_nodes
+                .stack
+                .iter()
+                .filter(|node| node.node_base.loc_range == current_node.node_base.loc_range)
+                .count();
+            if node_count > 10 {
+                self.iterations_left = 0;
+                self.document_stack.stack.clear();
+                self.search_stack.stack.clear();
+                return None;
+            }
             let start = Instant::now();
             if let Some(resolved) = self.handle_node(current_node) {
                 log::debug!("Successfull handled node in {:?}", start.elapsed());
