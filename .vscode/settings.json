@@ -1,23 +1,24 @@
+
 {
-	"chat.commandCenter.enabled": false,
-	"workbench.settings.showAISearchToggle": false,
-	"github.copilot.renameSuggestions.triggerAutomatically": false,
-	"github.copilot.nextEditSuggestions.enabled": false,
-	"github.copilot.editor.enableAutoCompletions": false,
-	"github.copilot.enable": {
-		"*": false
-	},
-	"github.copilot.chat.enabled": false,
-	"editor.inlineSuggest.enabled": false,
-	"workbench.commandPalette.experimental.askChatLocation": "hidden",
-	"chat.editor.enabled": false,
-	"terminal.integrated.suggest.enabled": false,
-	"cursor.chat.enabled": false,
-	"cursor.completion.enabled": false,
-	"cursor.composer.enabled": false,
-	"cursor.codeActions.enabled": false,
-	"cursor.cpp.enabled": false,
-	"cursor.predictions.enabled": false,
-	"cursor.terminal.enabled": false,
-	"cursor.symbols.enabled": false
+    "chat.commandCenter.enabled": false,
+    "workbench.settings.showAISearchToggle": false,
+    "github.copilot.renameSuggestions.triggerAutomatically": false,
+    "github.copilot.nextEditSuggestions.enabled": false,
+    "github.copilot.editor.enableAutoCompletions": false,
+    "github.copilot.enable": {
+        "*": false
+        },
+    "github.copilot.chat.enabled": false,
+    "editor.inlineSuggest.enabled": false,
+    "workbench.commandPalette.experimental.askChatLocation": "hidden",
+    "chat.editor.enabled": false,
+    "terminal.integrated.suggest.enabled": false,
+    "cursor.chat.enabled": false,
+    "cursor.completion.enabled": false,
+    "cursor.composer.enabled": false,
+    "cursor.codeActions.enabled": false,
+    "cursor.cpp.enabled": false,
+    "cursor.predictions.enabled": false,
+    "cursor.terminal.enabled": false,
+    "cursor.symbols.enabled": false
 }

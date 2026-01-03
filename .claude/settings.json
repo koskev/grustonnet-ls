@@ -1,10 +1,11 @@
+
 {
-	"permissions": {
-		"deny": [
-			"Read(**/*)",
-			"Edit(**/*)",
-			"Write(**/*)",
-			"Bash(*)"
-		]
-	}
+    "permissions": {
+        "deny": [
+            "Read(**/*)",
+            "Edit(**/*)",
+            "Write(**/*)",
+            "Bash(*)"
+        ]
+    }
 }
