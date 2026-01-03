@@ -1,0 +1,30 @@
+name: Docs
+on:
+  push:
+    branches: ["main"]
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: cachix/install-nix-action@v31
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+    - run: cd docs && nix develop --command make build && cd ..
+    - name: Upload artifacts for pages
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: docs/book
+  pages:
+    permissions:
+      id-token: write
+      pages: write
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+    runs-on: ubuntu-latest
+    needs: docs
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
