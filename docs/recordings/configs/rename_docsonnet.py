@@ -1,7 +1,7 @@
-from build import NeovimRecorder
+from lsp_recorder import NeovimRecorder
 from pathlib import Path
 
-with NeovimRecorder("../../crates/grustonnet-ls-lib/testdata/complete/docsonnet/func.jsonnet", Path(__file__).stem).record() as recorder:
+with NeovimRecorder("../../../crates/grustonnet-ls-lib/testdata/complete/docsonnet/func.jsonnet", relative_to_file=__file__).record() as recorder:
     (recorder
      .input("Gkyyp^ry")
      .type("$bb")

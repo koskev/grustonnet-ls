@@ -1,4 +1,4 @@
-from build import NeovimRecorder
+from lsp_recorder import NeovimRecorder
 
 with NeovimRecorder("test.jsonnet", "diag_function").record() as recorder:
     (recorder

@@ -1,6 +1,5 @@
 build:
 	npm install
-	tmux start-server
-	bash ./recordings/compile.sh
+	pushd recordings && compile-recordings -d configs && popd
 	git-cliff --workdir .. -o changelog.md
 	mdbook build

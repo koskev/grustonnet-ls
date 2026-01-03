@@ -1,6 +1,6 @@
-from build import NeovimRecorder
+from lsp_recorder import NeovimRecorder
 
-with NeovimRecorder("../../crates/grustonnet-ls-lib/testdata/complete/builder/nested.jsonnet", "complete_builder_pattern").record() as recorder:
+with NeovimRecorder("../../../crates/grustonnet-ls-lib/testdata/complete/builder/nested.jsonnet", relative_to_file=__file__).record() as recorder:
     (recorder
      .input("28G$i")
      .enter()
