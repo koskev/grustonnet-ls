@@ -107,6 +107,7 @@ impl<'a> DefinitionProvider<'a> {
         );
         let location: LocationRange = match built_node.node_kind.as_ref() {
             NodeKind::Var(var) => var.resolve_location(&document_stack),
+            // This basically searches the parent object and its locals
             NodeKind::DesugaredObject(obj) => {
                 let found_local = obj
                     .locals

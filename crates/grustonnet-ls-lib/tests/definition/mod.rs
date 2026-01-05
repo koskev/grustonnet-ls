@@ -442,7 +442,6 @@ fn object_local_hiddenfield() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn object_local_func() {
     DefinitionTestCase {
         filename: "testdata/definition/object_local.jsonnet".into(),
@@ -460,7 +459,6 @@ fn object_local_func() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn object_local_arrayfunc() {
     DefinitionTestCase {
         filename: "testdata/definition/object_local.jsonnet".into(),

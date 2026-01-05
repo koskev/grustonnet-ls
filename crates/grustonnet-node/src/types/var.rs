@@ -68,16 +68,16 @@ impl Var {
                 }
             })
         };
-        document_stack
-            .stack
-            .iter()
-            .rev()
-            .find_map(|node| match node.node_kind.as_ref() {
+        log::trace!("Resolving location of variable {:?}", self.id);
+        log::trace!("Stack: {}", document_stack);
+        document_stack.stack.iter().rev().find_map(|node| {
+            match node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => {
                     // Check if the object has a field in range that has a function as a field.
                     // Then extract the parameters
                     if let Some(func) = obj.get_function_at(&source_location_range.begin) {
-                        handle_function(&func)
+                        // Prioritize args and then the locals
+                        handle_function(&func).or(get_node_with_id(&obj.locals))
                     } else {
                         get_node_with_id(&obj.locals)
                     }
@@ -86,7 +86,8 @@ impl Var {
 
                 NodeKind::Function(func) => handle_function(func),
                 _ => None,
-            })
+            }
+        })
     }
 
     pub fn resolve(&self, document_stack: &mut NodeStack) -> Option<Arc<Node>> {
