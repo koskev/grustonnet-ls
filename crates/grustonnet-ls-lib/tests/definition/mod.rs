@@ -395,12 +395,12 @@ fn object_local_itself() {
     DefinitionTestCase {
         filename: "testdata/definition/object_local.jsonnet".into(),
         source: Position {
-            line: 1,
+            line: 2,
             character: 13,
         },
         target: Position {
-            line: 1,
-            character: 8,
+            line: 2,
+            character: 10,
         },
         ..Default::default()
     }
@@ -408,16 +408,69 @@ fn object_local_itself() {
 }
 
 #[test]
-fn object_local_value() {
+fn object_local_field() {
     DefinitionTestCase {
         filename: "testdata/definition/object_local.jsonnet".into(),
         source: Position {
-            line: 2,
-            character: 7,
+            line: 3,
+            character: 13,
         },
         target: Position {
-            line: 1,
-            character: 8,
+            line: 2,
+            character: 10,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn object_local_hiddenfield() {
+    DefinitionTestCase {
+        filename: "testdata/definition/object_local.jsonnet".into(),
+        source: Position {
+            line: 4,
+            character: 20,
+        },
+        target: Position {
+            line: 2,
+            character: 10,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "not implemented"]
+fn object_local_func() {
+    DefinitionTestCase {
+        filename: "testdata/definition/object_local.jsonnet".into(),
+        source: Position {
+            line: 5,
+            character: 16,
+        },
+        target: Position {
+            line: 2,
+            character: 10,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "not implemented"]
+fn object_local_arrayfunc() {
+    DefinitionTestCase {
+        filename: "testdata/definition/object_local.jsonnet".into(),
+        source: Position {
+            line: 6,
+            character: 18,
+        },
+        target: Position {
+            line: 2,
+            character: 10,
         },
         ..Default::default()
     }
