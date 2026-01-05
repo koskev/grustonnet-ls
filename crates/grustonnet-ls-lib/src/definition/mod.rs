@@ -19,12 +19,12 @@ pub struct DefinitionProvider<'a> {
 }
 
 #[derive(Debug, Clone)]
-pub struct DefinitinInfo {
+pub struct DefinitionInfo {
     pub location: lsp_types::Location,
     pub name: String,
 }
 
-impl Display for DefinitinInfo {
+impl Display for DefinitionInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -41,7 +41,7 @@ impl<'a> DefinitionProvider<'a> {
         Self { cache }
     }
 
-    pub fn definition(&self, uri: &Uri, pos: Location) -> Result<DefinitinInfo> {
+    pub fn definition(&self, uri: &Uri, pos: Location) -> Result<DefinitionInfo> {
         let doc = self.cache.get_document(uri)?;
 
         let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.clone()));
@@ -75,7 +75,7 @@ impl<'a> DefinitionProvider<'a> {
                 for jpath in &jpaths {
                     let p = Path::new(jpath).join(Path::new(&import_str.value));
                     if p.exists() {
-                        return Ok(DefinitinInfo {
+                        return Ok(DefinitionInfo {
                             name: "".into(),
                             location: lsp_types::Location {
                                 uri: Uri::from_path(p).unwrap(),
@@ -136,7 +136,7 @@ impl<'a> DefinitionProvider<'a> {
             built_node.node_kind
         ))?;
         log::trace!("Location: {:?}", location);
-        Ok(DefinitinInfo {
+        Ok(DefinitionInfo {
             name: index_name,
             location: lsp_types::Location {
                 uri: Uri::from_path(&location.file_name)?,
