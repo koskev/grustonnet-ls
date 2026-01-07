@@ -10,5 +10,5 @@ workspace = true
 bincode = "2.0.1"
 lsp-types = { version = "0.97.0", features = ["proposed"] }
 serde = { version = "1.0.219", features = ["derive", "rc"] }
-tree-sitter = "0.22.6"
+tree-sitter = "0.25.10"
 language-server = { path = "../language-server"}

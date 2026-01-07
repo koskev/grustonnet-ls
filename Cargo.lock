@@ -2487,6 +2487,7 @@ version = "1.0.149"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
 dependencies = [
+ "indexmap 2.13.0",
  "itoa",
  "memchr",
  "serde",
@@ -2637,6 +2638,12 @@ name = "str_indices"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d08889ec5408683408db66ad89e0e1f93dff55c73a4ccc71c427d5b277ee47e6"
+
+[[package]]
+name = "streaming-iterator"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b2231b7c3057d5e4ad0156fb3dc807d900806020c5ffa3ee6ff2c8c76fb8520"
 
 [[package]]
 name = "string_cache"
@@ -3098,22 +3105,32 @@ dependencies = [
 
 [[package]]
 name = "tree-sitter"
-version = "0.22.6"
+version = "0.25.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df7cc499ceadd4dcdf7ec6d4cbc34ece92c3fa07821e287aedecd4416c516dca"
+checksum = "78f873475d258561b06f1c595d93308a7ed124d9977cb26b148c2084a4a3cc87"
 dependencies = [
  "cc",
  "regex",
+ "regex-syntax",
+ "serde_json",
+ "streaming-iterator",
+ "tree-sitter-language",
 ]
 
 [[package]]
 name = "tree-sitter-jsonnet"
 version = "0.0.1"
-source = "git+https://github.com/sourcegraph/tree-sitter-jsonnet#ddd075f1939aed8147b7aa67f042eda3fce22790"
+source = "git+https://github.com/koskev/tree-sitter-jsonnet#c337456c4a08b721d1de2309c5dab51699c20b26"
 dependencies = [
  "cc",
- "tree-sitter",
+ "tree-sitter-language",
 ]
+
+[[package]]
+name = "tree-sitter-language"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ae62f7eae5eb549c71b76658648b72cc6111f2d87d24a1e31fa907f4943e3ce"
 
 [[package]]
 name = "try-lock"

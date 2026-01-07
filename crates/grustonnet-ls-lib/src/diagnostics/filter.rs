@@ -10,7 +10,7 @@ use language_server::{
     diagnostics::{DiagnosticFilter, DiagnosticsResult},
 };
 use lsp_types::Uri;
-use tree_sitter::{Query, QueryCursor};
+use tree_sitter::{Query, QueryCursor, StreamingIterator};
 
 use crate::cache::JsonnetASTGenerator;
 

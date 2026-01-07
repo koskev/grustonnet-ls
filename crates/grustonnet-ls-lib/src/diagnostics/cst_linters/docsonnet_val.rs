@@ -11,7 +11,7 @@ use language_server::{
     utils::cst::CstNodeHelper,
 };
 use lsp_types::{Diagnostic, DiagnosticSeverity, Range, Uri};
-use tree_sitter::{Query, QueryCursor, QueryMatch};
+use tree_sitter::{Query, QueryCursor, QueryMatch, StreamingIterator};
 
 use crate::cache::JsonnetASTGenerator;
 
@@ -105,11 +105,11 @@ impl Diagnostics for DocsonnetDefaultDiagnostics {
         let mut cursor = QueryCursor::new();
         let captures = cursor.matches(&query, tree.root_node(), doc.content.as_bytes());
 
-        for cap in captures {
+        captures.for_each(|cap| {
             if let Some(result) = self.handle_query(uri, &cap, &query, &doc.content) {
                 results.extend(result);
             }
-        }
+        });
         results
     }
 }

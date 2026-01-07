@@ -29,8 +29,8 @@ utils = { path = "../utils"}
 paste = "1.0.15"
 ropey = "1.6.1"
 regex = "1.11.1"
-tree-sitter = "0.22.6"
-tree-sitter-jsonnet = {git = "https://github.com/sourcegraph/tree-sitter-jsonnet"}
+tree-sitter = "0.25.10"
+tree-sitter-jsonnet = {git = "https://github.com/koskev/tree-sitter-jsonnet"}
 pretty_assertions = "1.4.1"
 env_logger = "0.11.8"
 log = "0.4.27"

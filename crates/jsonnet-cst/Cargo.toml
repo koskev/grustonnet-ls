@@ -7,8 +7,8 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-tree-sitter = "0.22.6"
-tree-sitter-jsonnet = {git = "https://github.com/sourcegraph/tree-sitter-jsonnet"}
+tree-sitter = "0.25.10"
+tree-sitter-jsonnet = {git = "https://github.com/koskev/tree-sitter-jsonnet"}
 jsonnet-location = { path = "../jsonnet-location"}
 ropey = "1.6.1"
 log = "0.4.27"
