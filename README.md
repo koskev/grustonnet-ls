@@ -58,7 +58,7 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
 * [x] Commands
     * [x] Evaluate file
 * [ ] Missing LSP features
-    * [ ] Code actions
+    * [x] Code actions
     * [ ] Code Lense?
     * [ ] Hover
     * [ ] Document highlight
