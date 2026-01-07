@@ -26,8 +26,8 @@ pub enum StdLibCallError {
     MissingArgument,
     #[error("Invalid argument")]
     InvalidArgument,
-    #[error("Unknown function")]
-    UnknownFunction,
+    #[error("Unknown function {function}")]
+    UnknownFunction { function: String },
     #[error("Unknown error")]
     Unknown,
 }
@@ -47,7 +47,29 @@ pub fn call_std_function(
         "makeArray" => Box::new(MakeArray {}),
         "objectHasEx" => Box::new(ObjectHasEx {}),
         "extVar" => Box::new(ExtVar { cache }),
-        _ => return Err(StdLibCallError::UnknownFunction),
+        _ => {
+            let stdlib = include_str!("./std.libsonnet");
+            let std_ast = cache
+                .ast_generator
+                .jsonnet
+                .get_ast_snippet_binary("std.libsonnet", stdlib)
+                .map_err(|_| StdLibCallError::Unknown)?;
+            let NodeKind::DesugaredObject(obj) = std_ast.node_kind.as_ref() else {
+                return Err(StdLibCallError::Unknown);
+            };
+
+            let Some(std_func_field) = obj
+                .fields
+                .iter()
+                .find(|field| field.name.get_name() == name)
+            else {
+                return Err(StdLibCallError::UnknownFunction {
+                    function: name.into(),
+                });
+            };
+
+            return Ok(std_func_field.body.clone());
+        }
     };
 
     let mut std_args = target.get_arguments();
