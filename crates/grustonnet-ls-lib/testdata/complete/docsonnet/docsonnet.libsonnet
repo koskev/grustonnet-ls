@@ -18,7 +18,7 @@
     default: default,
   },
 
-  fn(help, args):: {
+  fn(help='', args=[]):: {
     assert std.isString(help),
     assert std.isArray(args),
     'function': {
