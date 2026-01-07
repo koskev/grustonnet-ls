@@ -9,7 +9,7 @@ unwrap_used = "warn"
 allow-unwrap-in-tests = "allow"
 
 [workspace.lints.rust]
-missing_docs = "warn"
+missing_docs = "allow"
 
 [workspace]
 members = [
