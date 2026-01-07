@@ -39,5 +39,5 @@ jobs:
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
         with:
-          executable-name: vrl-ls
+          executable-name: grustonnet-ls
           target: ${{ matrix.platform.target }}
