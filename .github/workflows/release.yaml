@@ -33,6 +33,7 @@ jobs:
         env:
           OUTPUT: Changes.md
           GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build binary
         run: cargo build --release
       # TODO: Replace AI action
