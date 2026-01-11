@@ -23,7 +23,9 @@ impl GoCompiler for CrossGoCompiler {
 
         // XXX: There is no environment variable to get the current CC and rust2go does not
         // automatically set the correct variables
-        // cfg(target_os == "windows") does not work either
+        // Only set this when cross compiling. The "target_os" will be "linux" but the
+        // "CARGO_CFG_TARGET_OS" will be "windows"
+        #[cfg(target_os = "linux")]
         if env::var("CARGO_CFG_TARGET_OS").expect("CARGO_CFG_TARGET_OS not set") == "windows" {
             go_build
                 .env("CC", "x86_64-w64-mingw32-gcc")
@@ -45,6 +47,8 @@ impl GoCompiler for CrossGoCompiler {
             .arg(output)
             .arg(".");
 
-        go_build.status().expect("Go build failed");
+        go_build
+            .status()
+            .unwrap_or_else(|_| panic!("Go build failed with command {:?}", go_build));
     }
 }
