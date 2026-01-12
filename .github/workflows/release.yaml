@@ -33,10 +33,10 @@ jobs:
             runs-on: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
 
-          # TODO: Windows is stupid as always. Is native or cross compiling less pain?
-          #- os-name: Windows-x86_64
-          #  runs-on: ubuntu-24.04
-          #  target: x86_64-pc-windows-gnu
+          # XXX: Since windows is such a bad system, we just cross compile it from Linux
+          - os-name: Windows-x86_64
+            runs-on: ubuntu-24.04
+            target: x86_64-pc-windows-gnu
 
           - os-name: macOS-arm64
             runs-on: macos-latest
@@ -55,6 +55,9 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: '1.25'
+      - name: Install cross compile tools
+        if: ${{ contains(matrix.platform.target, 'windows') && contains(matrix.platform.runs-on, 'ubuntu') }}
+        run: sudo apt update && sudo apt install gcc-mingw-w64 && rustup target add x86_64-pc-windows-gnu
       - name: Build binary
         run: cargo build --release --target ${{ matrix.platform.target }}
         env:
@@ -63,6 +66,6 @@ jobs:
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
         with:
-          executable-name: grustonnet-ls
+          executable-name: grustonnet-ls${{ contains(matrix.platform.target, 'windows') && '.exe' || ''}}
           target: ${{ matrix.platform.target }}
           changes-file: changelog/CHANGELOG.md
