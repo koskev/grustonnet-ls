@@ -9,12 +9,13 @@ use std::{
 };
 
 use ::utils::RwLockPanic;
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use bevy_tasks::TaskPool;
 use grustonnet_config::{Configuration, VariableNaming};
 use jsonnet_cst::{
     completion::{CompletionInfo, CompletionType},
     node::JsonnetNode,
+    node_type::NodeType,
 };
 use jsonnet_location::{Location, LocationRange};
 use language_server::{
@@ -613,12 +614,30 @@ impl LSPServer for JsonnetServer {
             .get_document(&params.text_document_position_params.text_document.uri)?;
         let ast = doc.get_ast()?;
 
-        let stack =
-            ast.get_stack_by_position(&params.text_document_position_params.position.into());
+        let mut pos = params.text_document_position_params.position;
+
+        let cst_tree =
+            jsonnet_cst::new_tree(&doc.content).ok_or(anyhow!("Unable to parse cst tree"))?;
+        let cst_loc: Location = pos.into();
+        let root_node = cst_tree.root_node();
+        let cst_node = root_node
+            .get_node_at(cst_loc.into())
+            .ok_or(anyhow!("Unable to get node at position"))?;
+        if NodeType::from(cst_node) == NodeType::NodeOpeningBracket {
+            // If we are at the opening bracket we substract 1 to not get the info of a potential
+            // nested apply: foo(bar(1))
+            pos.character = pos.character.saturating_sub(1);
+        }
+        let active_param = cst_node.get_param_pos();
+
+        let stack = ast.get_stack_by_position(&pos.into());
 
         Ok(stack
             .stack
             .iter()
+            // We need to start at the back to only find the currently selected apply and not any
+            // of its parents
+            .rev()
             .find_map(|n| {
                 let apply_function_data = n.get_apply_function(ast.clone(), &self.cache)?;
                 //let doc_node = DocumentationInfo::find_docsonnet_node(
@@ -634,11 +653,6 @@ impl LSPServer for JsonnetServer {
                     .unwrap_or("unknown".into());
                 let func_params = &apply_function_data.function.parameters;
                 let names: Vec<String> = func_params.iter().map(|p| p.name.0.clone()).collect();
-                let cst_tree = jsonnet_cst::new_tree(&doc.content)?;
-                let cst_loc: Location = params.text_document_position_params.position.into();
-                let root_node = cst_tree.root_node();
-                let cst_node = root_node.get_node_at(cst_loc.into())?;
-                let active_param = cst_node.get_param_pos();
                 Some(SignatureHelp {
                     signatures: vec![SignatureInformation {
                         label: format!("{}({})", func_name, names.join(", ")),

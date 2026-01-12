@@ -203,7 +203,6 @@ fn local_simple_nested_second() {
 }
 
 #[test]
-#[ignore = "wrong nested"]
 fn local_simple_nested_inside_first() {
     SignatureHelpTestCase {
         filename: "testdata/signature_help/local.jsonnet".into(),
@@ -236,7 +235,6 @@ fn local_simple_nested_inside_first() {
 }
 
 #[test]
-#[ignore = "wrong nested"]
 fn local_simple_nested_inside_second() {
     SignatureHelpTestCase {
         filename: "testdata/signature_help/local.jsonnet".into(),
@@ -258,10 +256,10 @@ fn local_simple_nested_inside_second() {
                     },
                 ]),
                 documentation: None,
-                active_parameter: Some(0),
+                active_parameter: Some(1),
             }],
             active_signature: Some(0),
-            active_parameter: Some(0),
+            active_parameter: Some(1),
         }),
         ..Default::default()
     }
@@ -399,7 +397,6 @@ fn object_nested_second() {
 }
 
 #[test]
-#[ignore = "wrong nested"]
 fn object_nested_inside_first() {
     SignatureHelpTestCase {
         filename: "testdata/signature_help/object.jsonnet".into(),
@@ -432,7 +429,6 @@ fn object_nested_inside_first() {
 }
 
 #[test]
-#[ignore = "wrong nested"]
 fn object_nested_inside_second() {
     SignatureHelpTestCase {
         filename: "testdata/signature_help/object.jsonnet".into(),
