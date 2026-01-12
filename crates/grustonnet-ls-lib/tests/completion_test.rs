@@ -11,3 +11,4 @@ mod definition;
 mod diagnostics;
 mod inlay_hints;
 mod references;
+mod signature_help;
