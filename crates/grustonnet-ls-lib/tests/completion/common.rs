@@ -37,6 +37,8 @@ pub(crate) struct CompletionTestCase {
     pub(crate) replace_string: String,
     pub(crate) replace_by_string: String,
     pub(crate) expected: CompletionList,
+    /// Used to offset the completion position by the given value
+    pub(crate) position_offset: i32,
 
     pub(crate) config: Configuration,
 
@@ -97,9 +99,13 @@ impl CompletionTestCase {
                 }],
             })
             .unwrap();
-        let completion_location = rope
+        let mut completion_location = rope
             .replace_get_end(&self.replace_string, &self.replace_by_string)
             .unwrap();
+
+        completion_location.character = completion_location
+            .character
+            .saturating_add_signed(self.position_offset);
 
         let completion_list = server
             .completion(lsp_types::CompletionParams {

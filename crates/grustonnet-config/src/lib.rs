@@ -35,6 +35,10 @@ pub struct CompletionConfig {
     /// Hides the docsonnet member in objects
     pub hide_docsonnet_members: bool,
 
+    #[default = true]
+    /// Enable completion of missing parameter names in function calls
+    pub enable_arguments: bool,
+
     /// Configures the completion of various snippets
     pub snippets: SnippetConfig,
 }

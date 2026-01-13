@@ -41,8 +41,9 @@ use crate::{
     cache::JsonnetASTGenerator,
     command::handle_command,
     completion::{
-        global::GlobalCompletion, import::ImportCompletion, keyword::KeywordCompletion,
-        local::LocalCompletion, snippets::docsonnet::DocsonnetSnippets,
+        apply_arguments::ApplyArgumentCompletion, global::GlobalCompletion,
+        import::ImportCompletion, keyword::KeywordCompletion, local::LocalCompletion,
+        snippets::docsonnet::DocsonnetSnippets,
     },
     definition::DefinitionProvider,
     diagnostics::{
@@ -359,6 +360,10 @@ impl LSPServer for JsonnetServer {
                 if config.completion.enable_global {
                     let global_completion = GlobalCompletion::new(&self.cache);
                     completion_list.push(Box::new(global_completion));
+                }
+                if config.completion.enable_arguments {
+                    let arg_completion = ApplyArgumentCompletion::new(&self.cache);
+                    completion_list.push(Box::new(arg_completion));
                 }
                 // Keyword completion
                 if config.completion.enable_keywords {

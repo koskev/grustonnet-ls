@@ -68,6 +68,7 @@ impl Stackhelper for NodeStack {
     }
 }
 
+#[derive(Debug)]
 pub struct ApplyFunctionData {
     pub apply: Apply,
     pub function: Function,
