@@ -182,11 +182,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1767437129,
-        "narHash": "sha256-uhnGHIYvWJjeTg4ouo8NtPHAhYZRpjBHNqDJfCcFcnQ=",
+        "lastModified": 1767452900,
+        "narHash": "sha256-2gN6556WbUHifpen2AFfi31rr7Wrel+dWrxhjVo1Rzo=",
         "ref": "refs/heads/main",
-        "rev": "89397549784fe58ce4567e6395ee53d77f01501a",
-        "revCount": 7,
+        "rev": "26e38960a8f3c25e8b05eaa89c67f2bcf81a02de",
+        "revCount": 9,
         "type": "git",
         "url": "https://codeberg.org/kokev/lsp-recorder.git"
       },

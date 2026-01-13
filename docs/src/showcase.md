@@ -26,3 +26,8 @@
 
 ### Local function
 <div id="diag_function" class="asciinema_player"></div>
+
+## Misc
+
+### Preview
+<div id="preview" class="asciinema_player"></div>
