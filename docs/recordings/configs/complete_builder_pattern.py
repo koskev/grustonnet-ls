@@ -2,9 +2,9 @@ from lsp_recorder import NeovimRecorder
 
 with NeovimRecorder("../../../crates/grustonnet-ls-lib/testdata/complete/builder/nested.jsonnet", relative_to_file=__file__).record() as recorder:
     (recorder
-     .input("28G$i")
+     .input("GO")
      .enter()
-     .type(".withoutArg()\r.")
+     .type("  y:: self.new().withoutArg()\r.")
      .sleep(1)
      .type("withArg(3)\r.")
      .sleep(1)
