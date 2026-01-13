@@ -1,6 +1,8 @@
 # **G**o **Rust** Js**onnet** **L**anguage **S**erver
 This is a jsonnet language server using the `go-jsonnet` implementation to generate the AST and evaluate jsonnet code
 
+For a small list of example videos head to the [Showcase page](https://koskev.github.io/grustonnet-ls/showcase.html).
+
 ## Roadmap
 
 * [-] Completion
