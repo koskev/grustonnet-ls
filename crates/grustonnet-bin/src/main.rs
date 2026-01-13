@@ -19,6 +19,9 @@ struct Args {
 
     #[arg(long, short)]
     port: Option<u16>,
+
+    #[arg(long, short, default_value_t=false)]
+    full_sync: bool,
 }
 
 #[tokio::main]
@@ -46,7 +49,7 @@ async fn main() {
         LSPConnection::default()
     };
     let server = LSPServerManager {
-        server: JsonnetServer::new(connection),
+        server: JsonnetServer::new(connection, args.full_sync),
     };
     server.run().unwrap();
 }

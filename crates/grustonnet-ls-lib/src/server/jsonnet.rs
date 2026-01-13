@@ -81,10 +81,12 @@ pub struct JsonnetServer {
     pub configuration: Arc<RwLock<Configuration>>,
 
     pub diagnostics_queue: Option<DiagnosticsQueue<JsonnetDiagnosticFilter>>,
+
+    pub full_sync: bool,
 }
 
 impl JsonnetServer {
-    pub fn new(connection: LSPConnection) -> Self {
+    pub fn new(connection: LSPConnection, full_sync: bool) -> Self {
         let cache = Cache::default();
         let diagnostics_queue = DiagnosticsQueue::new(
             connection.connection.sender.clone(),
@@ -100,6 +102,7 @@ impl JsonnetServer {
             diagnostics_queue: Some(diagnostics_queue),
             connection,
             cache,
+            full_sync,
             ..Default::default()
         }
     }
@@ -220,7 +223,7 @@ impl LSPServer for JsonnetServer {
             text_document_sync: Some(lsp_types::TextDocumentSyncCapability::Options(
                 TextDocumentSyncOptions {
                     open_close: Some(true),
-                    change: Some(TextDocumentSyncKind::INCREMENTAL),
+                    change: Some(if self.full_sync {TextDocumentSyncKind::FULL} else {TextDocumentSyncKind::INCREMENTAL}),
                     ..Default::default()
                 },
             )),
