@@ -8,7 +8,7 @@ build_recordings:
 	cd recordings; compile-recordings -d configs; cd ..
 
 changelog:
-	git-cliff --workdir .. -o changelog.md
+	git-cliff -r .. -o changelog.md
 
 dependencies:
 	npm install
