@@ -15,7 +15,11 @@ use ropey::Rope;
 #[cfg(feature = "tracing")]
 use tracy_client::{set_thread_name, span};
 
-use crate::{cache::JsonnetASTGenerator, definition::DefinitionProvider, utils};
+use crate::{
+    cache::JsonnetASTGenerator,
+    definition::{DefinitionInfo, DefinitionProvider},
+    utils,
+};
 pub struct ReferenceProvider<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,
     pub search_paths: &'a [String],
@@ -73,6 +77,87 @@ impl<'a> ReferenceProvider<'a> {
         })
     }
 
+    fn get_identifier_locations(
+        &self,
+        files: &[Uri],
+        identifier: &str,
+    ) -> Option<impl ParallelIterator<Item = lsp_types::Location>> {
+        // Search for in all caches and files and get all potential positions
+        // Get all jsonnet and libsonnet files in the search paths
+        #[cfg(feature = "tracing")]
+        let zone = span!("Reference calc");
+        #[cfg(feature = "tracing")]
+        zone.emit_text("Calculating references");
+        // Get potential positions for references
+        // Open each file and searcb for the identifier and add it to the list
+        let identifier = identifier.to_string();
+        Some(
+            files
+                .into_par_iter()
+                .filter_map(move |uri| {
+                    #[cfg(feature = "tracing")]
+                    set_thread_name!("Reference thread");
+                    // Check if in cache
+                    let content = self
+                        .cache
+                        .get_document_with_option(uri, false)
+                        .ok()?
+                        .content;
+                    // Check for name in file and get locations
+                    let locations: Vec<lsp_types::Location> = content
+                        .match_indices(&identifier)
+                        .filter_map(|(index, val)| {
+                            let rope = Rope::from_str(&content);
+                            Some(lsp_types::Location {
+                                uri: uri.clone(),
+                                range: Range {
+                                    start: rope.get_location(index)?,
+                                    end: rope.get_location(index + val.len())?,
+                                },
+                            })
+                        })
+                        .collect();
+
+                    Some(locations)
+                })
+                .flatten(),
+        )
+    }
+
+    pub fn get_references<T>(
+        &self,
+        locations: T,
+        target_info: DefinitionInfo,
+        include_declaration: bool,
+        goto_provider: DefinitionProvider,
+    ) -> impl ParallelIterator<Item = lsp_types::Location>
+    where
+        T: ParallelIterator<Item = lsp_types::Location>,
+    {
+        locations.filter(move |loc| {
+            // If the range is identical to the target we can skip the rest
+            if target_info.location == *loc {
+                return include_declaration;
+            }
+            let Ok(potential_location) = goto_provider.definition(&loc.uri, loc.range.start.into())
+            else {
+                return false;
+            };
+            // XXX: Since goto might result in different end locations (Due to the workaround
+            // with local functions), we will just compare the start position (which should be
+            // enough anyways). If we land on the same position we have a reference
+            let found = potential_location.location.uri == target_info.location.uri
+                && potential_location.location.range.start == target_info.location.range.start;
+            log::trace!(
+                "Potential reference {} for target {}? {}",
+                potential_location,
+                target_info,
+                found
+            );
+            found
+        })
+    }
+
     pub fn references(
         &self,
         pos: Location,
@@ -109,61 +194,16 @@ impl<'a> ReferenceProvider<'a> {
         let zone = span!("Reference calc");
         #[cfg(feature = "tracing")]
         zone.emit_text("Calculating references");
-        // Get potential positions for references
-        // Open each file and searcb for the identifier and add it to the list
-        let reference_locations: Vec<lsp_types::Location> = files
-            .into_par_iter()
-            .filter_map(|uri| {
-                #[cfg(feature = "tracing")]
-                set_thread_name!("Reference thread");
-                // Check if in cache
-                let content = self
-                    .cache
-                    .get_document_with_option(&uri, false)
-                    .ok()?
-                    .content;
-                // Check for name in file and get locations
-                let locations: Vec<lsp_types::Location> = content
-                    .match_indices(&identifier)
-                    .filter_map(|(index, val)| {
-                        let rope = Rope::from_str(&content);
-                        Some(lsp_types::Location {
-                            uri: uri.clone(),
-                            range: Range {
-                                start: rope.get_location(index)?,
-                                end: rope.get_location(index + val.len())?,
-                            },
-                        })
-                    })
-                    .collect();
-
-                Some(locations)
-            })
-            .flatten()
-            // Execute a goto and compare it's position with the target position
-            .filter(|loc| {
-                // If the range is identical to the target we can skip the rest
-                if target_info.location == *loc {
-                    return include_declaration;
-                }
-                let Ok(potential_location) =
-                    goto_provider.definition(&loc.uri, loc.range.start.into())
-                else {
-                    return false;
-                };
-                // XXX: Since goto might result in different end locations (Due to the workaround
-                // with local functions), we will just compare the start position (which should be
-                // enough anyways). If we land on the same position we have a reference
-                let found = potential_location.location.uri == target_info.location.uri
-                    && potential_location.location.range.start == target_info.location.range.start;
-                log::trace!(
-                    "Potential reference {} for target {}? {}",
-                    potential_location,
-                    target_info,
-                    found
-                );
-                found
-            })
+        let reference_locations_iter = self
+            .get_identifier_locations(&files, &identifier)
+            .ok_or(anyhow!(""))?;
+        let reference_locations: Vec<_> = self
+            .get_references(
+                reference_locations_iter,
+                target_info,
+                include_declaration,
+                goto_provider,
+            )
             .collect();
 
         log::debug!("Calculating references took {:?}", start.elapsed());
