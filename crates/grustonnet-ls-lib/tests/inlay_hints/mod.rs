@@ -18,6 +18,7 @@ use lsp_types::{
 };
 
 pub mod apply;
+pub mod object;
 
 #[derive(Default)]
 pub(crate) struct InlayHintTestCase {
