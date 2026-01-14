@@ -212,3 +212,134 @@ fn index_multi() {
     }
     .check();
 }
+
+#[test]
+fn index_std_singleline() {
+    InlayHintTestCase {
+        filename: "testdata/inlay_hints/apply/std.jsonnet".into(),
+        range: Range {
+            start: Position {
+                line: 3,
+                character: 0,
+            },
+            end: Position {
+                line: 3,
+                character: 40,
+            },
+        },
+        hints: vec![
+            InlayHint {
+                label: InlayHintLabel::String("str=".into()),
+                padding_right: Some(true),
+                position: Position {
+                    line: 3,
+                    character: 30,
+                },
+                ..default_inlay()
+            },
+            InlayHint {
+                label: InlayHintLabel::String("c=".into()),
+                padding_right: Some(true),
+                position: Position {
+                    line: 3,
+                    character: 34,
+                },
+                ..default_inlay()
+            },
+            InlayHint {
+                label: InlayHintLabel::String("maxsplits=".into()),
+                padding_right: Some(true),
+                position: Position {
+                    line: 3,
+                    character: 39,
+                },
+                ..default_inlay()
+            },
+        ],
+    }
+    .check();
+}
+#[test]
+fn index_std_multiline() {
+    InlayHintTestCase {
+        filename: "testdata/inlay_hints/apply/std.jsonnet".into(),
+        range: Range {
+            start: Position {
+                line: 5,
+                character: 0,
+            },
+            end: Position {
+                line: 9,
+                character: 0,
+            },
+        },
+        hints: vec![
+            InlayHint {
+                label: InlayHintLabel::String("str=".into()),
+                padding_right: Some(true),
+                position: Position {
+                    line: 6,
+                    character: 4,
+                },
+                ..default_inlay()
+            },
+            InlayHint {
+                label: InlayHintLabel::String("c=".into()),
+                padding_right: Some(true),
+                position: Position {
+                    line: 7,
+                    character: 4,
+                },
+                ..default_inlay()
+            },
+            InlayHint {
+                label: InlayHintLabel::String("maxsplits=".into()),
+                padding_right: Some(true),
+                position: Position {
+                    line: 8,
+                    character: 4,
+                },
+                ..default_inlay()
+            },
+        ],
+    }
+    .check();
+}
+
+#[test]
+fn index_std_with_var() {
+    InlayHintTestCase {
+        filename: "testdata/inlay_hints/apply/std.jsonnet".into(),
+        range: Range {
+            start: Position {
+                line: 4,
+                character: 0,
+            },
+            end: Position {
+                line: 4,
+                character: 51,
+            },
+        },
+        hints: vec![
+            InlayHint {
+                label: InlayHintLabel::String("str=".into()),
+                padding_right: Some(true),
+                position: Position {
+                    line: 4,
+                    character: 27,
+                },
+                ..default_inlay()
+            },
+            InlayHint {
+                label: InlayHintLabel::String("c=".into()),
+                padding_right: Some(true),
+                position: Position {
+                    line: 4,
+                    character: 31,
+                },
+                ..default_inlay()
+            },
+        ],
+    }
+    .check();
+}

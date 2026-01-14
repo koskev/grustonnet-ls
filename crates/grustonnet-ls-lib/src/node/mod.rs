@@ -16,7 +16,10 @@ use grustonnet_node::{
 };
 use language_server::cache::Cache;
 
-use crate::{cache::JsonnetASTGenerator, completion::local::call_stack_iter::CallStackIter};
+use crate::{
+    cache::JsonnetASTGenerator,
+    completion::{local::call_stack_iter::CallStackIter, stdlib::get_std_function_node},
+};
 
 pub trait Stackhelper {
     fn get_last_unbuilt_node(&mut self, cache: &Cache<JsonnetASTGenerator>) -> Result<Arc<Node>>;
@@ -92,13 +95,23 @@ impl NodeHelper for Node {
         let NodeKind::Apply(apply_node) = self.node_kind.as_ref() else {
             return None;
         };
-        let mut temp_stack =
-            root_node.get_stack_by_position(&apply_node.target.node_base.loc_range.end);
-        // TODO: If we have a().b().c().d() we will build the node way more than needed
-        let mut last_node = temp_stack.get_last_unbuilt_node(cache).ok()?;
-        if let NodeKind::Var(var) = last_node.node_kind.as_ref() {
-            last_node = var.resolve(&mut temp_stack)?;
-        }
+
+        // XXX: This is only a workaround until proper documentation is supported for the stdlib
+        let last_node = if let NodeKind::Index(idx) = apply_node.target.node_kind.as_ref()
+            && let NodeKind::Var(var) = idx.target.node_kind.as_ref()
+            && var.is_std()
+        {
+            get_std_function_node(&idx.get_name()?)?
+        } else {
+            let mut temp_stack =
+                root_node.get_stack_by_position(&apply_node.target.node_base.loc_range.end);
+            // TODO: If we have a().b().c().d() we will build the node way more than needed
+            let mut last_node = temp_stack.get_last_unbuilt_node(cache).ok()?;
+            if let NodeKind::Var(var) = last_node.node_kind.as_ref() {
+                last_node = var.resolve(&mut temp_stack)?;
+            }
+            last_node
+        };
 
         // TODO: build the last node?
         let NodeKind::Function(found_function) = last_node.node_kind.as_ref() else {

@@ -7,17 +7,18 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use grustonnet_node::types::{
-    Array, CommaSeparatedExpr,
+    Array, CommaSeparatedExpr, Identifier,
     base::NodeBase,
-    function::{Apply, Arguments},
+    function::{Apply, Arguments, Function, Parameter},
     literals::{LiteralBoolean, LiteralNumber},
     node::Node,
     node_kind::NodeKind,
 };
 use itertools::Itertools;
+use jsonnet_std_docs::StdFunctions;
 use language_server::cache::Cache;
 
-use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
+use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::std::STDLIB_DEFINITIONS};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -36,6 +37,34 @@ pub enum StdLibCallError {
 struct StdArgument<'a> {
     name: &'a str,
     default_value: Option<Arc<Node>>,
+}
+
+pub fn get_std_function_node(name: &str) -> Option<Arc<Node>> {
+    let functions = StdFunctions::generate(STDLIB_DEFINITIONS);
+    functions.functions.values().find_map(|func| {
+        if func.name == name {
+            Some(Arc::new(Node {
+                node_base: NodeBase {
+                    ..Default::default()
+                },
+                node_kind: Box::new(NodeKind::Function(Function {
+                    parameters: func
+                        .params
+                        .clone()
+                        .unwrap_or_default()
+                        .iter()
+                        .map(|param| Parameter {
+                            name: Identifier(param.clone()),
+                            ..Default::default()
+                        })
+                        .collect(),
+                    ..Default::default()
+                })),
+            }))
+        } else {
+            None
+        }
+    })
 }
 
 pub fn call_std_function(
