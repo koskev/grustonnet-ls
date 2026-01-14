@@ -7,13 +7,15 @@ use std::time::Instant;
 
 use anyhow::{Result, anyhow};
 use grustonnet_node::types::node_kind::NodeKind;
+use jsonnet_cst::new_tree;
 use jsonnet_location::Location;
 use language_server::{cache::Cache, utils::rope::RopeHelper};
 use lsp_types::{Range, Uri};
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelExtend, ParallelIterator};
 use ropey::Rope;
 #[cfg(feature = "tracing")]
 use tracy_client::{set_thread_name, span};
+use tree_sitter::{Query, QueryCursor, StreamingIterator};
 
 use crate::{
     cache::JsonnetASTGenerator,
@@ -127,9 +129,9 @@ impl<'a> ReferenceProvider<'a> {
     pub fn get_references<T>(
         &self,
         locations: T,
-        target_info: DefinitionInfo,
+        target_info: &DefinitionInfo,
         include_declaration: bool,
-        goto_provider: DefinitionProvider,
+        goto_provider: &DefinitionProvider,
     ) -> impl ParallelIterator<Item = lsp_types::Location>
     where
         T: ParallelIterator<Item = lsp_types::Location>,
@@ -167,44 +169,56 @@ impl<'a> ReferenceProvider<'a> {
         let goto_provider = DefinitionProvider::new(self.cache);
         // Go to definition to find the target location
         let target_info = goto_provider.definition(uri, pos)?;
-        let (identifier, is_local) = self
-            .get_identifier(
-                target_info.location.range.start.into(),
-                &target_info.location.uri,
-            )
-            .ok_or(anyhow!("Unable to find identifier"))?;
+
+        log::error!("TARGET: {:#?}", target_info);
+        let is_import = target_info.location.range == Range::default();
+        let identifier_option = self.get_identifier(
+            target_info.location.range.start.into(),
+            &target_info.location.uri,
+        );
+        if !is_import && identifier_option.is_none() {
+            return Err(anyhow!("Reference is neither identifier nor import"));
+        }
         // Search for in all caches and files and get all potential positions
         // Get all jsonnet and libsonnet files in the search paths
         let start = Instant::now();
-        let files = if is_local {
+        let files = if let Some(identifier_info) = &identifier_option
+            && identifier_info.1
+        {
             vec![uri.clone()]
         } else {
             utils::files::get_all_jsonnnet_files(self.search_paths)
         };
         log::debug!("Getting all files took {:?}", start.elapsed());
-        log::debug!(
-            "Searching for references of {} at {} in {} files local {}",
-            identifier,
-            target_info,
-            files.len(),
-            is_local
-        );
         let start = Instant::now();
         #[cfg(feature = "tracing")]
         let zone = span!("Reference calc");
         #[cfg(feature = "tracing")]
         zone.emit_text("Calculating references");
-        let reference_locations_iter = self
-            .get_identifier_locations(&files, &identifier)
-            .ok_or(anyhow!(""))?;
-        let reference_locations: Vec<_> = self
-            .get_references(
-                reference_locations_iter,
-                target_info,
+
+        let mut reference_locations = vec![];
+
+        if let Some(identifier) = &identifier_option
+            && let Some(locations) = self.get_identifier_locations(&files, &identifier.0)
+        {
+            reference_locations.par_extend(self.get_references(
+                locations,
+                &target_info,
                 include_declaration,
-                goto_provider,
-            )
-            .collect();
+                &goto_provider,
+            ));
+        }
+
+        if is_import
+            && let Some(locations) = self.import_references(&target_info, &files, &goto_provider)
+        {
+            reference_locations.par_extend(self.get_references(
+                locations.into_par_iter(),
+                &target_info,
+                include_declaration,
+                &goto_provider,
+            ));
+        }
 
         log::debug!("Calculating references took {:?}", start.elapsed());
 
@@ -213,5 +227,63 @@ impl<'a> ReferenceProvider<'a> {
         } else {
             Ok(Some(reference_locations))
         }
+    }
+    pub fn import_references(
+        &self,
+        target_info: &DefinitionInfo,
+        files: &[Uri],
+        goto_provider: &DefinitionProvider,
+    ) -> Option<Vec<lsp_types::Location>> {
+        // Target is not the start of a file
+        if target_info.location.range != Range::default() {
+            return None;
+        }
+        let query_source = "(import (string (string_content) @import))";
+
+        // Get all import statements
+        Some(
+            files
+                .iter()
+                .filter_map(|uri| {
+                    let content = self
+                        .cache
+                        .get_document_with_option(uri, false)
+                        .ok()?
+                        .content;
+                    let tree = new_tree(&content)?;
+                    let query = Query::new(&tree.language(), query_source)
+                        .unwrap_or_else(|_| panic!("BUG: Invalid query: {}", query_source));
+                    let mut cursor = QueryCursor::new();
+                    let captures = cursor.captures(&query, tree.root_node(), content.as_bytes());
+                    let mut locations = vec![];
+                    captures.for_each(|query_match| {
+                        query_match.0.captures.iter().for_each(|capture| {
+                            let start: Location = capture.node.start_position().into();
+                            let end: Location = capture.node.end_position().into();
+                            let goto_info = goto_provider.definition(uri, start.clone());
+                            log::error!(
+                                "URI {:?} at goto {:#?} ref {:#?}",
+                                uri,
+                                goto_info,
+                                target_info
+                            );
+                            if let Ok(goto_info) = goto_info
+                                && goto_info.location == target_info.location
+                            {
+                                locations.push(lsp_types::Location {
+                                    uri: uri.clone(),
+                                    range: Range {
+                                        start: start.into(),
+                                        end: end.into(),
+                                    },
+                                });
+                            }
+                        })
+                    });
+                    Some(locations)
+                })
+                .flatten()
+                .collect(),
+        )
     }
 }
