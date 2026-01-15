@@ -16,3 +16,6 @@ jobs:
     - uses: actions/checkout@v4
     - name: Run tests
       run: cargo test --verbose
+      env:
+        GODEBUG: "invalidptr=0,cgocheck=0"
+

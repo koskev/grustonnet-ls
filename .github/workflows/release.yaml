@@ -62,6 +62,7 @@ jobs:
         run: cargo build --release --target ${{ matrix.platform.target }}
         env:
           RUST_BACKTRACE: 1
+          GODEBUG: "invalidptr=0,cgocheck=0"
       # TODO: Replace AI action
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
