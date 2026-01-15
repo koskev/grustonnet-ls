@@ -49,3 +49,33 @@ fn error_circular_import() {
     }
     .check()
 }
+
+#[test]
+fn eval_end_of_file() {
+    DiagnosticTestCase {
+        filename: "testdata/diagnostics/error_cases/end_of_file.jsonnet".to_string(),
+        config: DiagnosticConfig {
+            enable_eval: true,
+            ..disabled_diagnostics_config()
+        },
+        expected: vec![
+            Diagnostic {
+            severity: Some(DiagnosticSeverity::ERROR),
+            range: Range {
+                start: Position {
+                    line: 2,
+                    character: 0,
+                },
+                end: Position {
+                    line: 3,
+                    character: 0,
+                },
+            },
+            message: "Expected , or ; but got end of file".to_string(),
+            ..Default::default()
+        },
+        ],
+        ..Default::default()
+    }
+    .check()
+}

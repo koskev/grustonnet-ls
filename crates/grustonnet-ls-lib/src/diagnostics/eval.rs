@@ -9,6 +9,7 @@ use language_server::{
     utils::UriHelper,
 };
 use lsp_types::{CodeDescription, Diagnostic, DiagnosticSeverity, Range, Uri};
+use ropey::Rope;
 
 use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
 
@@ -38,12 +39,22 @@ impl Diagnostics for EvalDiagnostics {
             .jsonnet
             .evaluate_snippet(&doc.filename, &doc.content);
 
+
         if let Err(diag_err) = res {
+            let rope = Rope::from(doc.content);
+            let line_num = rope.len_lines() as i32;
+            let mut err_start = diag_err.start;
+            // XXX: If there is an error at the end of the file, reported line is after the last
+            // line and thus out of bound. 
+            // To fix displaying the error, we just subtract one from the line
+            if err_start.line >= line_num {
+                err_start.line = err_start.line.saturating_sub(1);
+            }
             let error_uri = Uri::from_path(diag_err.filename).unwrap_or(uri.clone());
             return vec![
                 Diagnostic {
                     range: Range {
-                        start: diag_err.start.into(),
+                        start: err_start.into(),
                         end: diag_err.end.into(),
                     },
                     message: diag_err.message,
