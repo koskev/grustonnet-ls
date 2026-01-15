@@ -68,7 +68,10 @@ use crate::{
     },
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
     node::NodeHelper,
-    references::ReferenceProvider,
+    references::{
+        ReferenceProvider, ReferenceType, identifier::IdentifierReferences,
+        import::ImportReferences,
+    },
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},
     utils,
@@ -530,10 +533,15 @@ impl LSPServer for JsonnetServer {
                 .read_or_panic()
                 .clone(),
         );
+        let refernce_types: Vec<Box<dyn ReferenceType>> = vec![
+            Box::new(IdentifierReferences::new(self.cache.clone())),
+            Box::new(ImportReferences::new(self.cache.clone())),
+        ];
         let references = ReferenceProvider::new(&self.cache, &search_paths).references(
             params.text_document_position.position.into(),
             &params.text_document_position.text_document.uri,
             params.context.include_declaration,
+            refernce_types,
         )?;
         log::debug!("Finding references took {:?}", start.elapsed());
 

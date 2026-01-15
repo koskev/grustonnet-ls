@@ -17,7 +17,10 @@ use lsp_types::{
     TextEdit, Uri, WorkspaceEdit,
 };
 
-use crate::{cache::JsonnetASTGenerator, references::ReferenceProvider};
+use crate::{
+    cache::JsonnetASTGenerator,
+    references::{ReferenceProvider, identifier::IdentifierReferences},
+};
 
 pub struct UnusedDiagnostics {
     cache: Cache<JsonnetASTGenerator>,
@@ -124,7 +127,7 @@ impl UnusedDiagnostics {
         Some(
             locals
                 .filter(|local| {
-                    if let Ok(res) = provider.references(local.location.begin.clone(), uri, true)
+                    if let Ok(res) = provider.references(local.location.begin.clone(), uri, true, vec![Box::new(IdentifierReferences::new(self.cache.clone()))])
                         && let Some(locations) = res
                         && locations.len() == 1
                     {
