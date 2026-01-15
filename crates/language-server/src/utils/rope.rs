@@ -14,6 +14,7 @@ pub trait RopeHelper {
     fn get_prev_non_whitespace(&self, index: usize) -> usize;
     fn get_index(&self, loc: Position) -> usize;
     fn remove_line(&mut self, line: usize) -> Result<()>;
+    fn get_next_newline(&self, index: usize) -> usize;
 }
 
 impl RopeHelper for Rope {
@@ -41,6 +42,16 @@ impl RopeHelper for Rope {
             }
         }
         non_whitespace_idx
+    }
+
+    /// Returns the next newline. If there is none the last char is returned
+    fn get_next_newline(&self, index: usize) -> usize {
+        for (i, curr_char) in self.chars_at(index).enumerate() {
+            if curr_char == '\n' {
+                return i + index;
+            }
+        };
+        self.len_chars()
     }
 
     fn get_index(&self, loc: Position) -> usize {

@@ -83,6 +83,12 @@ impl JsonnetASTGenerator {
                             add_to_prev_non_whitespace(",");
                         }
                         _ => {
+                            // Try to add a ";" to the end of the line
+                            let index = current_content.get_index(e.start.clone().into());
+                            let next_newline = current_content.get_next_newline(index);
+                            if current_content.try_insert(next_newline, ";").is_ok() {
+                                ropes_to_test.push_back((current_content.clone(), Some(e.clone())));
+                            }
                             // TODO: Try other stuff to fix the line first and only if there is no
                             // other option for this line remove it
                             // As a last resort just try to remove the line
