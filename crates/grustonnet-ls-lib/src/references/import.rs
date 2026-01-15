@@ -4,7 +4,7 @@ use language_server::cache::Cache;
 use lsp_types::Range;
 use tree_sitter::{Query, QueryCursor, StreamingIterator};
 
-use crate::{cache::JsonnetASTGenerator, references::ReferenceType};
+use crate::{cache::JsonnetASTGenerator, references::ReferenceProvider};
 
 pub struct ImportReferences {
     pub cache: Cache<JsonnetASTGenerator>,
@@ -16,7 +16,7 @@ impl ImportReferences {
     }
 }
 
-impl ReferenceType for ImportReferences {
+impl ReferenceProvider for ImportReferences {
     fn is_valid(&self, loc: lsp_types::Location) -> bool {
         loc.range == Range::default()
     }

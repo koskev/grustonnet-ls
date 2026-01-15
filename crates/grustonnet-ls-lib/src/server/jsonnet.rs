@@ -69,7 +69,7 @@ use crate::{
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
     node::NodeHelper,
     references::{
-        ReferenceProvider, ReferenceType, identifier::IdentifierReferences,
+        ReferenceHandler, ReferenceProvider, identifier::IdentifierReferences,
         import::ImportReferences,
     },
     rename::RenameProvider,
@@ -533,11 +533,11 @@ impl LSPServer for JsonnetServer {
                 .read_or_panic()
                 .clone(),
         );
-        let refernce_types: Vec<Box<dyn ReferenceType>> = vec![
+        let refernce_types: Vec<Box<dyn ReferenceProvider>> = vec![
             Box::new(IdentifierReferences::new(self.cache.clone())),
             Box::new(ImportReferences::new(self.cache.clone())),
         ];
-        let references = ReferenceProvider::new(&self.cache, &search_paths).references(
+        let references = ReferenceHandler::new(&self.cache, &search_paths).references(
             params.text_document_position.position.into(),
             &params.text_document_position.text_document.uri,
             params.context.include_declaration,

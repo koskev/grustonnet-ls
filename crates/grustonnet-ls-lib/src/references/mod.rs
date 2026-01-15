@@ -22,12 +22,12 @@ use crate::{
 pub mod identifier;
 pub mod import;
 
-pub struct ReferenceProvider<'a> {
+pub struct ReferenceHandler<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,
     pub search_paths: &'a [String],
 }
 
-impl<'a> ReferenceProvider<'a> {
+impl<'a> ReferenceHandler<'a> {
     pub fn new(cache: &'a Cache<JsonnetASTGenerator>, search_paths: &'a [String]) -> Self {
         Self {
             cache,
@@ -36,7 +36,7 @@ impl<'a> ReferenceProvider<'a> {
     }
 }
 
-pub trait ReferenceType {
+pub trait ReferenceProvider {
     /// Generate a list of all potential Locations a reference could be
     fn generate_potential_locations(
         &self,
@@ -53,7 +53,7 @@ pub trait ReferenceType {
     fn is_valid(&self, loc: lsp_types::Location) -> bool;
 }
 
-impl<'a> ReferenceProvider<'a> {
+impl<'a> ReferenceHandler<'a> {
     pub fn get_references<T>(
         &self,
         locations: T,
@@ -96,7 +96,7 @@ impl<'a> ReferenceProvider<'a> {
         pos: Location,
         uri: &Uri,
         include_declaration: bool,
-        reference_types: Vec<Box<dyn ReferenceType>>,
+        reference_providers: Vec<Box<dyn ReferenceProvider>>,
     ) -> Result<Option<Vec<lsp_types::Location>>> {
         let goto_provider = DefinitionProvider::new(self.cache);
         let default_info = DefinitionInfo {
@@ -121,11 +121,11 @@ impl<'a> ReferenceProvider<'a> {
         };
 
         let start = Instant::now();
-        let reference_locations: Vec<lsp_types::Location> = reference_types
+        let reference_locations: Vec<lsp_types::Location> = reference_providers
             .iter()
             .filter(|reference| reference.is_valid(target_info.location.clone()))
-            .filter_map(|reference_type| {
-                let is_local = reference_type.local_only(target_info.location.clone());
+            .filter_map(|reference_provider| {
+                let is_local = reference_provider.local_only(target_info.location.clone());
                 let files = if is_local {
                     vec![uri.clone()]
                 } else {
@@ -136,7 +136,7 @@ impl<'a> ReferenceProvider<'a> {
                 let zone = span!("Reference calc");
                 #[cfg(feature = "tracing")]
                 zone.emit_text("Calculating references");
-                reference_type.generate_potential_locations(&target_info, &files)
+                reference_provider.generate_potential_locations(&target_info, &files)
             })
             .flat_map(|locations| {
                 self.get_references(

@@ -7,13 +7,13 @@ use ropey::Rope;
 #[cfg(feature = "tracing")]
 use tracy_client::{set_thread_name, span};
 
-use crate::{cache::JsonnetASTGenerator, references::ReferenceType};
+use crate::{cache::JsonnetASTGenerator, references::ReferenceProvider};
 
 pub struct IdentifierReferences {
     pub cache: Cache<JsonnetASTGenerator>,
 }
 
-impl ReferenceType for IdentifierReferences {
+impl ReferenceProvider for IdentifierReferences {
     fn is_valid(&self, location: lsp_types::Location) -> bool {
         let identifier_option = self.get_identifier(location.range.start.into(), &location.uri);
         identifier_option.is_some()

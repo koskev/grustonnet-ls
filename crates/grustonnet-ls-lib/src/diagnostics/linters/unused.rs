@@ -19,7 +19,7 @@ use lsp_types::{
 
 use crate::{
     cache::JsonnetASTGenerator,
-    references::{ReferenceProvider, identifier::IdentifierReferences},
+    references::{ReferenceHandler, identifier::IdentifierReferences},
 };
 
 pub struct UnusedDiagnostics {
@@ -122,7 +122,7 @@ impl UnusedDiagnostics {
             .filter(|unused| !unused.name.starts_with("$"));
 
         let search_paths = vec![];
-        let provider = ReferenceProvider::new(&self.cache, &search_paths);
+        let provider = ReferenceHandler::new(&self.cache, &search_paths);
 
         Some(
             locals

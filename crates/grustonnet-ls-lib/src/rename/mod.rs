@@ -11,7 +11,7 @@ use lsp_types::{RenameParams, TextEdit, Uri, WorkspaceEdit};
 
 use crate::{
     cache::JsonnetASTGenerator,
-    references::{ReferenceProvider, identifier::IdentifierReferences},
+    references::{ReferenceHandler, identifier::IdentifierReferences},
 };
 
 pub struct RenameProvider<'a> {
@@ -26,7 +26,7 @@ impl<'a> RenameProvider<'a> {
 
 impl<'a> RenameProvider<'a> {
     pub fn rename(&self, params: RenameParams, search_paths: &[String]) -> Result<WorkspaceEdit> {
-        let reference_provider = ReferenceProvider::new(self.cache, search_paths);
+        let reference_provider = ReferenceHandler::new(self.cache, search_paths);
 
         let references = reference_provider
             .references(
