@@ -70,7 +70,7 @@ impl Var {
         };
         log::trace!("Resolving location of variable {:?}", self.id);
         log::trace!("Stack: {}", document_stack);
-        document_stack.stack.iter().rev().find_map(|node| {
+        document_stack.iter().find_map(|node| {
             match node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => {
                     // Check if the object has a field in range that has a function as a field.

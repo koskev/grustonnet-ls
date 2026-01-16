@@ -60,6 +60,7 @@ impl<'a> ResolveNodeIter<'a> {
         // We need to find the node in the stack. Otherwise, if we have a var, we might reference the
         // current object instead of the var object
 
+        // Can't use the `iter` function of the stack directly since we'd borrow `self`
         let mut stack_iter = self.document_stack.stack.iter().rev();
         // Find the object the self node belongs to
         let found_object =

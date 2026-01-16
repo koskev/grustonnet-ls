@@ -33,9 +33,16 @@ where
     pub fn peek(&self) -> Option<T> {
         self.stack.last().cloned()
     }
+
+    /// Gets an iterator over the stack. Beginning with the newest element and ending with the
+    /// oldest
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.stack.iter().rev()
+    }
 }
 
 pub type NodeStack = NodeStackG<Arc<Node>>;
+
 
 impl NodeStack {
     pub fn generate_stack_for_node(&self, node: &Node) -> NodeStack {

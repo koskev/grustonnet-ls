@@ -633,11 +633,7 @@ impl LSPServer for JsonnetServer {
         let stack = ast.get_stack_by_position(&pos.into());
 
         Ok(stack
-            .stack
             .iter()
-            // We need to start at the back to only find the currently selected apply and not any
-            // of its parents
-            .rev()
             .find_map(|n| {
                 let apply_function_data = n.get_apply_function(ast.clone(), &self.cache)?;
                 //let doc_node = DocumentationInfo::find_docsonnet_node(

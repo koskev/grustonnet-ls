@@ -61,7 +61,7 @@ impl<T: Display> From<T> for JsonnetKeyword {
 
 fn show_super(stack: &NodeStack) -> bool {
     // Find the first parent binary
-    let first_binary = stack.stack.iter().rev().find_map(|node| {
+    let first_binary = stack.iter().find_map(|node| {
         if let NodeKind::Binary(bin) = node.node_kind.as_ref() {
             Some(bin)
         } else {
