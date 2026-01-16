@@ -5,9 +5,9 @@
 
 use std::str::FromStr;
 
-use language_server::diagnostics::{
+use language_server::{diagnostics::{
     DiagnosticsList, DiagnosticsQueue, DiagnosticsResult, DummyFilter, MockDiagnostics,
-};
+}, utils::UriHelper};
 use lsp_types::Uri;
 use pretty_assertions::assert_eq;
 use rand::{Rng, distr::Alphabetic};
@@ -38,13 +38,14 @@ impl DiagnosticsTest {
             .map(|_| {
                 (0..100)
                     .map(|_| rand::rng().sample(Alphabetic) as char)
-                    .collect()
+                    .collect::<String>()
             })
+            .map(|s| format!("/{s}"))
             .collect();
         assert!(rx.is_empty());
         for name in &names {
             queue.queue(
-                Uri::from_str(name).expect("invalid uri"),
+                Uri::from_str(&format!("file://{name}")).expect("invalid uri"),
                 self.get_diag_mock(),
             );
         }
@@ -52,14 +53,14 @@ impl DiagnosticsTest {
 
         for name in &names {
             let (uri, list) = queue.queue.lock_or_panic().pop().expect("");
-            queue.process_queue(uri, list);
+            queue.process_queue(uri.clone(), list);
             let message = rx.try_recv().expect("");
             let lsp_server::Message::Notification(notification) = message else {
                 panic!("message is not a notification");
             };
             let params: lsp_types::PublishDiagnosticsParams =
                 serde_json::from_value(notification.params).expect("");
-            assert_eq!(params.uri.path().to_string(), *name);
+            assert_eq!(params.uri.to_file_path_string().unwrap(), *name);
             assert_eq!(params.diagnostics.len(), 1);
             assert_eq!(params.diagnostics[0].message, *name);
         }

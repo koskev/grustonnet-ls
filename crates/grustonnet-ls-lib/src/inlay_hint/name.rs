@@ -6,7 +6,7 @@
 use anyhow::Result;
 use grustonnet_node::types::node_kind::NodeKind;
 use jsonnet_location::LocationRange;
-use language_server::cache::Cache;
+use language_server::{cache::Cache, utils::UriHelper};
 use lsp_types::{InlayHint, Range, Uri};
 
 use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay};
@@ -27,7 +27,7 @@ impl<'a> Inlay for NameInlay<'a> {
         let doc = self.cache.get_document(uri)?;
         let doc_stack = doc.get_ast()?.get_complete_stack();
         let loc_range = LocationRange {
-            file_name: uri.path().as_str().to_string(),
+            file_name: uri.to_file_path_string()?,
             begin: range.start.into(),
             end: range.end.into(),
 

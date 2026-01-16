@@ -16,7 +16,7 @@ use lsp_server::ErrorCode;
 use lsp_types::Uri;
 use utils::RwLockPanic;
 
-use crate::server::LSPError;
+use crate::{server::LSPError, utils::UriHelper};
 
 pub trait ASTGenerator: Clone + Default
 where
@@ -128,8 +128,11 @@ impl<G: ASTGenerator> Cache<G> {
 
     pub fn update_content(&self, uri: Uri, text: &str) {
         let mut lock = self.documents.write_or_panic();
+        let Ok(filename) = uri.to_file_path_string() else {
+            return;
+        };
         let doc = lock.entry(uri.clone()).or_insert(Document {
-            filename: uri.path().as_str().into(),
+            filename,
             ..Default::default()
         });
 
@@ -149,17 +152,18 @@ impl<G: ASTGenerator> Cache<G> {
         match self.documents.write_or_panic().entry(uri.clone()) {
             Entry::Occupied(mut val) => {
                 // TODO: TEST!!
-                log::debug!("Loaded from cache {}", uri.path().as_str());
+                log::debug!("Loaded from cache {:?}", uri.to_file_path_string());
                 if val.get().manually_loaded_at.is_some() {
                     val.get_mut().update_content_if_needed(load_ast)?;
                 }
                 Ok(val.get().clone())
             }
             Entry::Vacant(key) => {
+                let filename = uri.to_file_path_string()?;
                 // load into cache with flag
-                log::debug!("Loading new file {}", uri.path().as_str());
+                log::debug!("Loading new file {}", filename);
                 let mut doc = Document {
-                    filename: uri.path().as_str().to_string(),
+                    filename,
                     manually_loaded_at: Some(SystemTime::UNIX_EPOCH),
                     ..Default::default()
                 };

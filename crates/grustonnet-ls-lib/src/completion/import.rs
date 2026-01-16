@@ -67,7 +67,7 @@ impl<'a> Completion for ImportCompletion<'a> {
             .cache
             .ast_generator
             .jsonnet
-            .get_evaluate_params(uri.path().as_str())
+            .get_evaluate_params(&uri.to_file_path_string()?)
             .jpaths;
 
         // Get all files

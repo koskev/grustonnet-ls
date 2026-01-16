@@ -28,9 +28,9 @@ impl Display for DefinitionInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{} (path: {}, range: {:?})",
+            "{} (path: {:?}, range: {:?})",
             self.name,
-            self.location.uri.path().as_str(),
+            self.location.uri.to_file_path(),
             self.location.range
         )
     }

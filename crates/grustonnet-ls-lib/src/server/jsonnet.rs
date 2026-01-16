@@ -23,9 +23,9 @@ use language_server::{
     completion::Completion,
     diagnostics::{Diagnostics, DiagnosticsQueue, DiagnosticsResult},
     server::{
-        LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
+        get_response_error, LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender
     },
-    utils::diff,
+    utils::{diff, UriHelper},
 };
 use lsp_types::{
     CodeActionOrCommand, CodeActionProviderCapability, CompletionList, CompletionOptions,
@@ -211,7 +211,7 @@ impl LSPServer for JsonnetServer {
             self.cache
                 .ast_generator
                 .jsonnet
-                .set_root_dir(workspaces.first().unwrap().uri.path().as_str());
+                .set_root_dir(&workspaces.first().unwrap().uri.to_file_path_string().unwrap());
         }
         log::info!("Starting with workpaces: {:?}", workspaces);
     }
