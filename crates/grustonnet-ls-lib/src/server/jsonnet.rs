@@ -207,11 +207,12 @@ impl LSPServer for JsonnetServer {
     fn handle_init_parameters(&self, params: InitializeParams) {
         let workspaces = params.workspace_folders.unwrap_or_default();
 
-        if !workspaces.is_empty() {
+        if let Some(workspace) = workspaces.first() {
+            // TODO: Support multiple workspaces?
             self.cache
                 .ast_generator
                 .jsonnet
-                .set_root_dir(&workspaces.first().unwrap().uri.to_file_path_string().unwrap());
+                .set_root_dir(&workspace.uri.to_file_path_string().expect("Unable to load workspace directory"));
         }
         log::info!("Starting with workpaces: {:?}", workspaces);
     }
