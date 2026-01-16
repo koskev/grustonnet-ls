@@ -5,3 +5,7 @@ edition = "2024"
 
 [lints]
 workspace = true
+
+[target.'cfg(windows)'.dependencies]
+# Just for the stupid windows paths
+dunce = "1.0.5"

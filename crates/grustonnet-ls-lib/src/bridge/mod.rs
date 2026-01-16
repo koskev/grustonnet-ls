@@ -154,7 +154,7 @@ impl GoJsonnet {
     pub fn get_evaluate_params(&self, filepath: &str) -> EvaluateParams {
         let mut params = self.params.read_or_panic().clone();
         // Add the current path of the file to the jpaths
-        if let Ok(p) = fs::canonicalize(filepath)
+        if let Ok(p) = utils::canonicalize(filepath)
             && p.is_file()
             && let Some(parent) = p.parent()
             && let Some(parent_str) = parent.to_str()
@@ -165,7 +165,7 @@ impl GoJsonnet {
         if let Ok(jpath_env) = std::env::var("JSONNET_PATH") {
             let parts = jpath_env
                 .split(':')
-                .filter_map(|s| fs::canonicalize(s).ok())
+                .filter_map(|s| utils::canonicalize(s).ok())
                 .filter_map(|p| Some(p.to_str()?.to_string()));
             params.jpaths.extend(parts);
         }

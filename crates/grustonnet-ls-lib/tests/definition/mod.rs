@@ -33,7 +33,7 @@ impl DefinitionTestCase {
         let server = self.create_server();
         let file_content = read_to_string(&self.filename).unwrap();
         let file_uri =
-            Uri::from_path(fs::canonicalize(&self.filename).unwrap().to_str().unwrap()).unwrap();
+            Uri::from_path(utils::canonicalize(&self.filename).unwrap().to_str().unwrap()).unwrap();
         println!("URI: {:?}", file_uri);
 
         server
@@ -67,14 +67,8 @@ impl DefinitionTestCase {
         match defs {
             GotoDefinitionResponse::Scalar(loc) => {
                 assert_eq!(
-                    loc.uri.as_str(),
-                    format!(
-                        "file://{}",
-                        fs::canonicalize(self.target_file.clone().unwrap_or(self.filename.clone()))
-                            .unwrap()
-                            .to_str()
-                            .unwrap()
-                    )
+                    loc.uri,
+                    Uri::from_path(self.target_file.clone().unwrap_or(self.filename.clone())).unwrap(),
                 );
                 assert_eq!(loc.range.start, self.target);
             }

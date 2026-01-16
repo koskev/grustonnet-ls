@@ -33,7 +33,7 @@ impl SignatureHelpTestCase {
         let server = self.create_server();
         *server.cache.ast_generator.jsonnet.root_dir.write_or_panic() = ".".into();
         let file_uri = Uri::from_path(
-            fs::canonicalize(&self.filename)
+            utils::canonicalize(&self.filename)
                 .expect(&self.filename)
                 .to_str()
                 .unwrap(),

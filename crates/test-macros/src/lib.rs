@@ -42,7 +42,7 @@ pub fn generate_test_function_for_dir(input: TokenStream) -> TokenStream {
     let root_dir = std::env::var("CARGO_MANIFEST_DIR").expect("No manifest dir set");
     let dir = format!("{}/{}", root_dir, args.dir.value());
 
-    let path = fs::canonicalize(&dir).unwrap_or_else(|_| panic!("No abs path found for {dir}"));
+    let path = utils::canonicalize(&dir).unwrap_or_else(|_| panic!("No abs path found for {dir}"));
 
     let walk = WalkDir::new(path);
     let funcs: Vec<_> = walk
