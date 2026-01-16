@@ -118,6 +118,23 @@ fn local_with_existing_named() {
 }
 
 #[test]
+fn local_none_left() {
+    CompletionTestCase {
+        filename: "testdata/complete/function_arguments/local.jsonnet".into(),
+        replace_string: "x: myFunc(1, 2)".into(),
+        replace_by_string: "x: myFunc(1,2,)".into(),
+        position_offset: -1,
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![],
+        },
+        config: apply_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
 fn object_both() {
     CompletionTestCase {
         filename: "testdata/complete/function_arguments/object.jsonnet".into(),
@@ -209,6 +226,23 @@ fn object_with_existing_named() {
                 kind: Some(CompletionItemKind::VARIABLE),
                 ..Default::default()
             }],
+        },
+        config: apply_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn object_none_left() {
+    CompletionTestCase {
+        filename: "testdata/complete/function_arguments/object.jsonnet".into(),
+        replace_string: "x: self.myFunc(1, 2)".into(),
+        replace_by_string: "x: self.myFunc(1,2,)".into(),
+        position_offset: -1,
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![],
         },
         config: apply_config(),
         ..Default::default()
