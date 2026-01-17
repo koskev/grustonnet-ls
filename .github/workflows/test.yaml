@@ -32,12 +32,21 @@ jobs:
     - uses: actions/setup-go@v6
       with:
         go-version: '1.25'
+    - name: Install nightly rust
+      run: rustup toolchain install nightly && rustup default nightly
+    - name: Install Rust test dependencies
+      run: cargo install --root . cargo2junit cargo-tarpaulin
     - name: Run tests
-      run: cargo test --verbose
+      run: bin/cargo-tarpaulin --tests --out xml --engine llvm -- -Z unstable-options --format=json | bin/cargo2junit > report.xml
       if: ${{ !contains(matrix.platform.target, 'windows') }}
       env:
         GODEBUG: "invalidptr=0,cgocheck=0"
         RUST_BACKTRACE: 1
+    - name: Test Summary
+      uses: test-summary/action@v2
+      if: ${{ !contains(matrix.platform.target, 'windows') }}
+      with:
+        paths: "report.xml"
     - name: Test Windows x86_64 GNU
       uses: Reloaded-Project/devops-rust-test-in-latest-wine@v1
       if: ${{ contains(matrix.platform.target, 'windows') }}
