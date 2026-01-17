@@ -47,6 +47,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set Cargo Version
+        run: |
+          GITHUB_TAG_NAME=${{ github.ref_name }}
+          TAG_NAME=${GITHUB_TAG_NAME:-v0.0.0}
+          TAG_VERSION=${TAG_NAME:1}
+          # TODO: Suffix handling (e.g. -RC1)
+          cargo install cargo-set-version
+          echo "Setting program version to ${TAG_VERSION}"
+          cargo set-version ${TAG_VERSION}
       - name: Get changelog
         uses: actions/download-artifact@v4
         with:
