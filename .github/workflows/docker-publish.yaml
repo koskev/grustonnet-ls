@@ -3,6 +3,7 @@ name: Docker-Publish
 on:
   push:
     tags:
+      - '*'
 
 # permissions are needed if pushing to ghcr.io
 permissions:
