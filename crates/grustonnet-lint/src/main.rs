@@ -28,7 +28,7 @@ pub mod code_quality;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    path: PathBuf,
+    paths: Vec<PathBuf>,
 
     #[arg(long, short)]
     jpaths: Vec<String>,
@@ -78,20 +78,23 @@ async fn main() -> Result<()> {
         )
     }));
 
-    let paths: Vec<PathBuf> = if args.path.is_dir() {
-        glob::glob(&format!("{}/**/*.*sonnet", args.path.to_str().unwrap()))
-            .unwrap()
-            .filter_map(|g| {
-                if g.as_ref().ok()?.is_file() {
-                    Some(g.ok()?)
-                } else {
-                    None
-                }
-            })
+    let paths: Vec<PathBuf> = args.paths.iter().flat_map(|path| {
+        if path.is_dir() {
+            glob::glob(&format!("{}/**/*.*sonnet", path.to_str().unwrap()))
+                .unwrap()
+                .filter_map(|g| {
+                    if g.as_ref().ok()?.is_file() {
+                        Some(g.ok()?)
+                    } else {
+                        None
+                    }
+                })
             .collect()
-    } else {
-        vec![args.path.clone()]
-    };
+        } else {
+            vec![path.clone()]
+        }
+    }
+    ).collect();
     let server = JsonnetServer::default();
     server
         .configuration
