@@ -120,7 +120,7 @@ pub struct DiagnosticConfig {
     /// Throws an error if a top level function is missing a default argument
     pub top_level_function_args: bool,
 
-    #[default = true]
+    #[default = false]
     /// Throws an error if the body of an object field is a function but is not hidden
     pub object_function: bool,
 }
