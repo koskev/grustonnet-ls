@@ -9,7 +9,8 @@ use jsonnet_std_docs::StdFunctions;
 use language_server::completion::{Completion, CompletionResult};
 use lsp_types::{CompletionItem, CompletionList, Documentation, MarkupContent, MarkupKind, Position, Uri};
 use semver::{Version, VersionReq};
-pub const STDLIB_DEFINITIONS: &str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
+pub const STDLIB_DEFINITIONS: &str = include_str!("../../stdlib.json");
+
 
 #[derive(Default)]
 pub struct StdCompletion {
