@@ -15,10 +15,9 @@ use grustonnet_node::types::{
     node_kind::NodeKind,
 };
 use itertools::Itertools;
-use jsonnet_std_docs::StdFunctions;
 use language_server::cache::Cache;
 
-use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::std::STDLIB_DEFINITIONS};
+use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::std::STD_FUNCTIONS};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -40,12 +39,11 @@ struct StdArgument<'a> {
 }
 
 pub fn get_std_function_node(name: &str) -> Option<Arc<Node>> {
-    let functions = StdFunctions::generate(STDLIB_DEFINITIONS);
-    functions.functions.values().find_map(|func| {
+    STD_FUNCTIONS.functions.values().find_map(|func| {
         if func.name == name {
             let parameters = if let Some(ref params) = func.params {
                 params
-                    .into_iter()
+                    .iter()
                     .map(|param| Parameter {
                         name: Identifier(param.clone()),
                         ..Default::default()

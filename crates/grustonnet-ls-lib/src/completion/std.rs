@@ -20,7 +20,7 @@ impl StdCompletion {
     }
 }
 
-static STD_FUNCTIONS: LazyLock<StdFunctions> =
+pub static STD_FUNCTIONS: LazyLock<StdFunctions> =
     LazyLock::new(|| StdFunctions::generate(STDLIB_DEFINITIONS));
 
 // TODO: Remove this dedicated completion and instead support documentation for functions and
