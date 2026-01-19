@@ -1,0 +1,1090 @@
+{
+  "groups": [
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "If an external variable with the given name was defined, return its value. Otherwise, raise an error.",
+          "name": "extVar",
+          "params": [
+            "x"
+          ]
+        }
+      ],
+      "id": "ext_vars",
+      "name": "External Variables"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "Note that this is a field. It contains the current Jsonnet filename as a string.",
+          "name": "thisFile",
+          "params": []
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Return a string that indicates the type of the value. The possible return values are:\n\"array\", \"boolean\", \"function\", \"null\", \"number\", \"object\", and \"string\".\n\nThe following functions are also available and return a boolean:\n<code>std.isArray(v)</code>, <code>std.isBoolean(v)</code>, <code>std.isFunction(v)</code>,\n<code>std.isNumber(v)</code>, <code>std.isObject(v)</code>, and\n<code>std.isString(v)</code>.\n",
+          "name": "type",
+          "params": [
+            "x"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Depending on the type of the value given, either returns the number of elements in the\narray, the number of codepoints in the string, the number of parameters in the function, or\nthe number of fields in the object. Raises an error if given a primitive value, i.e.\n<code>null</code>, <code>true</code> or <code>false</code>.\n",
+          "name": "length",
+          "params": [
+            "x"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Recursively remove all \"empty\" members of <code>a</code>. \"Empty\" is defined as zero\nlength `arrays`, zero length `objects`, or `null` values.\nThe argument <code>a</code> may have any type.\n",
+          "name": "prune",
+          "params": [
+            "a"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Alias for std.type(x) == 'array'",
+          "name": "isArray",
+          "params": [
+            "x"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Alias for std.type(x) == 'boolean'",
+          "name": "isBoolean",
+          "params": [
+            "x"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Alias for std.type(x) == 'function'",
+          "name": "isFunction",
+          "params": [
+            "x"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Alias for std.type(x) == 'number'",
+          "name": "isNumber",
+          "params": [
+            "x"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Alias for std.type(x) == 'object'",
+          "name": "isObject",
+          "params": [
+            "x"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Alias for std.type(x) == 'string'",
+          "name": "isString",
+          "params": [
+            "x"
+          ]
+        }
+      ],
+      "id": "types_reflection",
+      "name": "Types and Reflection"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.15.0",
+          "description": "Clamp a value to fit within the range [<code>minVal</code>, <code>maxVal</code>].\nEquivalent to <code>std.max(minVal, std.min(x, maxVal))</code>.\n",
+          "name": "clamp",
+          "params": [
+            "x",
+            "minVal",
+            "maxVal"
+          ]
+        }
+      ],
+      "id": "math",
+      "intro": [
+        "<p>\n    The following mathematical functions are available:\n</p>\n<ul>\n    <ul><code>std.abs(n)</code></ul>\n    <ul><code>std.sign(n)</code></ul>\n    <ul><code>std.max(a, b)</code></ul>\n    <ul><code>std.min(a, b)</code></ul>\n    <ul><code>std.pow(x, n)</code></ul>\n    <ul><code>std.exp(x)</code></ul>\n    <ul><code>std.log(x)</code></ul>\n    <ul><code>std.log2(x)</code></ul>\n    <ul><code>std.log10(x)</code></ul>\n    <ul><code>std.exponent(x)</code></ul>\n    <ul><code>std.mantissa(x)</code></ul>\n    <ul><code>std.floor(x)</code></ul>\n    <ul><code>std.ceil(x)</code></ul>\n    <ul><code>std.sqrt(x)</code></ul>\n    <ul><code>std.sin(x)</code></ul>\n    <ul><code>std.cos(x)</code></ul>\n    <ul><code>std.tan(x)</code></ul>\n    <ul><code>std.asin(x)</code></ul>\n    <ul><code>std.acos(x)</code></ul>\n    <ul><code>std.atan(x)</code></ul>\n    <ul><code>std.atan2(y, x)</code></ul>\n    <ul><code>std.deg2rad(x)</code></ul>\n    <ul><code>std.rad2deg(x)</code></ul>\n    <ul><code>std.hypot(a, b)</code></ul>\n    <ul><code>std.round(x)</code></ul>\n    <ul><code>std.isEven(x)</code></ul>\n    <ul><code>std.isOdd(x)</code></ul>\n    <ul><code>std.isInteger(x)</code></ul>\n    <ul><code>std.isDecimal(x)</code></ul>\n</ul>\n<p>\n    The constant <code>std.pi</code> is also available.\n</p>\n<p>\n    The function <code>std.mod(a, b)</code> is what the % operator is desugared to. It performs\n    modulo arithmetic if the left hand side is a number, or if the left hand side is a string,\n    it does Python-style string formatting with <code>std.format()</code>.\n</p>\n<p>\n    The functions <code>std.isEven(x)</code> and <code>std.isOdd(x)</code> use integral part of a\n    floating number to test for even or odd.\n</p>\n"
+      ],
+      "name": "Mathematical Utilities"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "Ensure that <code>a == b</code>. Returns <code>true</code> or throws an error message.",
+          "name": "assertEqual",
+          "params": [
+            "a",
+            "b"
+          ]
+        }
+      ],
+      "id": "assertions_debugging",
+      "name": "Assertions and Debugging"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert the given argument to a string.\n",
+          "name": "toString",
+          "params": [
+            "a"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns the positive integer representing the unicode codepoint of the character in the\ngiven single-character string. This function is the inverse of <code>std.char(n)</code>.\n",
+          "name": "codepoint",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns a string of length one whose only unicode codepoint has integer id <code>n</code>.\nThis function is the inverse of <code>std.codepoint(str)</code>.\n",
+          "name": "char",
+          "params": [
+            "n"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns a string that is the part of <code>str</code> that starts at offset <code>from</code>\nand is <code>len</code> codepoints long. If the string <code>str</code> is shorter than\n<code>from+len</code>, the suffix starting at position <code>from</code> will be returned.\n\nThe slice operator (e.g., <code>str[from:to]</code>) can also be used on strings, as an\nalternative to this function. However, note that the slice operator takes a start and an\nend index, but <code>std.substr</code> takes a start index and a length.\n",
+          "name": "substr",
+          "params": [
+            "str",
+            "from",
+            "len"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns an array that contains the indexes of all occurrences of <code>pat</code> in\n<code>str</code>.\n",
+          "name": "findSubstr",
+          "params": [
+            "pat",
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns whether the string a is prefixed by the string b.\n",
+          "name": "startsWith",
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns whether the string a is suffixed by the string b.\n",
+          "name": "endsWith",
+          "params": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "availableSince": "0.15.0",
+          "description": "Removes characters <code>chars</code> from the beginning and from the end of <code>str</code>.\n",
+          "name": "stripChars",
+          "params": [
+            "str",
+            "chars"
+          ]
+        },
+        {
+          "availableSince": "0.15.0",
+          "description": "Removes characters <code>chars</code> from the beginning of <code>str</code>.\n",
+          "name": "lstripChars",
+          "params": [
+            "str",
+            "chars"
+          ]
+        },
+        {
+          "availableSince": "0.15.0",
+          "description": "Removes characters <code>chars</code> from the end of <code>str</code>.\n",
+          "name": "rstripChars",
+          "params": [
+            "str",
+            "chars"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Split the string <code>str</code> into an array of strings, divided by the string\n<code>c</code>.\n\n\nNote: Versions up to and including 0.18.0 require <code>c</code> to be a single character.\n\n",
+          "name": "split",
+          "params": [
+            "str",
+            "c"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "As <code>std.split(str, c)</code> but will stop after <code>maxsplits</code> splits, thereby the largest\narray it will return has length <code>maxsplits + 1</code>. A limit of <code>-1</code> means unlimited.\n\n\nNote: Versions up to and including 0.18.0 require <code>c</code> to be a single character.\n\n",
+          "name": "splitLimit",
+          "params": [
+            "str",
+            "c",
+            "maxsplits"
+          ]
+        },
+        {
+          "availableSince": "0.19.0",
+          "description": "As <code>std.splitLimit(str, c, maxsplits)</code> but will split from right to left.",
+          "name": "splitLimitR",
+          "params": [
+            "str",
+            "c",
+            "maxsplits"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns a copy of the string in which all occurrences of string <code>from</code> have been\nreplaced with string <code>to</code>.\n",
+          "name": "strReplace",
+          "params": [
+            "str",
+            "from",
+            "to"
+          ]
+        },
+        {
+          "availableSince": "0.20.0",
+          "description": "Returns true if the given string is of zero length.\n",
+          "name": "isEmpty",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Returns a copy of string after eliminating leading and trailing whitespaces.\n",
+          "name": "trim",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Returns true if the the given <code>str1</code> is equal to <code>str2</code> by doing case insensitive comparison, false otherwise.\n",
+          "name": "equalsIgnoreCase",
+          "params": [
+            "str1",
+            "str2"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns a copy of the string in which all ASCII letters are capitalized.\n",
+          "name": "asciiUpper",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns a copy of the string in which all ASCII letters are lower cased.\n",
+          "name": "asciiLower",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Split the string <code>str</code> into an array of strings, each containing a single\ncodepoint.\n",
+          "name": "stringChars",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Format the string <code>str</code> using the values in <code>vals</code>. The values can be\nan array, an object, or in other cases are treated as if they were provided in a singleton\narray. The string formatting follows the <a\nhref=\"https://docs.python.org/2/library/stdtypes.html#string-formatting\">same rules</a> as\nPython. The <code>%</code> operator can be used as a shorthand for this function.\n",
+          "name": "format",
+          "params": [
+            "str",
+            "vals"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Wrap <code>str</code> in single quotes, and escape any single quotes within <code>str</code>\nby changing them to a sequence <tt>'\"'\"'</tt>. This allows injection of arbitrary strings\nas arguments of commands in bash scripts.\n",
+          "name": "escapeStringBash",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert $ to $$ in <code>str</code>. This allows injection of arbitrary strings into\nsystems that use $ for string interpolation (like Terraform).\n",
+          "name": "escapeStringDollars",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert <code>str</code> to allow it to be embedded in a JSON representation, within a\nstring. This adds quotes, escapes backslashes, and escapes unprintable characters.\n",
+          "name": "escapeStringJson",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert <code>str</code> to allow it to be embedded in Python. This is an alias for\n<code>std.escapeStringJson</code>.\n",
+          "name": "escapeStringPython",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert <code>str</code> to allow it to be embedded in XML (or HTML). The following replacements are made:\n<pre>\n{\n  \"&lt;\": \"&amp;lt;\",\n  \"&gt;\": \"&amp;gt;\",\n  \"&amp;\": \"&amp;amp;\",\n  \"\\&quot;\": \"&amp;quot;\",\n  \"&apos;\": \"&amp;apos;\",\n}\n</pre>\n",
+          "name": "escapeStringXml",
+          "params": [
+            "str"
+          ]
+        }
+      ],
+      "id": "string",
+      "name": "String Manipulation"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "Parses a signed decimal integer from the input string.\n",
+          "name": "parseInt",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Parses an unsigned octal integer from the input string. Initial zeroes are tolerated.\n",
+          "name": "parseOctal",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Parses an unsigned hexadecimal integer, from the input string. Case insensitive.\n",
+          "name": "parseHex",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.13.0",
+          "description": "Parses a JSON string.\n",
+          "name": "parseJson",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.18.0",
+          "description": "Parses a YAML string. This is provided as a \"best-effort\" mechanism and should not be relied on to provide\na fully standards compliant YAML parser. YAML is a superset of JSON, consequently \"downcasting\" or\nmanifestation of YAML into JSON or Jsonnet values will only succeed when using the subset of YAML that is\ncompatible with JSON. The parser does not support YAML documents with scalar values at the root. The\nroot node of a YAML document must start with either a YAML sequence or map to be successfully parsed.\n",
+          "name": "parseYaml",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.13.0",
+          "description": "Encode a string using <a href=\"https://en.wikipedia.org/wiki/UTF-8\">UTF8</a>. Returns an array of numbers\nrepresenting bytes.\n",
+          "name": "encodeUTF8",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.13.0",
+          "description": "Decode an array of numbers representing bytes using <a href=\"https://en.wikipedia.org/wiki/UTF-8\">UTF8</a>.\nReturns a string.\n",
+          "name": "decodeUTF8",
+          "params": [
+            "arr"
+          ]
+        }
+      ],
+      "id": "parsing",
+      "name": "Parsing"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert the given structure to a string in <a href=\"https://en.wikipedia.org/wiki/INI_file\">INI format</a>. This\nallows using Jsonnet's\nobject model to build a configuration to be consumed by an application expecting an INI\nfile. The data is in the form of a set of sections, each containing a key/value mapping.\nThese examples should make it clear:\n\n\n`{\n    main: { a: \"1\", b: \"2\" },\n    sections: {\n        s1: {x: \"11\", y: \"22\", z: \"33\"},\n        s2: {p: \"yes\", q: \"\"},\n        empty: {},\n    }\n}\n`\nYields a string containing this INI file:\n\n\n`a = 1\nb = 2\n[empty]\n[s1]\nx = 11\ny = 22\nz = 33\n[s2]\np = yes\nq =\n`",
+          "name": "manifestIni",
+          "params": [
+            "ini"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert the given value to a JSON-like form that is compatible with Python. The chief\ndifferences are True / False / None instead of true / false / null.\n\n\n`{\n    b: [\"foo\", \"bar\"],\n    c: true,\n    d: null,\n    e: { f1: false, f2: 42 },\n}\n`\nYields a string containing Python code like:\n\n\n`{\n    \"b\": [\"foo\", \"bar\"],\n    \"c\": True,\n    \"d\": None,\n    \"e\": {\"f1\": False, \"f2\": 42}\n}\n`",
+          "name": "manifestPython",
+          "params": [
+            "v"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert the given object to a JSON-like form that is compatible with Python. The key\ndifference to <code>std.manifestPython</code> is that the top level is represented as a list\nof Python global variables.\n\n\n`{\n    b: [\"foo\", \"bar\"],\n    c: true,\n    d: null,\n    e: { f1: false, f2: 42 },\n}\n`\nYields a string containing this Python code:\n\n\n`b = [\"foo\", \"bar\"]\nc = True\nd = None\ne = {\"f1\": False, \"f2\": 42}\n`",
+          "name": "manifestPythonVars",
+          "params": [
+            "conf"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert the given object to a JSON form. <code>indent</code> is a string containing\none or more whitespaces that are used for indentation. <code>newline</code> is\nby default <code>\\n</code> and is inserted where a newline would normally be used\nto break long lines. <code>key_val_sep</code> is used to separate the key and value\nof an object field:\n\n",
+          "name": "manifestJsonEx",
+          "params": [
+            "value",
+            "indent",
+            "newline",
+            "key_val_sep"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert the given object to a JSON form. Under the covers,\nit calls <code>std.manifestJsonEx</code> with a 4-space indent:\n",
+          "name": "manifestJson",
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "availableSince": "0.18.0",
+          "description": "Convert the given object to a minified JSON form. Under the covers,\nit calls <code>std.manifestJsonEx</code>:\n",
+          "name": "manifestJsonMinified",
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert the given value to a YAML form. Note that <code>std.manifestJson</code> could also\nbe used for this purpose, because any JSON is also valid YAML. But this function will\nproduce more canonical-looking YAML.\n\n\n`std.manifestYamlDoc(\n  {\n      x: [1, 2, 3, true, false, null,\n          \"string\\nstring\\n\"],\n      y: { a: 1, b: 2, c: [1, 2] },\n  },\n  indent_array_in_object=false)\n`\nYields a string containing this YAML:\n\n\n`\"x\":\n  - 1\n  - 2\n  - 3\n  - true\n  - false\n  - null\n  - |\n      string\n      string\n\"y\":\n  \"a\": 1\n  \"b\": 2\n  \"c\":\n      - 1\n      - 2\n`\nThe <code>indent_array_in_object</code> param adds additional indentation which some people\nmay find easier to read.\n\n\nThe <code>quote_keys</code> parameter controls whether YAML identifiers are always quoted\nor only when necessary.\n\n",
+          "name": "manifestYamlDoc",
+          "params": [
+            "value",
+            "indent_array_in_object=false",
+            "quote_keys=true"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Given an array of values, emit a YAML \"stream\", which is a sequence of documents separated\nby <code>---</code> and ending with <code>...</code>.\n\n\n`std.manifestYamlStream(\n  ['a', 1, []],\n  indent_array_in_object=false,\n  c_document_end=true)\n`\nYields this string:\n\n\n`---\n\"a\"\n---\n1\n---\n[]\n...\n`\nThe <code>indent_array_in_object</code> and <code>quote_keys</code> params are the\nsame as in <code>manifestYamlDoc</code>.\n\n\nThe <code>c_document_end</code> param adds the optional terminating <code>...</code>.\n\n",
+          "name": "manifestYamlStream",
+          "params": [
+            "value",
+            "indent_array_in_object=false",
+            "c_document_end=false",
+            "quote_keys=true"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Convert the given <a href=\"http://www.jsonml.org/\">JsonML</a>-encoded value to a string\ncontaining the XML.\n\n\n`std.manifestXmlJsonml([\n    'svg', { height: 100, width: 100 },\n    [\n        'circle', {\n        cx: 50, cy: 50, r: 40,\n        stroke: 'black', 'stroke-width': 3,\n        fill: 'red',\n        }\n    ],\n])\n`\nYields a string containing this XML (all on one line):\n\n\n`&lt;svg height=\"100\" width=\"100\"&gt;\n    &lt;circle cx=\"50\" cy=\"50\" fill=\"red\" r=\"40\"\n    stroke=\"black\" stroke-width=\"3\"&gt;&lt;/circle&gt;;\n&lt;/svg&gt;;\n`\nWhich represents the following image:\n\n\n<svg height=\"100\" width=\"100\">\n    <circle cx=\"50\" cy=\"50\" r=\"40\" stroke=\"black\" stroke-width=\"3\" fill=\"red\" />\n    Sorry, your browser does not support inline SVG.\n</svg>\n\nJsonML is designed to preserve \"mixed-mode content\" (i.e., textual data outside of or next\nto elements). This includes the whitespace needed to avoid having all the XML on one line,\nwhich is meaningful in XML. In order to have whitespace in the XML output, it must be\npresent in the JsonML input:\n\n\n`std.manifestXmlJsonml([\n    'svg',\n    { height: 100, width: 100 },\n    '\\n  ',\n    [\n        'circle',\n        {\n        cx: 50, cy: 50, r: 40, stroke: 'black',\n        'stroke-width': 3, fill: 'red',\n        }\n    ],\n    '\\n',\n])\n`",
+          "name": "manifestXmlJsonml",
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "availableSince": "0.18.0",
+          "description": "Convert the given object to a TOML form. <code>indent</code> is a string containing\none or more whitespaces that are used for indentation:\n",
+          "name": "manifestTomlEx",
+          "params": [
+            "toml",
+            "indent"
+          ]
+        }
+      ],
+      "id": "manifestation",
+      "name": "Manifestation"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "Create a new array of <code>sz</code> elements by calling <code>func(i)</code> to initialize\neach element. Func is expected to be a function that takes a single parameter, the index of\nthe element it should initialize.\n",
+          "name": "makeArray",
+          "params": [
+            "sz",
+            "func"
+          ]
+        },
+        {
+          "availableSince": "0.15.0",
+          "description": "Returns whether <code>x</code> occurs in <code>arr</code>.\nArgument <code>arr</code> may be an array or a string.\n",
+          "name": "member",
+          "params": [
+            "arr",
+            "x"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Return the number of times that <code>x</code> occurs in <code>arr</code>.\n",
+          "name": "count",
+          "params": [
+            "arr",
+            "x"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns an array that contains the indexes of all occurrences of <code>value</code> in\n<code>arr</code>.\n",
+          "name": "find",
+          "params": [
+            "value",
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Apply the given function to every element of the array to form a new array.\n",
+          "name": "map",
+          "params": [
+            "func",
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Similar to <a href=\"#map\">map</a> above, but it also passes to the function the element's\nindex in the array. The function <code>func</code> is expected to take the index as the\nfirst parameter and the element as the second.\n",
+          "name": "mapWithIndex",
+          "params": [
+            "func",
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "It first filters, then maps the given array, using the two functions provided.\n",
+          "name": "filterMap",
+          "params": [
+            "filter_func",
+            "map_func",
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Apply the given function to every element of <code>arr</code> to form a new array then flatten the result.\nThe argument <code>arr</code> must be an array or a string. If <code>arr</code> is an array, function <code>func</code> must return an array.\nIf <code>arr</code> is a string, function <code>func</code> must return an string.\n\nThe <code>std.flatMap</code> function can be thought of as a generalized <code>std.map</code>,\nwith each element mapped to 0, 1 or more elements.\n",
+          "name": "flatMap",
+          "params": [
+            "func",
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Return a new array containing all the elements of <code>arr</code> for which the\n<code>func</code> function returns true.\n",
+          "name": "filter",
+          "params": [
+            "func",
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Classic foldl function. Calls the function for each array element, passing the result from\nthe previous call (or <code>init</code> for the first call), and the array element. Traverses\nthe array from left to right.\n\nFor example: <code>foldl(f, [1,2,3], 0)</code> is equivalent to <code>f(f(f(0, 1), 2), 3)</code>.\n",
+          "name": "foldl",
+          "params": [
+            "func",
+            "arr",
+            "init"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Classic foldr function. Calls the function for each array element, passing the array element\nand the result from the previous call (or <code>init</code> for the first call). Traverses\nthe array from right to left.\n\nFor example: <code>foldr(f, [1,2,3], 0)</code> is equivalent to <code>f(1, f(2, f(3, 0)))</code>.\n",
+          "name": "foldr",
+          "params": [
+            "func",
+            "arr",
+            "init"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Return an array of ascending numbers between the two limits, inclusively.\n",
+          "name": "range",
+          "params": [
+            "from",
+            "to"
+          ]
+        },
+        {
+          "availableSince": "0.15.0",
+          "description": "Repeats an array or a string <code>what</code> a number of times specified by an integer <code>count</code>.\n",
+          "name": "repeat",
+          "params": [
+            "what",
+            "count"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Selects the elements of an array or a string from <code>index</code> to <code>end</code> with <code>step</code> and returns an array or a string respectively.\n\nNote that it's recommended to use dedicated slicing syntax both for arrays and strings (e.g. <code>arr[0:4:1]</code> instead of <code>std.slice(arr, 0, 4, 1)</code>).\n",
+          "name": "slice",
+          "params": [
+            "indexable",
+            "index",
+            "end",
+            "step"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "If <code>sep</code> is a string, then <code>arr</code> must be an array of strings, in which\ncase they are concatenated with <code>sep</code> used as a delimiter. If <code>sep</code>\nis an array, then <code>arr</code> must be an array of arrays, in which case the arrays are\nconcatenated in the same way, to produce a single array.\n",
+          "name": "join",
+          "params": [
+            "sep",
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Concatenate an array containing strings and arrays to form a single string. If <code>arr</code> is\na string, it is returned unchanged. If it is an array, it is flattened and the string elements are\nconcatenated together with no separator.\n",
+          "name": "deepJoin",
+          "params": [
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Concatenate an array of strings into a text file with newline characters after each string.\nThis is suitable for constructing bash scripts and the like.\n",
+          "name": "lines",
+          "params": [
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Concatenate an array of arrays into a single array.\n",
+          "name": "flattenArrays",
+          "params": [
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Concatenate an array containing values and arrays into a single flattened array.\n",
+          "name": "flattenDeepArray",
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "availableSince": "0.13.0",
+          "description": "Reverses an array.\n",
+          "name": "reverse",
+          "params": [
+            "arrs"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Sorts the array using the <= operator.\n\nOptional argument <code>keyF</code> is a single argument function used to extract comparison key from each array element.\nDefault value is identity function <code>keyF=function(x) x</code>.\n",
+          "name": "sort",
+          "params": [
+            "arr",
+            "keyF=id"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Removes successive duplicates. When given a sorted array, removes all duplicates.\n\nOptional argument <code>keyF</code> is a single argument function used to extract comparison key from each array element.\nDefault value is identity function <code>keyF=function(x) x</code>.\n",
+          "name": "uniq",
+          "params": [
+            "arr",
+            "keyF=id"
+          ]
+        },
+        {
+          "availableSince": "0.19.0",
+          "description": "Return true if all elements of <code>arr</code> is true, false otherwise. <code>all([])</code> evaluates to true.\n\nIt's an error if 1) <code>arr</code> is not an array, or 2) <code>arr</code> contains non-boolean values.\n",
+          "name": "all",
+          "params": [
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.19.0",
+          "description": "Return true if any element of <code>arr</code> is true, false otherwise. <code>any([])</code> evaluates to false.\n\nIt's an error if 1) <code>arr</code> is not an array, or 2) <code>arr</code> contains non-boolean values.\n",
+          "name": "any",
+          "params": [
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.20.0",
+          "description": "Return sum of all element in <code>arr</code>.\n",
+          "name": "sum",
+          "params": [
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Return the minimum of all elements in <code>arr</code>. If <code>keyF</code> is provided, it is called on each element\nof the array and should return a comparator value, and in this case <code>minArray</code> will return an element\nwith the minimum comparator value. If <code>onEmpty</code> is provided, and <code>arr</code> is empty, then\n<code>minArray</code> will return the provided <code>onEmpty</code> value. If <code>onEmpty</code> is not provided,\nthen an empty <code>arr</code> will raise an error.\n",
+          "name": "minArray",
+          "params": [
+            "arr",
+            "keyF",
+            "onEmpty"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Return the maximum of all elements in <code>arr</code>. If <code>keyF</code> is provided, it is called on each element\nof the array and should return a comparator value, and in this case <code>maxArray</code> will return an element\nwith the maximum comparator value. If <code>onEmpty</code> is provided, and <code>arr</code> is empty, then\n<code>maxArray</code> will return the provided <code>onEmpty</code> value. If <code>onEmpty</code> is not provided,\nthen an empty <code>arr</code> will raise an error.\n",
+          "name": "maxArray",
+          "params": [
+            "arr",
+            "keyF",
+            "onEmpty"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Return true if given <code>elem</code> is present in <code>arr</code>, false otherwise.\n",
+          "name": "contains",
+          "params": [
+            "arr",
+            "elem"
+          ]
+        },
+        {
+          "availableSince": "0.20.0",
+          "description": "Return average of all element in <code>arr</code>.\n",
+          "name": "avg",
+          "params": [
+            "arr"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Remove first occurrence of <code>elem</code> from <code>arr</code>.\n",
+          "name": "remove",
+          "params": [
+            "arr",
+            "elem"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Remove element at <code>idx</code> index from <code>arr</code>.\n",
+          "name": "removeAt",
+          "params": [
+            "arr",
+            "idx"
+          ]
+        }
+      ],
+      "id": "arrays",
+      "name": "Arrays"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "Shortcut for std.uniq(std.sort(arr)).\n",
+          "name": "set",
+          "params": [
+            "arr",
+            "keyF=id"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Set intersection operation (values in both a and b).\n",
+          "name": "setInter",
+          "params": [
+            "a",
+            "b",
+            "keyF=id"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Set union operation (values in any of <code>a</code> or <code>b</code>). Note that + on sets will simply\nconcatenate\nthe arrays, possibly forming an array that is not a set (due to not being ordered without\nduplicates).\n",
+          "name": "setUnion",
+          "params": [
+            "a",
+            "b",
+            "keyF=id"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Set difference operation (values in a but not b).\n",
+          "name": "setDiff",
+          "params": [
+            "a",
+            "b",
+            "keyF=id"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns <code>true</code> if x is a member of array, otherwise <code>false</code>.\n",
+          "name": "setMember",
+          "params": [
+            "x",
+            "arr",
+            "keyF=id"
+          ]
+        }
+      ],
+      "id": "sets",
+      "intro": "Sets are represented as ordered arrays without duplicates.\n\nNote that the <code>std.set*</code> functions rely on the uniqueness and ordering\non arrays passed to them to work. This can be guaranteed by using <code>std.set(arr)</code>.\nIf that is not the case, the functions will quietly return non-meaningful results.\n\nAll <code>set.set*</code> functions accept <code>keyF</code> function of one argument, which can be\nused to extract key to use from each element. All Set operations then use extracted key for the purpose\nof identifying uniqueness. Default value is identity function <code>local id = function(x) x</code>.\n",
+      "name": "Sets"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.18.0",
+          "description": "Returns the object's field if it exists or default value otherwise.\n<code>inc_hidden</code> controls whether to include hidden fields.\n",
+          "name": "get",
+          "params": [
+            "o",
+            "f",
+            "default=null",
+            "inc_hidden=true"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns <code>true</code> if the given object has the field (given as a string), otherwise\n<code>false</code>. Raises an error if the arguments are not object and string\nrespectively. Returns false if the field is hidden.\n",
+          "name": "objectHas",
+          "params": [
+            "o",
+            "f"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Returns an array of strings, each element being a field from the given object. Does not include\nhidden fields.\n",
+          "name": "objectFields",
+          "params": [
+            "o"
+          ]
+        },
+        {
+          "availableSince": "0.17.0",
+          "description": "Returns an array of the values in the given object. Does not include hidden fields.\n",
+          "name": "objectValues",
+          "params": [
+            "o"
+          ]
+        },
+        {
+          "availableSince": "0.20.0",
+          "description": "Returns an array of objects from the given object, each object having two fields:\n<code>key</code> (string) and <code>value</code> (object). Does not include hidden fields.\n",
+          "name": "objectKeysValues",
+          "params": [
+            "o"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "As <code>std.objectHas</code> but also includes hidden fields.\n",
+          "name": "objectHasAll",
+          "params": [
+            "o",
+            "f"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "As <code>std.objectFields</code> but also includes hidden fields.\n",
+          "name": "objectFieldsAll",
+          "params": [
+            "o"
+          ]
+        },
+        {
+          "availableSince": "0.17.0",
+          "description": "As <code>std.objectValues</code> but also includes hidden fields.\n",
+          "name": "objectValuesAll",
+          "params": [
+            "o"
+          ]
+        },
+        {
+          "availableSince": "0.20.0",
+          "description": "As <code>std.objectKeysValues</code> but also includes hidden fields.\n",
+          "name": "objectKeysValuesAll",
+          "params": [
+            "o"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Returns a new object after removing the given key from object.\n",
+          "name": "objectRemoveKey",
+          "params": [
+            "obj",
+            "key"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Apply the given function to all fields of the given object, also passing\nthe field name. The function <code>func</code> is expected to take the\nfield name as the first parameter and the field value as the second.\n",
+          "name": "mapWithKey",
+          "params": [
+            "func",
+            "obj"
+          ]
+        }
+      ],
+      "id": "objects",
+      "name": "Objects"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "Encodes the given value into a base64 string. The encoding sequence is <code>A-Za-z0-9+/</code> with\n<code>=</code>\nto pad the output to a multiple of 4 characters. The value can be a string or an array of\nnumbers, but the codepoints / numbers must be in the 0 to 255 range. The resulting string\nhas no line breaks.\n",
+          "name": "base64",
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Decodes the given base64 string into an array of bytes (number values). Currently assumes\nthe input string has no linebreaks and is padded to a multiple of 4 (with the = character).\nIn other words, it consumes the output of std.base64().\n",
+          "name": "base64DecodeBytes",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "<em>Deprecated, use <code>std.base64DecodeBytes</code> and decode the string explicitly (e.g. with <code>std.decodeUTF8</code>) instead.</code></em>\n\nBehaves like std.base64DecodeBytes() except returns a naively encoded string instead of an array of bytes.\n",
+          "name": "base64Decode",
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "availableSince": "0.10.0",
+          "description": "Encodes the given value into an MD5 string.\n",
+          "name": "md5",
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Encodes the given value into an SHA1 string.\n\n\nThis function is only available in Go version of jsonnet.\n\n",
+          "name": "sha1",
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Encodes the given value into an SHA256 string.\n\n\nThis function is only available in Go version of jsonnet.\n\n",
+          "name": "sha256",
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Encodes the given value into an SHA512 string.\n\n\nThis function is only available in Go version of jsonnet.\n\n",
+          "name": "sha512",
+          "params": [
+            "s"
+          ]
+        },
+        {
+          "availableSince": "0.21.0",
+          "description": "Encodes the given value into an SHA3 string.\n\n\nThis function is only available in Go version of jsonnet.\n\n",
+          "name": "sha3",
+          "params": [
+            "s"
+          ]
+        }
+      ],
+      "id": "encoding",
+      "name": "Encoding"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.20.0",
+          "description": "Returns the xor of the two given booleans.\n",
+          "name": "xor",
+          "params": [
+            "x",
+            "y"
+          ]
+        },
+        {
+          "availableSince": "0.20.0",
+          "description": "Returns the xnor of the two given booleans.\n",
+          "name": "xnor",
+          "params": [
+            "x",
+            "y"
+          ]
+        }
+      ],
+      "id": "booleans",
+      "name": "Booleans"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.10.0",
+          "description": "Applies <code>patch</code> to <code>target</code>\naccording to <a href=\"https://tools.ietf.org/html/rfc7396\">RFC7396</a>\n",
+          "name": "mergePatch",
+          "params": [
+            "target",
+            "patch"
+          ]
+        }
+      ],
+      "id": "json_merge_patch",
+      "name": "JSON Merge Patch"
+    },
+    {
+      "fields": [
+        {
+          "availableSince": "0.11.0",
+          "description": "Outputs the given string <code>str</code> to stderr and\nreturns <code>rest</code> as the result.\n\n\nExample:\n\n\n`local conditionalReturn(cond, in1, in2) =\n  if (cond) then\n      std.trace('cond is true returning '\n              + std.toString(in1), in1)\n  else\n      std.trace('cond is false returning '\n              + std.toString(in2), in2);\n\n{\n    a: conditionalReturn(true, { b: true }, { c: false }),\n}\n`\n\nPrints:\n\n\n`TRACE: test.jsonnet:3 cond is true returning {\"b\": true}\n{\n    \"a\": {\n        \"b\": true\n    }\n}\n`\n",
+          "name": "trace",
+          "params": [
+            "str",
+            "rest"
+          ]
+        }
+      ],
+      "id": "debugging",
+      "name": "Debugging"
+    }
+  ],
+  "intro": "This page describes the functions available in Jsonnet's standard library, i.e. the object\nimplicitly bound to the <code>std</code> variable. Some of the standard library functions\ncan be implemented in Jsonnet. Their code can be found in the <tt>std.jsonnet</tt> file.\nThe behavior of some of the other functions, i.e. the ones that expose extra functionality\nnot otherwise available to programmers, is described formally in the <a href=\"/language/spec.html\">specification</a>.\n\nThe standard library is implicitly added to all Jsonnet programs by enclosing them in a\nlocal construct. For example, if the program given by the user is <code>{x: \"foo\"}</code>,\nthen the actual code executed would be <code>local std = { ... }; {x: \"foo\"}</code>. The\nfunctions in the standard library are all hidden fields of the <code>std</code> object.\n\nNote: Some of these functions marked available since v0.10.0 were actually available earlier.\n",
+  "prefix": "std"
+}
