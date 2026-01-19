@@ -43,21 +43,23 @@ pub fn get_std_function_node(name: &str) -> Option<Arc<Node>> {
     let functions = StdFunctions::generate(STDLIB_DEFINITIONS);
     functions.functions.values().find_map(|func| {
         if func.name == name {
+            let parameters = if let Some(ref params) = func.params {
+                params
+                    .into_iter()
+                    .map(|param| Parameter {
+                        name: Identifier(param.clone()),
+                        ..Default::default()
+                    })
+                    .collect()
+            } else {
+                vec![]
+            };
             Some(Arc::new(Node {
                 node_base: NodeBase {
                     ..Default::default()
                 },
                 node_kind: Box::new(NodeKind::Function(Function {
-                    parameters: func
-                        .params
-                        .clone()
-                        .unwrap_or_default()
-                        .iter()
-                        .map(|param| Parameter {
-                            name: Identifier(param.clone()),
-                            ..Default::default()
-                        })
-                        .collect(),
+                    parameters,
                     ..Default::default()
                 })),
             }))
