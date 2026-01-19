@@ -24,8 +24,7 @@ local extra_descriptions = {
 local modified_lib =
   {
     groups: [
-      group {
-
+      {
         fields: [
           field {
             description: html.render(field.description) + std.get(extra_descriptions, field.name, ''),
@@ -81,8 +80,8 @@ local modified_lib =
           else [],
       }
       for group in stdlib.groups
-
     ],
+    prefix: stdlib.prefix,
   };
 
-stdlib + modified_lib
+modified_lib
