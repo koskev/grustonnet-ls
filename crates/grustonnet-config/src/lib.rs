@@ -121,7 +121,7 @@ pub struct DiagnosticConfig {
     pub top_level_function_args: bool,
 
     #[default = false]
-    /// Throws an error if the body of an object field is a function but is not hidden
+    /// CURRENTLY BROKEN Throws an error if the body of an object field is a function but is not hidden
     pub object_function: bool,
 }
 
