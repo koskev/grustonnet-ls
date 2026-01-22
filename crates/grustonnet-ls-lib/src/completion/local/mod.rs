@@ -22,7 +22,7 @@ use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemLabelDetails, CompletionList, Position, Uri};
+use lsp_types::{CompletionItem, CompletionItemLabelDetails, CompletionList, Documentation, MarkupContent, MarkupKind, Position, Uri};
 use thiserror::Error;
 
 pub mod call_stack_iter;
@@ -133,6 +133,7 @@ impl<'a> Completion for LocalCompletion<'a> {
                         last_docsonnet_node = Some(field);
                     }
                     let mut detail = field.body.node_kind.get_value();
+                    let mut documentation = None;
                     // TODO: better detection
                     if let Some(documentation_node) = &last_docsonnet_node
                         && documentation_node.get_name().unwrap()
@@ -145,12 +146,13 @@ impl<'a> Completion for LocalCompletion<'a> {
                         if let Some(doc_info) = doc_info
                             && !doc_info.help_text.is_empty()
                         {
-                            detail = Some(doc_info.help_text);
+                            documentation = Some(doc_info.build_lsp_documentation());
                         }
                     }
                     Some(CompletionItem {
                         label: field.get_name()?,
                         detail,
+                        documentation,
                         kind: Some(field.body.node_kind.get_lsp_kind()),
                         label_details: Some(CompletionItemLabelDetails {
                             description: Some(field.body.node_kind.get_node_kind_name().into()),

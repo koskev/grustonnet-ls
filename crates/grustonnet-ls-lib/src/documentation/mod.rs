@@ -13,7 +13,7 @@ use grustonnet_node::types::{
     node_kind::NodeKind,
 };
 use language_server::{cache::Cache, utils::UriHelper};
-use lsp_types::Uri;
+use lsp_types::{Documentation, MarkupContent, MarkupKind, Uri};
 use regex::Regex;
 
 use crate::{cache::JsonnetASTGenerator, completion::local::call_stack_iter::CallStackIter};
@@ -139,6 +139,13 @@ impl DocumentationInfo {
 
         Some(Self {
             help_text: arg.get_name(),
+        })
+    }
+
+    pub fn build_lsp_documentation(&self) -> Documentation {
+        Documentation::MarkupContent(MarkupContent {
+            kind: MarkupKind::Markdown,
+            value: self.help_text.clone(),
         })
     }
 
