@@ -7,8 +7,7 @@ use std::sync::LazyLock;
 
 use jsonnet_std_docs::StdFunctions;
 use language_server::completion::{Completion, CompletionResult};
-use lsp_types::{CompletionItem, CompletionList, Documentation, Position, Uri};
-
+use lsp_types::{CompletionItem, CompletionList, Documentation, MarkupContent, MarkupKind, Position, Uri};
 pub const STDLIB_DEFINITIONS: &str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
 
 #[derive(Default)]
@@ -38,7 +37,11 @@ impl Completion for StdCompletion {
                 CompletionItem {
                     label: func.name.clone(),
                     detail: Some(format!("{}{}", func.name.clone(), param_string)),
-                    documentation: Some(Documentation::String(func.description.clone())),
+                    documentation: Some(
+                        Documentation::MarkupContent(MarkupContent {
+                            kind: MarkupKind::Markdown,
+                            value: func.description.clone(),
+                        })),
                     ..Default::default()
                 }
             })
