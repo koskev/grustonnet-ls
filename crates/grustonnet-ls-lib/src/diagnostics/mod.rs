@@ -57,6 +57,10 @@ pub trait JsonnetDiagnostics: Send + Sync {
     add_diag!(check_desugared_object, obj: &DesugaredObject);
     add_diag!(check_desugared_object_field, field: &DesugaredObjectField);
 
+    fn check_file(&self, uri: &Uri) -> Option<Vec<DiagnosticsResult>> {
+        None
+    }
+
     fn check_after(&self) -> Option<Vec<DiagnosticsResult>> {
         None
     }
@@ -79,6 +83,22 @@ impl Diagnostics for ASTDiagnosticsHandler {
         let Ok(ast) = doc.get_ast() else {
             return result;
         };
+
+        for diag in self.diags.iter() {
+            if let Some(diags) = diag.check_file(uri) {
+                result.extend(diags.into_iter().map(|mut r| {
+                    // If the diag never specified a source, we'll use the name of the
+                    // diagnostic
+                    if r.diagnostics.source.is_none() {
+                        r.diagnostics.source = Some(diag.get_name());
+                    }
+                    if r.uri.is_none() {
+                        r.uri = Some(uri.clone());
+                    }
+                    r
+                }));
+            }
+        }
 
         for node in ast.get_complete_stack().stack.iter() {
             let ctx = JsonnetDiagnosticsContext {

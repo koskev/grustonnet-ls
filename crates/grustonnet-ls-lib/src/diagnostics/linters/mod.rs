@@ -10,4 +10,5 @@ pub mod recursive_argument;
 pub mod shadow_variable;
 pub mod top_level_function;
 pub mod unused;
+pub mod unused_file;
 pub mod variable_naming;

@@ -63,6 +63,7 @@ use crate::{
             recursive_argument::RecursiveArgumentDiagnostic,
             shadow_variable::ShadowVariableDiagnostics,
             top_level_function::TopLevelFunctionDiagnostics,
+            unused_file::UnusedFilesDiagnostics,
             variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
         },
     },
@@ -168,6 +169,7 @@ impl JsonnetServer {
             ObjectFunctionDiagnostics,
             self.cache.clone()
         );
+        add_jsonnet_diag!(unused_file, UnusedFilesDiagnostics, self.cache.clone());
 
         diagnostics_handler_diags.push(Box::new(DuplicateValuesDiagnostic {
             config: config.diagnostics.duplicate_detection.clone(),

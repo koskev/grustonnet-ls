@@ -128,6 +128,11 @@ pub struct DiagnosticConfig {
     #[default = false]
     /// CURRENTLY BROKEN Throws an error if the body of an object field is a function but is not hidden
     pub object_function: bool,
+
+    #[default = false]
+    /// Shows a warning if a libsonnet file is not imported anywhere.
+    /// Currently disabled by default due to performance reasons
+    pub unused_file: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]

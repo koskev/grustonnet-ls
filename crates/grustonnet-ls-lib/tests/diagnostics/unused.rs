@@ -155,3 +155,60 @@ fn object_func_unused() {
     }
     .check()
 }
+
+#[test]
+fn file_unnused() {
+    DiagnosticTestCase {
+        filename: "testdata/diagnostics/unused/lib_unused.libsonnet".to_string(),
+        config: DiagnosticConfig {
+            unused_file: true,
+            ..disabled_diagnostics_config()
+        },
+        expected: vec![Diagnostic {
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 0,
+                },
+                end: Position {
+                    line: 0,
+                    character: 0,
+                },
+            },
+            severity: Some(DiagnosticSeverity::WARNING),
+            message: "This file is not included anywhere".into(),
+            tags: Some(vec![DiagnosticTag::UNNECESSARY]),
+            ..Default::default()
+        }],
+        ..Default::default()
+    }
+    .check()
+}
+
+#[test]
+fn file_used() {
+    DiagnosticTestCase {
+        filename: "testdata/diagnostics/unused/lib_imported.libsonnet".to_string(),
+        config: DiagnosticConfig {
+            unused_file: true,
+            ..disabled_diagnostics_config()
+        },
+        expected: vec![],
+        ..Default::default()
+    }
+    .check()
+}
+
+#[test]
+fn in_object_used() {
+    DiagnosticTestCase {
+        filename: "testdata/diagnostics/unused/lib_imported_object.libsonnet".to_string(),
+        config: DiagnosticConfig {
+            unused_file: true,
+            ..disabled_diagnostics_config()
+        },
+        expected: vec![],
+        ..Default::default()
+    }
+    .check()
+}
