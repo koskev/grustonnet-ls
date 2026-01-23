@@ -6,14 +6,9 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use grustonnet_node::types::{
-    Array, CommaSeparatedExpr, Identifier,
-    base::NodeBase,
-    function::{Apply, Arguments, Function, Parameter},
-    literals::{LiteralBoolean, LiteralNumber},
-    node::Node,
-    node_kind::NodeKind,
-};
+use grustonnet_node::{stack::NodeStack, types::{
+    base::NodeBase, function::{Apply, Arguments, Function, Parameter}, literals::{LiteralBoolean, LiteralNumber}, node::Node, node_kind::NodeKind, Array, CommaSeparatedExpr, Identifier
+}};
 use itertools::Itertools;
 use language_server::cache::Cache;
 
@@ -24,8 +19,8 @@ use thiserror::Error;
 pub enum StdLibCallError {
     #[error("Missing argument")]
     MissingArgument,
-    #[error("Invalid argument")]
-    InvalidArgument,
+    #[error("Invalid argument: {reason}")]
+    InvalidArgument { reason: String },
     #[error("Unknown function {function}")]
     UnknownFunction { function: String },
     #[error("Unknown error")]
@@ -67,15 +62,35 @@ pub fn get_std_function_node(name: &str) -> Option<Arc<Node>> {
     })
 }
 
+macro_rules! get_parameter {
+    ($params: ident, $num: expr) => (
+        $params.get($num).ok_or(StdLibCallError::MissingArgument)?.clone()
+    )
+}
+
+macro_rules! get_parameter_value {
+    ($params: ident, $num: expr) => (
+        get_parameter!($params, $num).node_kind.get_value().ok_or(StdLibCallError::InvalidArgument{reason: "Could not get value".into()})?
+    )
+}
+
+macro_rules! get_parameter_value_parse {
+    ($params: ident, $num: expr) => (
+        get_parameter_value!($params, $num).parse().map_err(|_| StdLibCallError::InvalidArgument{reason: "Could not parse value".into()})?
+    )
+}
+
 pub fn call_std_function(
     name: &str,
     arguments: Arguments,
     cache: &Cache<JsonnetASTGenerator>,
+    document_stack: &NodeStack,
 ) -> Result<Arc<Node>, StdLibCallError> {
     let target: Box<dyn StdLibFunction> = match name {
         "makeArray" => Box::new(MakeArray {}),
-        "objectHasEx" => Box::new(ObjectHasEx {}),
+        "objectHasEx" => Box::new(ObjectHasEx {document_stack}),
         "extVar" => Box::new(ExtVar { cache }),
+        "get" => Box::new(Get {document_stack}),
         _ => {
             let stdlib = include_str!("./std.libsonnet");
             let std_ast = cache
@@ -108,20 +123,20 @@ pub fn call_std_function(
         .map(|arg| arg.expr.clone())
         .collect();
     if params.len() > std_args.len() {
-        return Err(StdLibCallError::InvalidArgument);
+        return Err(StdLibCallError::InvalidArgument{reason: "Too many arguments".into()});
     }
 
     std_args.drain(0..params.len());
 
-    for named_arg in arguments.named {
+    for named_arg in &arguments.named {
         match std_args
             .iter()
             .find_position(|std_arg| std_arg.name == named_arg.name.0)
-            .ok_or(StdLibCallError::InvalidArgument)
+            .ok_or(StdLibCallError::InvalidArgument{reason: format!("Named argument {} not found in {:#?}", named_arg.name.0, &std_args)})
         {
-            Ok(_) => {
-                std_args.pop();
-                params.push(named_arg.arg);
+            Ok((pos,_)) => {
+                std_args.remove(pos);
+                params.push(named_arg.arg.clone());
             }
             Err(e) => return Err(e),
         }
@@ -161,14 +176,7 @@ impl StdLibFunction for MakeArray {
         ]
     }
     fn call(&self, params: Vec<Arc<Node>>) -> Result<Arc<Node>, StdLibCallError> {
-        let size = params
-            .first()
-            .ok_or(StdLibCallError::MissingArgument)?
-            .node_kind
-            .get_value()
-            .ok_or(StdLibCallError::InvalidArgument)?
-            .parse()
-            .map_err(|_| StdLibCallError::InvalidArgument)?;
+        let size = get_parameter_value_parse!(params, 0);
 
         let func_node = params.get(1).ok_or(StdLibCallError::MissingArgument)?;
         let applies = (0..size)
@@ -208,10 +216,12 @@ impl StdLibFunction for MakeArray {
     }
 }
 
-struct ObjectHasEx;
+struct ObjectHasEx<'a> {
+    document_stack: &'a NodeStack
+}
 
-impl ObjectHasEx {
-    fn object_has_ex(object: Arc<Node>, name: &str, include_hidden: bool) -> bool {
+impl<'a> ObjectHasEx<'a> {
+    fn _object_has_ex_rec(object: Arc<Node>, name: &str, include_hidden: bool) -> bool {
         let NodeKind::DesugaredObject(obj) = object.node_kind.as_ref() else {
             return false;
         };
@@ -227,35 +237,37 @@ impl ObjectHasEx {
         if parts.is_empty() {
             true
         } else {
-            ObjectHasEx::object_has_ex(found_field.body.clone(), parts, include_hidden)
+            ObjectHasEx::_object_has_ex_rec(found_field.body.clone(), parts, include_hidden)
         }
+    }
+    fn object_has_ex(&self, object: Arc<Node>, name: &str, include_hidden: bool) -> bool {
+        let object = if let NodeKind::Var(var) = object.node_kind.as_ref() {
+            var.resolve(&mut self.document_stack.clone())
+        } else {
+            Some(object)
+        };
+        let Some(object) = object else {
+            return false;
+        };
+        let NodeKind::DesugaredObject(obj) = object.node_kind.as_ref() else {
+            return false;
+        };
+
+        obj.fields.iter().any(|field| {
+            field.name.get_name() == name && (field.hide == 1 || include_hidden)
+        })
     }
 }
 
-impl StdLibFunction for ObjectHasEx {
+impl<'a> StdLibFunction for ObjectHasEx<'a> {
     fn call(&self, params: Vec<Arc<Node>>) -> Result<Arc<Node>, StdLibCallError> {
-        let object = params
-            .first()
-            .ok_or(StdLibCallError::MissingArgument)?
-            .clone();
-        let name = params
-            .get(1)
-            .ok_or(StdLibCallError::MissingArgument)?
-            .node_kind
-            .get_value()
-            .ok_or(StdLibCallError::InvalidArgument)?;
-        let include_hidden = params
-            .get(2)
-            .ok_or(StdLibCallError::MissingArgument)?
-            .node_kind
-            .get_value()
-            .ok_or(StdLibCallError::InvalidArgument)?
-            .parse()
-            .map_err(|_| StdLibCallError::InvalidArgument)?;
+        let object = get_parameter!(params, 0);
+        let name = get_parameter_value!(params, 1);
+        let include_hidden = get_parameter_value_parse!(params, 2);
 
         Ok(Node {
             node_kind: Box::new(NodeKind::LiteralBoolean(LiteralBoolean {
-                value: ObjectHasEx::object_has_ex(object, &name, include_hidden),
+                value: self.object_has_ex(object, &name, include_hidden),
             })),
             ..Default::default()
         }
@@ -292,7 +304,58 @@ impl<'a> StdLibFunction for ExtVar<'a> {
                 .into();
             Ok(ext_node)
         } else {
-            Err(StdLibCallError::InvalidArgument)
+            Err(StdLibCallError::InvalidArgument{reason: "Arg is not a string".into()})
         }
     }
 }
+
+
+struct Get<'a> {
+    document_stack: &'a NodeStack
+}
+
+impl<'a> StdLibFunction for Get<'a> {
+    fn get_arguments(&'_ self) -> Vec<StdArgument<'_>> {
+        vec![
+            StdArgument {
+                name: "o",
+                ..Default::default()
+            },
+            StdArgument {
+                name: "f",
+                ..Default::default()
+            },
+            StdArgument {
+                name: "default",
+                default_value: Some(Node{node_kind: Box::new(NodeKind::LiteralNull), ..Default::default()}.into()),
+                ..Default::default()
+            },
+            StdArgument {
+                name: "inc_hidden",
+                default_value: Some(LiteralBoolean::node_from_bool(true).into()),
+                ..Default::default()
+            },
+        ]
+    }
+
+    fn call(&self, params: Vec<Arc<Node>>) -> Result<Arc<Node>, StdLibCallError> {
+        let object = get_parameter!(params, 0);
+        let name = get_parameter_value!(params, 1);
+        let default = get_parameter!(params, 2);
+        let inc_hidden = get_parameter_value_parse!(params, 3);
+        let resolved = if let NodeKind::Var(var) = object.node_kind.as_ref() {
+            var.resolve(&mut self.document_stack.clone()).ok_or(StdLibCallError::Unknown)?
+        } else {
+            object
+        };
+        let found = ObjectHasEx{
+            document_stack: self.document_stack,
+        }.object_has_ex(resolved.clone(), &name, inc_hidden);
+        Ok(if found && let NodeKind::DesugaredObject(obj) = resolved.node_kind.as_ref() {
+            obj.get_field(&name).ok_or(StdLibCallError::Unknown)?.body.clone()
+        } else {
+            default
+        })
+    }
+}
+

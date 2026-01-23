@@ -234,7 +234,7 @@ impl<'a> ResolveNodeIter<'a> {
                         && var.is_std()
                     {
                         // Handle the std node
-                        let res = call_std_function(&idx.get_name().unwrap_or_default(), apply.arguments.clone(), self.cache);
+                        let res = call_std_function(&idx.get_name().unwrap_or_default(), apply.arguments.clone(), self.cache, self.document_stack);
                         if let Err(e) = &res {
                             log::warn!("Failed to run std function {e}");
                         }

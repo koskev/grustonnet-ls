@@ -40,6 +40,17 @@ pub struct LiteralBoolean {
     pub value: bool,
 }
 
+impl LiteralBoolean {
+    pub fn node_from_bool(val: bool) -> Node {
+        Node {
+            node_kind: Box::new(NodeKind::LiteralBoolean(LiteralBoolean {
+                value: val,
+            })),
+            ..Default::default()
+        }
+    }
+}
+
 impl LiteralString {
     pub fn node_from_str(val: &str) -> Node {
         Node {

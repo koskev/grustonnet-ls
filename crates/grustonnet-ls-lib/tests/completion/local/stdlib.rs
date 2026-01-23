@@ -23,3 +23,123 @@ fn std_without_loop_support() {
     }
     .check();
 }
+
+
+#[test]
+fn get_key() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/get.jsonnet".into(),
+        replace_string: "x:: fromLocal".into(),
+        replace_by_string: "x:: self.withVal.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "inner".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn get_default() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/get.jsonnet".into(),
+        replace_string: "x:: fromLocal".into(),
+        replace_by_string: "x:: self.withDefault.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "default".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn get_hidden() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/get.jsonnet".into(),
+        replace_string: "x:: fromLocal".into(),
+        replace_by_string: "x:: self.withHidden.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "inner_hidden".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn get_hidden_false() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/get.jsonnet".into(),
+        replace_string: "x:: fromLocal".into(),
+        replace_by_string: "x:: self.withoutHidden.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "default".to_string(),
+                    ..Default::default()
+                }
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn get_local() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/get.jsonnet".into(),
+        replace_string: "x:: fromLocal".into(),
+        replace_by_string: "x:: fromLocal.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+            CompletionItem {
+                label: "inner".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "not implemented"]
+fn get_direct() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/get.jsonnet".into(),
+        replace_string: "x:: fromLocal".into(),
+        replace_by_string: "x:: std.get(myVar, 'key').".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+            CompletionItem {
+                label: "inner".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
