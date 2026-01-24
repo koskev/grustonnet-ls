@@ -9,6 +9,10 @@ local addTypeAlias(name) = {
   description: "Alias for std.type(x) == '%s'" % name,
 };
 
+local extra_descriptions = {
+  contains: 'This function is basically the same as <code>std.member</code> and can often be used interchangeably',
+};
+
 local modified_lib =
   {
     groups: [
@@ -16,7 +20,7 @@ local modified_lib =
 
         fields: [
           field {
-            description: html.render(field.description),
+            description: html.render(field.description) + std.get(extra_descriptions, field.name, ''),
           }
           for field in group.fields
         ] + if group.id == 'types_reflection' then [
