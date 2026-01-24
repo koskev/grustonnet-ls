@@ -14,6 +14,7 @@ use crate::{
     documentation::DocumentationInfo,
 };
 use anyhow::Result;
+use grustonnet_config::CompletionConfig;
 use grustonnet_node::{
     stack::NodeStack,
     types::{desugared_object::DesugaredObjectField, node::Node, node_kind::NodeKind},
@@ -22,7 +23,7 @@ use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemLabelDetails, CompletionList, Documentation, MarkupContent, MarkupKind, Position, Uri};
+use lsp_types::{CompletionItem, CompletionItemLabelDetails, CompletionList, Position, Uri};
 use thiserror::Error;
 
 pub mod call_stack_iter;
@@ -30,11 +31,12 @@ pub mod resolve_node_iter;
 
 pub struct LocalCompletion<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
+    config: CompletionConfig,
 }
 
 impl<'a> LocalCompletion<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
-        Self { cache }
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>, config: CompletionConfig) -> Self {
+        Self { cache, config }
     }
 }
 
@@ -165,7 +167,7 @@ impl<'a> Completion for LocalCompletion<'a> {
                 .collect(),
             NodeKind::Var(var) => {
                 if var.is_std() {
-                    StdCompletion::new().complete(location, uri)?.items
+                    StdCompletion::new(Some(self.config.target_version)).complete(location, uri)?.items
                 } else {
                     log::warn!("Tried to complete var that is not std! {}", node.node_kind);
                     vec![]

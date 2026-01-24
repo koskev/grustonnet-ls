@@ -8,14 +8,17 @@ use std::sync::LazyLock;
 use jsonnet_std_docs::StdFunctions;
 use language_server::completion::{Completion, CompletionResult};
 use lsp_types::{CompletionItem, CompletionList, Documentation, MarkupContent, MarkupKind, Position, Uri};
+use semver::{Version, VersionReq};
 pub const STDLIB_DEFINITIONS: &str = include_str!(concat!(env!("OUT_DIR"), "/stdlib.json"));
 
 #[derive(Default)]
-pub struct StdCompletion;
+pub struct StdCompletion {
+    pub target_version: Option<u32>
+}
 
 impl StdCompletion {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(target_version: Option<u32>) -> Self {
+        Self {target_version}
     }
 }
 
@@ -26,9 +29,17 @@ pub static STD_FUNCTIONS: LazyLock<StdFunctions> =
 // handle the stdlib as a normal function with documentation
 impl Completion for StdCompletion {
     fn complete(&self, _location: Position, _uri: &Uri) -> CompletionResult {
+        let version_req = VersionReq::parse(&format!("<=0.{}.0", self.target_version.unwrap_or(999)))?;
         let items = STD_FUNCTIONS
             .functions
             .values()
+            .filter(|func| {
+                func.available_since.clone().and_then(|version| {
+                    let version = Version::parse(&version).ok()?;
+                    Some(version_req.matches(&version))
+                }).unwrap_or(true)
+            }
+            )
             .map(|func| {
                 let param_string = match &func.params {
                     Some(list) => format!("({})", list.join(", ")),

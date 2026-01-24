@@ -379,7 +379,7 @@ impl LSPServer for JsonnetServer {
             }
             CompletionType::Local => {
                 if config.completion.enable_local {
-                    let local_completion = LocalCompletion::new(&self.cache);
+                    let local_completion = LocalCompletion::new(&self.cache, self.configuration.read_or_panic().completion.clone());
                     completion_list.push(Box::new(local_completion));
                 }
             }

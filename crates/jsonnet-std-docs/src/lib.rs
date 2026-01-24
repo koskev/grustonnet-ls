@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct StdFunction {
+    #[serde(rename = "availableSince")]
     pub available_since: Option<String>,
     pub description: String,
     pub name: String,
