@@ -12,7 +12,7 @@ use grustonnet_node::{stack::NodeStack, types::{
 use itertools::Itertools;
 use language_server::cache::Cache;
 
-use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::{std::STD_FUNCTIONS, stdlib::functions::{ext_vars::ExtVar, get::Get, make_array::MakeArray, object_has_ex::ObjectHasEx}}};
+use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::{std::STD_FUNCTIONS, stdlib::functions::{ext_vars::ExtVar, fold::{Foldl, Foldr}, get::Get, make_array::MakeArray, object_has_ex::ObjectHasEx}}};
 use thiserror::Error;
 
 pub mod functions;
@@ -75,6 +75,8 @@ pub fn call_std_function(
         "objectHasEx" => Box::new(ObjectHasEx {document_stack}),
         "extVar" => Box::new(ExtVar { cache }),
         "get" => Box::new(Get {document_stack}),
+        "foldl" => Box::new(Foldl{}),
+        "foldr" => Box::new(Foldr{}),
         // Current non Rust functions that return objects we might want to complete
         // prune
         // split
@@ -88,9 +90,8 @@ pub fn call_std_function(
         // mapWithIndex
         // filterMap
         // flatmap
+        // $flatMapArray
         // filter
-        // foldl
-        // foldr
         // repeat
         // slice
         // join
@@ -115,6 +116,7 @@ pub fn call_std_function(
         // objectValuesAll
         // objectRemoveKey
         // mapWithKey
+        // $objectFlatMerge
         _ => {
             let stdlib = include_str!("./std.libsonnet");
             let std_ast = cache

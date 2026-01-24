@@ -2,6 +2,7 @@ pub mod make_array;
 pub mod object_has_ex;
 pub mod ext_vars;
 pub mod get;
+pub mod fold;
 
 use std::{str::FromStr, sync::Arc};
 
