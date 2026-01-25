@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use grustonnet_node::types::{base::NodeBase, function::{Apply, Arguments}, literals::LiteralNumber, node::Node, node_kind::NodeKind, Array, CommaSeparatedExpr};
 
-use crate::completion::stdlib::{functions::get_parameter_value_parse, StdArgument, StdLibCallError, StdLibFunction};
+use crate::completion::stdlib::{functions::{get_parameter, get_parameter_value_parse}, StdArgument, StdLibCallError, StdLibFunction};
 
 pub struct MakeArray;
 
@@ -21,8 +21,7 @@ impl StdLibFunction for MakeArray {
     }
     fn call(&self, params: Vec<Arc<Node>>) -> Result<Arc<Node>, StdLibCallError> {
         let size = get_parameter_value_parse(&params, 0)?;
-
-        let func_node = params.get(1).ok_or(StdLibCallError::MissingArgument)?;
+        let func_node = get_parameter(&params, 1)?;
         let applies = (0..size)
             .map(|i| Apply {
                 target: func_node.clone(),
