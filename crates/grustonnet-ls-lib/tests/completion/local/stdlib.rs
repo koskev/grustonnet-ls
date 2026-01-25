@@ -143,3 +143,22 @@ fn get_direct() {
     }
     .check();
 }
+
+#[test]
+fn get_func() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/get.jsonnet".into(),
+        replace_string: "x:: fromLocal".into(),
+        replace_by_string: "x:: self.withFunction.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "inner".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
