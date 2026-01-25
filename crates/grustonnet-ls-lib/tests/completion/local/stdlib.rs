@@ -200,3 +200,41 @@ fn foldr_basic() {
     }
     .check();
 }
+
+#[test]
+fn flatten_array_one() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/flatten_array.jsonnet".into(),
+        replace_string: "x: self.flattened".into(),
+        replace_by_string: "x: self.flattened[0].".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "keyOne".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn flatten_array_two() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/flatten_array.jsonnet".into(),
+        replace_string: "x: self.flattened".into(),
+        replace_by_string: "x: self.flattened[1].".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "keyTwo".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}

@@ -3,6 +3,7 @@ pub mod object_has_ex;
 pub mod ext_vars;
 pub mod get;
 pub mod fold;
+pub mod flatten_array;
 
 use std::{str::FromStr, sync::Arc};
 

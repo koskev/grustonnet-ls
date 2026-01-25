@@ -12,7 +12,7 @@ use grustonnet_node::{stack::NodeStack, types::{
 use itertools::Itertools;
 use language_server::cache::Cache;
 
-use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::{std::STD_FUNCTIONS, stdlib::functions::{ext_vars::ExtVar, fold::{Fold}, get::Get, make_array::MakeArray, object_has_ex::ObjectHasEx}}};
+use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::{std::STD_FUNCTIONS, stdlib::functions::{ext_vars::ExtVar, flatten_array::FlattenArray, fold::Fold, get::Get, make_array::MakeArray, object_has_ex::ObjectHasEx}}};
 use thiserror::Error;
 
 pub mod functions;
@@ -77,6 +77,7 @@ pub fn call_std_function(
         "get" => Box::new(Get {cache, document_stack}),
         "foldl" => Box::new(Fold{cache, document_stack, reverse: false}),
         "foldr" => Box::new(Fold{cache, document_stack, reverse: true}),
+        "flattenArrays" => Box::new(FlattenArray{cache, document_stack}),
         // Current non Rust functions that return objects we might want to complete
         // prune
         // split
@@ -96,7 +97,6 @@ pub fn call_std_function(
         // slice
         // join
         // deepJoin
-        // flattenArrays
         // flattenDeepArray
         // reverse
         // sort
@@ -138,6 +138,8 @@ pub fn call_std_function(
                 });
             };
 
+            log::error!("ADDING {:#?}", std_func_field.body);
+            log::error!("STACK: {}", document_stack);
             return Ok(std_func_field.body.clone());
         }
     };
