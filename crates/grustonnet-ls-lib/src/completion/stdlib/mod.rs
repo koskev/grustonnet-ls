@@ -74,7 +74,7 @@ pub fn call_std_function(
         "makeArray" => Box::new(MakeArray {}),
         "objectHasEx" => Box::new(ObjectHasEx {document_stack}),
         "extVar" => Box::new(ExtVar { cache }),
-        "get" => Box::new(Get {document_stack}),
+        "get" => Box::new(Get {cache, document_stack}),
         "foldl" => Box::new(Foldl{}),
         "foldr" => Box::new(Foldr{}),
         // Current non Rust functions that return objects we might want to complete
