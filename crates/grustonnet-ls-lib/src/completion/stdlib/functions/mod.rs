@@ -3,12 +3,15 @@ pub mod object_has_ex;
 pub mod ext_vars;
 pub mod get;
 pub mod fold;
+pub mod flat_map;
+pub mod flatten_array;
 
 use std::{str::FromStr, sync::Arc};
 
-use grustonnet_node::types::node::Node;
+use grustonnet_node::{stack::NodeStack, types::{node::Node}};
+use language_server::cache::Cache;
 
-use crate::completion::stdlib::StdLibCallError;
+use crate::{cache::JsonnetASTGenerator, completion::{local::call_stack_iter::CallStackIter, stdlib::StdLibCallError}};
 
 pub fn get_parameter(params: &[Arc<Node>], num: usize) -> Result<Arc<Node>, StdLibCallError> {
     Ok(params.get(num).ok_or(StdLibCallError::MissingArgument)?.clone())
@@ -25,3 +28,12 @@ where
     get_parameter_value(params, num)?.parse::<T>().map_err(|_| StdLibCallError::InvalidArgument{reason: "Could not parse value".into()})
 }
 
+
+pub fn resolve_node(cache: &Cache<JsonnetASTGenerator>, stack: &NodeStack, node: Arc<Node>) -> Result<Arc<Node>, StdLibCallError>{
+        let mut stack = stack.clone();
+        stack.push(node);
+        CallStackIter::new(cache, &mut stack)
+            .ok_or(StdLibCallError::InvalidArgument { reason: "Unable to create callsack".into() })?
+            .last()
+            .ok_or(StdLibCallError::InvalidArgument { reason: "Can't resolve variable".into() })
+}

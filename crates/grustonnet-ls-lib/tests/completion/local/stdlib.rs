@@ -162,3 +162,41 @@ fn get_func() {
     }
     .check();
 }
+
+#[test]
+fn foldl_basic() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/fold.jsonnet".into(),
+        replace_string: "x: self.l".into(),
+        replace_by_string: "x: self.l.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "inner".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn foldr_basic() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/fold.jsonnet".into(),
+        replace_string: "x: self.l".into(),
+        replace_by_string: "x: self.r.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "inner".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}

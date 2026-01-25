@@ -12,7 +12,7 @@ use grustonnet_node::{stack::NodeStack, types::{
 use itertools::Itertools;
 use language_server::cache::Cache;
 
-use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::{std::STD_FUNCTIONS, stdlib::functions::{ext_vars::ExtVar, fold::{Foldl, Foldr}, get::Get, make_array::MakeArray, object_has_ex::ObjectHasEx}}};
+use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::{std::STD_FUNCTIONS, stdlib::functions::{ext_vars::ExtVar, fold::{Fold}, get::Get, make_array::MakeArray, object_has_ex::ObjectHasEx}}};
 use thiserror::Error;
 
 pub mod functions;
@@ -75,8 +75,8 @@ pub fn call_std_function(
         "objectHasEx" => Box::new(ObjectHasEx {document_stack}),
         "extVar" => Box::new(ExtVar { cache }),
         "get" => Box::new(Get {cache, document_stack}),
-        "foldl" => Box::new(Foldl{}),
-        "foldr" => Box::new(Foldr{}),
+        "foldl" => Box::new(Fold{cache, document_stack, reverse: false}),
+        "foldr" => Box::new(Fold{cache, document_stack, reverse: true}),
         // Current non Rust functions that return objects we might want to complete
         // prune
         // split
