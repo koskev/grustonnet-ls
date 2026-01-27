@@ -138,8 +138,6 @@ pub fn call_std_function(
                 });
             };
 
-            log::error!("ADDING {:#?}", std_func_field.body);
-            log::error!("STACK: {}", document_stack);
             return Ok(std_func_field.body.clone());
         }
     };

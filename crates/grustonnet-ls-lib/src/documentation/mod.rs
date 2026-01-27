@@ -135,7 +135,6 @@ impl DocumentationInfo {
             documentation_node.clone(),
             &["function", "args", &format!("[{}]", arg_num), "help"],
         )?;
-        log::error!("ARG: {:#?}\n{}", arg, arg.node_kind);
 
         Some(Self {
             help_text: arg.get_name(),
