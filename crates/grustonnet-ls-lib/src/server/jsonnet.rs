@@ -63,12 +63,16 @@ use crate::{
             recursive_argument::RecursiveArgumentDiagnostic,
             shadow_variable::ShadowVariableDiagnostics,
             top_level_function::TopLevelFunctionDiagnostics,
+            unused_file::UnusedFilesDiagnostics,
             variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
         },
     },
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
     node::NodeHelper,
-    references::ReferenceProvider,
+    references::{
+        ReferenceHandler, ReferenceProvider, identifier::IdentifierReferences,
+        import::ImportReferences,
+    },
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},
     utils,
@@ -165,6 +169,7 @@ impl JsonnetServer {
             ObjectFunctionDiagnostics,
             self.cache.clone()
         );
+        add_jsonnet_diag!(unused_file, UnusedFilesDiagnostics, self.cache.clone());
 
         diagnostics_handler_diags.push(Box::new(DuplicateValuesDiagnostic {
             config: config.diagnostics.duplicate_detection.clone(),
@@ -530,10 +535,15 @@ impl LSPServer for JsonnetServer {
                 .read_or_panic()
                 .clone(),
         );
-        let references = ReferenceProvider::new(&self.cache, &search_paths).references(
+        let refernce_types: Vec<Box<dyn ReferenceProvider>> = vec![
+            Box::new(IdentifierReferences::new(self.cache.clone())),
+            Box::new(ImportReferences::new(self.cache.clone())),
+        ];
+        let references = ReferenceHandler::new(&self.cache, &search_paths).references(
             params.text_document_position.position.into(),
             &params.text_document_position.text_document.uri,
             params.context.include_declaration,
+            refernce_types,
         )?;
         log::debug!("Finding references took {:?}", start.elapsed());
 

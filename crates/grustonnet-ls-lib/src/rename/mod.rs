@@ -9,7 +9,10 @@ use anyhow::{Result, anyhow};
 use language_server::cache::Cache;
 use lsp_types::{RenameParams, TextEdit, Uri, WorkspaceEdit};
 
-use crate::{cache::JsonnetASTGenerator, references::ReferenceProvider};
+use crate::{
+    cache::JsonnetASTGenerator,
+    references::{ReferenceHandler, identifier::IdentifierReferences},
+};
 
 pub struct RenameProvider<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -23,13 +26,14 @@ impl<'a> RenameProvider<'a> {
 
 impl<'a> RenameProvider<'a> {
     pub fn rename(&self, params: RenameParams, search_paths: &[String]) -> Result<WorkspaceEdit> {
-        let reference_provider = ReferenceProvider::new(self.cache, search_paths);
+        let reference_provider = ReferenceHandler::new(self.cache, search_paths);
 
         let references = reference_provider
             .references(
                 params.text_document_position.position.into(),
                 &params.text_document_position.text_document.uri,
                 true,
+                vec![Box::new(IdentifierReferences::new(self.cache.clone()))],
             )?
             .ok_or(anyhow!("No references found"))?;
 
