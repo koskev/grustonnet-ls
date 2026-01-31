@@ -23,9 +23,9 @@ use language_server::{
     completion::Completion,
     diagnostics::{Diagnostics, DiagnosticsQueue, DiagnosticsResult},
     server::{
-        get_response_error, LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender
+        LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
     },
-    utils::{diff, UriHelper},
+    utils::{UriHelper, diff},
 };
 use lsp_types::{
     CodeActionOrCommand, CodeActionProviderCapability, CompletionList, CompletionOptions,
@@ -59,6 +59,7 @@ use crate::{
             self,
             dollar::DollarDiagnostics,
             duplicate_values::DuplicateValuesDiagnostic,
+            number_rounding::NumberRoundingDiagnostics,
             object_function::ObjectFunctionDiagnostics,
             recursive_argument::RecursiveArgumentDiagnostic,
             shadow_variable::ShadowVariableDiagnostics,
@@ -170,6 +171,7 @@ impl JsonnetServer {
             self.cache.clone()
         );
         add_jsonnet_diag!(unused_file, UnusedFilesDiagnostics, self.cache.clone());
+        add_jsonnet_diag!(number_rounding, NumberRoundingDiagnostics);
 
         diagnostics_handler_diags.push(Box::new(DuplicateValuesDiagnostic {
             config: config.diagnostics.duplicate_detection.clone(),
@@ -214,10 +216,12 @@ impl LSPServer for JsonnetServer {
 
         if let Some(workspace) = workspaces.first() {
             // TODO: Support multiple workspaces?
-            self.cache
-                .ast_generator
-                .jsonnet
-                .set_root_dir(&workspace.uri.to_file_path_string().expect("Unable to load workspace directory"));
+            self.cache.ast_generator.jsonnet.set_root_dir(
+                &workspace
+                    .uri
+                    .to_file_path_string()
+                    .expect("Unable to load workspace directory"),
+            );
         }
         log::info!("Starting with workpaces: {:?}", workspaces);
     }
@@ -231,7 +235,11 @@ impl LSPServer for JsonnetServer {
             text_document_sync: Some(lsp_types::TextDocumentSyncCapability::Options(
                 TextDocumentSyncOptions {
                     open_close: Some(true),
-                    change: Some(if self.full_sync {TextDocumentSyncKind::FULL} else {TextDocumentSyncKind::INCREMENTAL}),
+                    change: Some(if self.full_sync {
+                        TextDocumentSyncKind::FULL
+                    } else {
+                        TextDocumentSyncKind::INCREMENTAL
+                    }),
                     ..Default::default()
                 },
             )),
@@ -384,7 +392,10 @@ impl LSPServer for JsonnetServer {
             }
             CompletionType::Local => {
                 if config.completion.enable_local {
-                    let local_completion = LocalCompletion::new(&self.cache, self.configuration.read_or_panic().completion.clone());
+                    let local_completion = LocalCompletion::new(
+                        &self.cache,
+                        self.configuration.read_or_panic().completion.clone(),
+                    );
                     completion_list.push(Box::new(local_completion));
                 }
             }

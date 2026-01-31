@@ -12,3 +12,4 @@ pub mod top_level_function;
 pub mod unused;
 pub mod unused_file;
 pub mod variable_naming;
+pub mod number_rounding;

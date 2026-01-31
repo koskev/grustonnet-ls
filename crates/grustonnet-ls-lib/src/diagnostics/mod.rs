@@ -6,7 +6,7 @@
 use std::sync::Arc;
 
 use grustonnet_node::types::{
-    Local,
+    Local, Unary,
     desugared_object::{DesugaredObject, DesugaredObjectField},
     function::{Apply, Function},
     literals::{LiteralNumber, LiteralString},
@@ -56,6 +56,7 @@ pub trait JsonnetDiagnostics: Send + Sync {
     add_diag!(check_literal_string, str: &LiteralString);
     add_diag!(check_desugared_object, obj: &DesugaredObject);
     add_diag!(check_desugared_object_field, field: &DesugaredObjectField);
+    add_diag!(check_unary, field: &Unary);
 
     fn check_file(&self, uri: &Uri) -> Option<Vec<DiagnosticsResult>> {
         None
@@ -115,6 +116,7 @@ impl Diagnostics for ASTDiagnosticsHandler {
                     NodeKind::Function(function) => diag.check_function(&ctx, function),
                     NodeKind::LiteralNumber(num) => diag.check_literal_number(&ctx, num),
                     NodeKind::LiteralString(str) => diag.check_literal_string(&ctx, str),
+                    NodeKind::Unary(unary) => diag.check_unary(&ctx, unary),
                     NodeKind::DesugaredObject(obj) => {
                         let mut diags = vec![];
                         if let Some(obj_diags) = diag.check_desugared_object(&ctx, obj) {

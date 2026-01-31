@@ -133,6 +133,10 @@ pub struct DiagnosticConfig {
     /// Shows a warning if a libsonnet file is not imported anywhere.
     /// Currently disabled by default due to performance reasons
     pub unused_file: bool,
+
+    #[default = true]
+    /// Warns if a number will be rounded due to being out of bounds
+    pub number_rounding: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
