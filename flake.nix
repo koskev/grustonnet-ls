@@ -109,6 +109,7 @@
               rustc
               cargo-tarpaulin
               clippy
+              rustfmt
 
               go-jsonnet
               rust-analyzer
