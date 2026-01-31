@@ -54,7 +54,16 @@ pub struct Local {
 #[serde(rename_all = "PascalCase", tag = "T")]
 pub struct Unary {
     pub expr: Arc<Node>,
-    pub op: i32,
+    pub op: UnaryOp,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
+pub enum UnaryOp {
+    #[default]
+    Not = 0,
+    BitwiseNot = 1,
+    Plus = 2,
+    Minus = 3,
 }
 
 impl Local {
