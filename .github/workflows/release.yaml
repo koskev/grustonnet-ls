@@ -32,6 +32,9 @@ jobs:
           - os-name: Linux-x86_64
             runs-on: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
+          - os-name: Linux-aarch64
+            runs-on: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
 
           # XXX: Since windows is such a bad system, we just cross compile it from Linux
           - os-name: Windows-x86_64
