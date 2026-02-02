@@ -12,7 +12,7 @@ use rust2go_env::restart_with_fixed_env;
 use schemars::generate::SchemaSettings;
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(name = env!("CARGO_BIN_NAME"), version, about, long_about = None)]
 struct Args {
     #[arg(long)]
     export_config_schema: bool,
@@ -20,7 +20,7 @@ struct Args {
     #[arg(long, short)]
     port: Option<u16>,
 
-    #[arg(long, short, default_value_t=false)]
+    #[arg(long, short, default_value_t = false)]
     full_sync: bool,
 }
 

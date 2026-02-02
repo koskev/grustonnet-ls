@@ -55,7 +55,7 @@ impl From<Severity> for miette::Severity {
 }
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(name = env!("CARGO_BIN_NAME"), version, about, long_about = None)]
 struct Args {
     paths: Vec<PathBuf>,
 
@@ -95,9 +95,15 @@ async fn main() -> Result<()> {
         )
     }));
 
-    let paths: Vec<PathBuf> = args.paths.iter().flat_map(|path| {
-        if path.is_dir() {
-            glob::glob(&format!("{}/**/*.*sonnet", path.to_str().expect("invalid path string")))
+    let paths: Vec<PathBuf> = args
+        .paths
+        .iter()
+        .flat_map(|path| {
+            if path.is_dir() {
+                glob::glob(&format!(
+                    "{}/**/*.*sonnet",
+                    path.to_str().expect("invalid path string")
+                ))
                 .unwrap()
                 .filter_map(|g| {
                     if g.as_ref().ok()?.is_file() {
@@ -106,12 +112,12 @@ async fn main() -> Result<()> {
                         None
                     }
                 })
-            .collect()
-        } else {
-            vec![path.clone()]
-        }
-    }
-    ).collect();
+                .collect()
+            } else {
+                vec![path.clone()]
+            }
+        })
+        .collect();
     let server = JsonnetServer::default();
     server
         .configuration
