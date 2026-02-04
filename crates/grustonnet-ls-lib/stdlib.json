@@ -102,7 +102,7 @@
       "fields": [
         {
           "availableSince": "0.15.0",
-          "description": "Clamp a value to fit within the range [`minVal`, `maxVal`].\nEquivalent to `std.max(minVal, std.min(x, maxVal))`.\n",
+          "description": "Clamp a value to fit within the range \\[`minVal`, `maxVal`\\].\nEquivalent to `std.max(minVal, std.min(x, maxVal))`.\n",
           "name": "clamp",
           "params": [
             "x",
