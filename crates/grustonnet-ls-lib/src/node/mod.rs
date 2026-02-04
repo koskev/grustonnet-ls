@@ -6,6 +6,7 @@
 use std::sync::Arc;
 
 use anyhow::{Result, anyhow};
+use fallible_iterator::FallibleIterator;
 use grustonnet_node::{
     stack::NodeStack,
     types::{
@@ -60,7 +61,7 @@ impl Stackhelper for NodeStack {
                 let call_iter = CallStackIter::new_with_call_stack(cache, self, call_stack.clone())
                     .ok_or(anyhow!("could not resolve call stack"))?;
                 call_iter
-                    .last()
+                    .last()?
                     .ok_or(anyhow!("Call iter was empty. Stack: {}", call_stack))?
             }
             _ => {

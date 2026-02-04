@@ -1,14 +1,29 @@
 use std::sync::Arc;
 
-use grustonnet_node::{stack::NodeStack, types::{literals::LiteralBoolean, node::Node, node_kind::NodeKind}};
+use fallible_iterator::FallibleIterator;
+use grustonnet_node::{
+    stack::NodeStack,
+    types::{literals::LiteralBoolean, node::Node, node_kind::NodeKind},
+};
 use language_server::cache::Cache;
 
-use crate::{cache::JsonnetASTGenerator, completion::{local::call_stack_iter::CallStackIter, stdlib::{functions::{get_parameter, get_parameter_value, get_parameter_value_parse, object_has_ex::ObjectHasEx}, StdArgument, StdLibCallError, StdLibFunction}}};
-
+use crate::{
+    cache::JsonnetASTGenerator,
+    completion::{
+        local::call_stack_iter::CallStackIter,
+        stdlib::{
+            StdArgument, StdLibCallError, StdLibFunction,
+            functions::{
+                get_parameter, get_parameter_value, get_parameter_value_parse,
+                object_has_ex::ObjectHasEx,
+            },
+        },
+    },
+};
 
 pub struct Get<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,
-    pub document_stack: &'a NodeStack
+    pub document_stack: &'a NodeStack,
 }
 
 impl<'a> StdLibFunction for Get<'a> {
@@ -24,7 +39,13 @@ impl<'a> StdLibFunction for Get<'a> {
             },
             StdArgument {
                 name: "default",
-                default_value: Some(Node{node_kind: Box::new(NodeKind::LiteralNull), ..Default::default()}.into()),
+                default_value: Some(
+                    Node {
+                        node_kind: Box::new(NodeKind::LiteralNull),
+                        ..Default::default()
+                    }
+                    .into(),
+                ),
                 ..Default::default()
             },
             StdArgument {
@@ -39,24 +60,34 @@ impl<'a> StdLibFunction for Get<'a> {
         let object = get_parameter(&params, 0)?;
         let name = get_parameter_value(&params, 1)?;
         let default = get_parameter(&params, 2)?;
-        let inc_hidden= get_parameter_value_parse(&params, 3)?;
+        let inc_hidden = get_parameter_value_parse(&params, 3)?;
         // XXX: The clone might break something?
         let mut stack = self.document_stack.clone();
         stack.push(object);
 
         let resolved = CallStackIter::new(self.cache, &mut stack)
-            .ok_or(StdLibCallError::InvalidArgument { reason: "Unable to create callsack".into() })?
+            .ok_or(StdLibCallError::InvalidArgument {
+                reason: "Unable to create callsack".into(),
+            })?
             .last()
-            .ok_or(StdLibCallError::InvalidArgument { reason: "Can't resolve variable".into() })?;
+            .map_err(|_e| StdLibCallError::Unknown)?
+            .ok_or(StdLibCallError::InvalidArgument {
+                reason: "Can't resolve variable".into(),
+            })?;
 
-        let found = ObjectHasEx{
+        let found = ObjectHasEx {
             document_stack: self.document_stack,
-        }.object_has_ex(resolved.clone(), &name, inc_hidden);
-        Ok(if found && let NodeKind::DesugaredObject(obj) = resolved.node_kind.as_ref() {
-            obj.get_field(&name).ok_or(StdLibCallError::Unknown)?.body.clone()
-        } else {
-            default
-        })
+        }
+        .object_has_ex(resolved.clone(), &name, inc_hidden);
+        Ok(
+            if found && let NodeKind::DesugaredObject(obj) = resolved.node_kind.as_ref() {
+                obj.get_field(&name)
+                    .ok_or(StdLibCallError::Unknown)?
+                    .body
+                    .clone()
+            } else {
+                default
+            },
+        )
     }
 }
-

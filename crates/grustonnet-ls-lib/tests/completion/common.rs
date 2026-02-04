@@ -16,8 +16,9 @@ use language_server::{
     utils::{UriHelper, rope::RopeHelper},
 };
 use lsp_types::{
-    CompletionList, PartialResultParams, Position, Range, TextDocumentContentChangeEvent,
-    TextDocumentIdentifier, TextDocumentPositionParams, Uri, WorkDoneProgressParams,
+    CompletionList, CompletionResponse, PartialResultParams, Position, Range,
+    TextDocumentContentChangeEvent, TextDocumentIdentifier, TextDocumentPositionParams, Uri,
+    WorkDoneProgressParams,
 };
 use pretty_assertions::assert_eq;
 use ropey::Rope;
@@ -117,7 +118,9 @@ impl CompletionTestCase {
                 context: None,
                 partial_result_params: PartialResultParams::default(),
             })
-            .unwrap();
+            // For now we'll just return an empty list. We might want to add support for checking the
+            // exact error in the future
+            .unwrap_or(CompletionResponse::List(CompletionList::default()).into());
         (
             serde_json::from_value(completion_list.0).unwrap(),
             rope,

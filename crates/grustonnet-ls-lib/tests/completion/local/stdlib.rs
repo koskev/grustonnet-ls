@@ -24,7 +24,6 @@ fn std_without_loop_support() {
     .check();
 }
 
-
 #[test]
 fn get_key() {
     CompletionTestCase {
@@ -90,12 +89,10 @@ fn get_hidden_false() {
         replace_by_string: "x:: self.withoutHidden.".into(),
         expected: CompletionList {
             is_incomplete: false,
-            items: vec![
-                CompletionItem {
-                    label: "default".to_string(),
-                    ..Default::default()
-                }
-            ],
+            items: vec![CompletionItem {
+                label: "default".to_string(),
+                ..Default::default()
+            }],
         },
         config: local_config(),
         ..Default::default()
@@ -111,8 +108,7 @@ fn get_local() {
         replace_by_string: "x:: fromLocal.".into(),
         expected: CompletionList {
             is_incomplete: false,
-            items: vec![
-            CompletionItem {
+            items: vec![CompletionItem {
                 label: "inner".to_string(),
                 ..Default::default()
             }],
@@ -132,8 +128,7 @@ fn get_direct() {
         replace_by_string: "x:: std.get(myVar, 'key').".into(),
         expected: CompletionList {
             is_incomplete: false,
-            items: vec![
-            CompletionItem {
+            items: vec![CompletionItem {
                 label: "inner".to_string(),
                 ..Default::default()
             }],
@@ -232,6 +227,22 @@ fn flatten_array_two() {
                 label: "keyTwo".to_string(),
                 ..Default::default()
             }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn invalid_chain() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/invalid_chain.jsonnet".into(),
+        replace_string: "x: std.isBoolean(1)".into(),
+        replace_by_string: "x: std.isBoolean(1).".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![],
         },
         config: local_config(),
         ..Default::default()

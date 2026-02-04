@@ -5,6 +5,7 @@
 
 use std::sync::Arc;
 
+use fallible_iterator::FallibleIterator;
 use grustonnet_node::types::{
     desugared_object::DesugaredObjectField,
     index::Index,
@@ -38,7 +39,7 @@ impl DocumentationInfo {
             .get_stack_by_position(&node.node_base.loc_range.end);
         //let iter = ResolveNodeIter::new(node, &mut doc_stack, cache);
         let iter = CallStackIter::new(cache, &mut doc_stack)?;
-        let last_node = iter.last()?;
+        let last_node = iter.last().ok()??;
 
         match last_node.node_kind.as_ref() {
             NodeKind::DesugaredObject(obj) => {
@@ -110,7 +111,7 @@ impl DocumentationInfo {
             doc_stack.push(prev_node.clone());
         }
         let iter = CallStackIter::new(cache, &mut doc_stack)?;
-        iter.last()
+        iter.last().ok()?
     }
 
     pub fn from_docsonnet_node(

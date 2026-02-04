@@ -8,7 +8,10 @@ use std::{sync::Arc, time::Instant};
 use crate::{
     cache::JsonnetASTGenerator,
     completion::{
-        local::{call_stack_iter::CallStackIter, resolve_node_iter::ResolveNodeIter},
+        local::{
+            call_stack_iter::{CallStackError, CallStackIter},
+            resolve_node_iter::ResolveNodeIter,
+        },
         std::StdCompletion,
     },
     documentation::DocumentationInfo,
@@ -103,7 +106,7 @@ impl<'a> LocalCompletion<'a> {
         let mut document_stack = document_stack;
         let iter = CallStackIter::new(self.cache, &mut document_stack)
             .ok_or(LocalError::CreateCallstack)?;
-        iter.last().ok_or(LocalError::ReolveLastNode.into())
+        iter.last()?.ok_or(CallStackError::Unknown.into())
     }
 }
 

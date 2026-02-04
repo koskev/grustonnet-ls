@@ -147,7 +147,7 @@ impl<'a> ResolveNodeIter<'a> {
             }
             NodeKind::Index(_idx) => {
                 let compiled_index: Arc<Node> =
-                    CallStackIter::new(self.cache, self.document_stack)?.last()?;
+                    CallStackIter::new(self.cache, self.document_stack)?.last().ok()??;
                 self.search_stack.push(compiled_index.clone());
                 Some(compiled_index)
             }
@@ -176,7 +176,7 @@ impl<'a> ResolveNodeIter<'a> {
                         resolved.node_kind,
                     );
                     self.search_stack.push(resolved.clone());
-                    let resolved = CallStackIter::new(self.cache, &mut self.search_stack.clone())?.last()?;
+                    let resolved = CallStackIter::new(self.cache, &mut self.search_stack.clone())?.last().ok()??;
                     for stack_node in &self.search_stack.stack {
                         // If the search stack still has the var we probably have infinite
                         // recursion

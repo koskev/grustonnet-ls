@@ -11,8 +11,12 @@ use grustonnet_node::{
     types::{node::Node, node_kind::NodeKind},
 };
 use language_server::cache::Cache;
+use thiserror::Error;
 
-use crate::{cache::JsonnetASTGenerator, completion::local::resolve_node_iter::ResolveNodeIter};
+use crate::{
+    cache::JsonnetASTGenerator,
+    completion::local::resolve_node_iter::{ResolveError, ResolveNodeIter},
+};
 
 pub struct CallStackIter<'a> {
     pub call_stack: NodeStack,
@@ -58,17 +62,31 @@ impl<'a> CallStackIter<'a> {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum CallStackError {
+    #[error("Max iterations reached")]
+    MaxIterations,
+    #[error("Target is not indexable")]
+    NotIndexable,
+    #[error("Unable to resolve node {resolve_error}")]
+    Resolve { resolve_error: ResolveError },
+    #[error("Unknown resolve error")]
+    Unknown,
+}
+
 // This iterator resolves one of a.b.c.d in every iteration
-// TODO: by using an iterator we don't have any way of knowing if we have an error or are at the
-// end
-impl<'a> Iterator for CallStackIter<'a> {
+impl<'a> FallibleIterator for CallStackIter<'a> {
     type Item = Arc<Node>;
-    fn next(&mut self) -> Option<Self::Item> {
+    type Error = CallStackError;
+
+    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
+        let Some(call_node) = self.call_stack.stack.pop() else {
+            return Ok(None);
+        };
         self.iterations += 1;
         if self.iterations > 10_000 {
-            return None;
+            return Err(Self::Error::MaxIterations);
         }
-        let call_node = self.call_stack.stack.pop()?;
         log::trace!("New call node: {}", call_node.node_kind);
         // Get the next object to complete. If we don't have a base object: Just use the call node
         // if we have a base object: Check for the DesugaredObject fields and get the correct one
@@ -81,7 +99,8 @@ impl<'a> Iterator for CallStackIter<'a> {
                     let mut stack = self.document_stack.clone();
                     let resolved = ResolveNodeIter::new(idx.index.clone(), &mut stack, self.cache)
                         .last()
-                        .ok()??;
+                        .map_err(|e| CallStackError::Resolve { resolve_error: e })?
+                        .ok_or(CallStackError::Unknown)?;
                     idx.index = resolved;
 
                     log::trace!(
@@ -91,8 +110,9 @@ impl<'a> Iterator for CallStackIter<'a> {
                     );
                     match base_object.node_kind.as_ref() {
                         NodeKind::DesugaredObject(obj) => {
-                            let index_name = idx.get_name()?;
-                            let found_field = obj.get_field(&index_name)?;
+                            let index_name = idx.get_name().ok_or(CallStackError::Unknown)?;
+                            let found_field =
+                                obj.get_field(&index_name).ok_or(CallStackError::Unknown)?;
                             found_field.body.clone()
                         }
                         // arr[0] is basically arr.0
@@ -107,7 +127,8 @@ impl<'a> Iterator for CallStackIter<'a> {
                             }
                         }
                         // Index does not point to an object
-                        _ => base_object.clone(),
+                        //_ => base_object.clone(),
+                        _ => return Err(CallStackError::NotIndexable),
                     }
                 }
                 // Not an index
@@ -117,13 +138,14 @@ impl<'a> Iterator for CallStackIter<'a> {
         // Actually resolve the object
         let new_object = ResolveNodeIter::new(to_complete_object, self.document_stack, self.cache)
             .last()
-            .ok()??;
+            .map_err(|e| CallStackError::Resolve { resolve_error: e })?
+            .ok_or(CallStackError::Unknown)?;
         log::trace!(
             "New object: {} Stack: {}",
             new_object.node_kind,
             self.document_stack
         );
         self.base_object = Some(new_object);
-        self.base_object.clone()
+        Ok(self.base_object.clone())
     }
 }
