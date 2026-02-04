@@ -309,7 +309,7 @@
         },
         {
           "availableSince": "0.10.0",
-          "description": "Format the string `str` using the values in `vals`. The values can be\nan array, an object, or in other cases are treated as if they were provided in a singleton\narray. The string formatting follows the <a\nhref=\"https://docs.python.org/2/library/stdtypes.html#string-formatting\">same rules</a> as\nPython. The `%` operator can be used as a shorthand for this function.\n",
+          "description": "Format the string `str` using the values in `vals`. The values can be\nan array, an object, or in other cases are treated as if they were provided in a singleton\narray. The string formatting follows the [same rules](https://docs.python.org/2/library/stdtypes.html#string-formatting) as\nPython. The `%` operator can be used as a shorthand for this function.\n",
           "name": "format",
           "params": [
             "str",
@@ -404,7 +404,7 @@
         },
         {
           "availableSince": "0.13.0",
-          "description": "Encode a string using <a href=\"https://en.wikipedia.org/wiki/UTF-8\">UTF8</a>. Returns an array of numbers\nrepresenting bytes.\n",
+          "description": "Encode a string using [UTF8](https://en.wikipedia.org/wiki/UTF-8). Returns an array of numbers\nrepresenting bytes.\n",
           "name": "encodeUTF8",
           "params": [
             "str"
@@ -412,7 +412,7 @@
         },
         {
           "availableSince": "0.13.0",
-          "description": "Decode an array of numbers representing bytes using <a href=\"https://en.wikipedia.org/wiki/UTF-8\">UTF8</a>.\nReturns a string.\n",
+          "description": "Decode an array of numbers representing bytes using [UTF8](https://en.wikipedia.org/wiki/UTF-8).\nReturns a string.\n",
           "name": "decodeUTF8",
           "params": [
             "arr"
@@ -426,7 +426,7 @@
       "fields": [
         {
           "availableSince": "0.10.0",
-          "description": "Convert the given structure to a string in <a href=\"https://en.wikipedia.org/wiki/INI_file\">INI format</a>. This\nallows using Jsonnet's\nobject model to build a configuration to be consumed by an application expecting an INI\nfile. The data is in the form of a set of sections, each containing a key/value mapping.\nThese examples should make it clear:\n\n\n`{\n    main: { a: \"1\", b: \"2\" },\n    sections: {\n        s1: {x: \"11\", y: \"22\", z: \"33\"},\n        s2: {p: \"yes\", q: \"\"},\n        empty: {},\n    }\n}\n`\nYields a string containing this INI file:\n\n\n`a = 1\nb = 2\n[empty]\n[s1]\nx = 11\ny = 22\nz = 33\n[s2]\np = yes\nq =\n`",
+          "description": "Convert the given structure to a string in [INI format](https://en.wikipedia.org/wiki/INI_file). This\nallows using Jsonnet's\nobject model to build a configuration to be consumed by an application expecting an INI\nfile. The data is in the form of a set of sections, each containing a key/value mapping.\nThese examples should make it clear:\n\n\n`{\n    main: { a: \"1\", b: \"2\" },\n    sections: {\n        s1: {x: \"11\", y: \"22\", z: \"33\"},\n        s2: {p: \"yes\", q: \"\"},\n        empty: {},\n    }\n}\n`\nYields a string containing this INI file:\n\n\n`a = 1\nb = 2\n[empty]\n[s1]\nx = 11\ny = 22\nz = 33\n[s2]\np = yes\nq =\n`",
           "name": "manifestIni",
           "params": [
             "ini"
@@ -498,7 +498,7 @@
         },
         {
           "availableSince": "0.10.0",
-          "description": "Convert the given <a href=\"http://www.jsonml.org/\">JsonML</a>-encoded value to a string\ncontaining the XML.\n\n\n`std.manifestXmlJsonml([\n    'svg', { height: 100, width: 100 },\n    [\n        'circle', {\n        cx: 50, cy: 50, r: 40,\n        stroke: 'black', 'stroke-width': 3,\n        fill: 'red',\n        }\n    ],\n])\n`\nYields a string containing this XML (all on one line):\n\n\n`&lt;svg height=\"100\" width=\"100\"&gt;\n    &lt;circle cx=\"50\" cy=\"50\" fill=\"red\" r=\"40\"\n    stroke=\"black\" stroke-width=\"3\"&gt;&lt;/circle&gt;;\n&lt;/svg&gt;;\n`\nWhich represents the following image:\n\n\n<svg height=\"100\" width=\"100\">\n    <circle cx=\"50\" cy=\"50\" r=\"40\" stroke=\"black\" stroke-width=\"3\" fill=\"red\" />\n    Sorry, your browser does not support inline SVG.\n</svg>\n\nJsonML is designed to preserve \"mixed-mode content\" (i.e., textual data outside of or next\nto elements). This includes the whitespace needed to avoid having all the XML on one line,\nwhich is meaningful in XML. In order to have whitespace in the XML output, it must be\npresent in the JsonML input:\n\n\n`std.manifestXmlJsonml([\n    'svg',\n    { height: 100, width: 100 },\n    '\\n  ',\n    [\n        'circle',\n        {\n        cx: 50, cy: 50, r: 40, stroke: 'black',\n        'stroke-width': 3, fill: 'red',\n        }\n    ],\n    '\\n',\n])\n`",
+          "description": "Convert the given [JsonML](http://www.jsonml.org/)-encoded value to a string\ncontaining the XML.\n\n\n`std.manifestXmlJsonml([\n    'svg', { height: 100, width: 100 },\n    [\n        'circle', {\n        cx: 50, cy: 50, r: 40,\n        stroke: 'black', 'stroke-width': 3,\n        fill: 'red',\n        }\n    ],\n])\n`\nYields a string containing this XML (all on one line):\n\n\n`&lt;svg height=\"100\" width=\"100\"&gt;\n    &lt;circle cx=\"50\" cy=\"50\" fill=\"red\" r=\"40\"\n    stroke=\"black\" stroke-width=\"3\"&gt;&lt;/circle&gt;;\n&lt;/svg&gt;;\n`\nWhich represents the following image:\n\n\n<svg height=\"100\" width=\"100\">\n    <circle cx=\"50\" cy=\"50\" r=\"40\" stroke=\"black\" stroke-width=\"3\" fill=\"red\" />\n    Sorry, your browser does not support inline SVG.\n</svg>\n\nJsonML is designed to preserve \"mixed-mode content\" (i.e., textual data outside of or next\nto elements). This includes the whitespace needed to avoid having all the XML on one line,\nwhich is meaningful in XML. In order to have whitespace in the XML output, it must be\npresent in the JsonML input:\n\n\n`std.manifestXmlJsonml([\n    'svg',\n    { height: 100, width: 100 },\n    '\\n  ',\n    [\n        'circle',\n        {\n        cx: 50, cy: 50, r: 40, stroke: 'black',\n        'stroke-width': 3, fill: 'red',\n        }\n    ],\n    '\\n',\n])\n`",
           "name": "manifestXmlJsonml",
           "params": [
             "value"
@@ -566,7 +566,7 @@
         },
         {
           "availableSince": "0.10.0",
-          "description": "Similar to <a href=\"#map\">map</a> above, but it also passes to the function the element's\nindex in the array. The function `func` is expected to take the index as the\nfirst parameter and the element as the second.\n",
+          "description": "Similar to [map](#map) above, but it also passes to the function the element's\nindex in the array. The function `func` is expected to take the index as the\nfirst parameter and the element as the second.\n",
           "name": "mapWithIndex",
           "params": [
             "func",
@@ -1054,7 +1054,7 @@
       "fields": [
         {
           "availableSince": "0.10.0",
-          "description": "Applies `patch` to `target`\naccording to <a href=\"https://tools.ietf.org/html/rfc7396\">RFC7396</a>\n",
+          "description": "Applies `patch` to `target`\naccording to [RFC7396](https://tools.ietf.org/html/rfc7396)\n",
           "name": "mergePatch",
           "params": [
             "target",
