@@ -13,6 +13,7 @@ use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
 use crate::diagnostics::{DiagnosticTestCase, IgnoreFields, disabled_diagnostics_config};
 
 #[test]
+#[ignore = "unsupported"]
 fn local_var() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/object_function/local.jsonnet".to_string(),

@@ -23,6 +23,8 @@ use thiserror::Error;
 pub enum ResolveError {
     #[error("Max iterations reached")]
     MaxIterations,
+    #[error("Unknown resolve error")]
+    Unknown,
 }
 
 pub struct ResolveNodeIter<'a> {
@@ -293,11 +295,14 @@ impl<'a> ResolveNodeIter<'a> {
             NodeKind::Binary(binary) => {
                 // TODO: handle array
                 let resolved_left =
-                    ResolveNodeIter::new(binary.left.clone(), self.document_stack, self.cache).last().ok()?;
+                    ResolveNodeIter::new(binary.left.clone(), self.document_stack, self.cache).last().ok();
                 let resolved_right =
-                    ResolveNodeIter::new(binary.right.clone(), self.document_stack, self.cache).last().ok()?;
+                    ResolveNodeIter::new(binary.right.clone(), self.document_stack, self.cache).last().ok();
                 // Both are object
-                if let Some(resolved_left) = &resolved_left && let Some(resolved_right) = &resolved_right {
+                if 
+                    let Some(resolved_left) = &resolved_left && let Some(resolved_right) = &resolved_right &&
+                    let Some(resolved_left) = &resolved_left && let Some(resolved_right) = &resolved_right
+                {
                     if let NodeKind::DesugaredObject(left) = resolved_left.node_kind.as_ref() && let NodeKind::DesugaredObject(right) = resolved_right.node_kind.as_ref() {
                         let merged_node = Arc::new(Node {
                             node_base: binary.left.node_base.clone(),
@@ -314,7 +319,7 @@ impl<'a> ResolveNodeIter<'a> {
                     }
                 } else {
                     // Only one can be resolved e.g. due to unsupported statements
-                    resolved_right.or(resolved_left)
+                    resolved_right.or(resolved_left)?
                 }
             }
             NodeKind::SuperIndex(_) => self.handle_self_super(&current_node, true),
@@ -400,6 +405,9 @@ impl<'a> FallibleIterator for ResolveNodeIter<'a> {
                 return Ok(Some(resolved));
             }
             log::debug!("failed to handle node in {:?}", start.elapsed());
+            if self.search_stack.stack.is_empty() {
+                return Err(ResolveError::Unknown);
+            }
         }
         Ok(None)
     }
