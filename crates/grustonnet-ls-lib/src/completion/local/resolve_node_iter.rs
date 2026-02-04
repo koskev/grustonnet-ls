@@ -5,6 +5,7 @@
 
 use std::{sync::Arc, time::Instant};
 
+use fallible_iterator::FallibleIterator;
 use grustonnet_node::{
     stack::NodeStack,
     types::{node::Node, node_kind::NodeKind},
@@ -16,6 +17,13 @@ use crate::{
     cache::JsonnetASTGenerator,
     completion::{local::call_stack_iter::CallStackIter, stdlib::call_std_function},
 };
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum ResolveError {
+    #[error("Max iterations reached")]
+    MaxIterations,
+}
 
 pub struct ResolveNodeIter<'a> {
     pub search_stack: NodeStack,
@@ -103,7 +111,9 @@ impl<'a> ResolveNodeIter<'a> {
             let merged_node = nodes
                 .iter()
                 .filter_map(|node| {
-                    ResolveNodeIter::new(node.clone(), self.document_stack, self.cache).last()
+                    ResolveNodeIter::new(node.clone(), self.document_stack, self.cache)
+                        .last()
+                        .ok()?
                 })
                 .reduce(|acc, e| {
                     if let NodeKind::DesugaredObject(obj1) = acc.node_kind.as_ref()
@@ -283,9 +293,9 @@ impl<'a> ResolveNodeIter<'a> {
             NodeKind::Binary(binary) => {
                 // TODO: handle array
                 let resolved_left =
-                    ResolveNodeIter::new(binary.left.clone(), self.document_stack, self.cache).last();
+                    ResolveNodeIter::new(binary.left.clone(), self.document_stack, self.cache).last().ok()?;
                 let resolved_right =
-                    ResolveNodeIter::new(binary.right.clone(), self.document_stack, self.cache).last();
+                    ResolveNodeIter::new(binary.right.clone(), self.document_stack, self.cache).last().ok()?;
                 // Both are object
                 if let Some(resolved_left) = &resolved_left && let Some(resolved_right) = &resolved_right {
                     if let NodeKind::DesugaredObject(left) = resolved_left.node_kind.as_ref() && let NodeKind::DesugaredObject(right) = resolved_right.node_kind.as_ref() {
@@ -353,17 +363,20 @@ impl<'a> ResolveNodeIter<'a> {
     }
 }
 
-impl<'a> Iterator for ResolveNodeIter<'a> {
+// TODO: Evaluate if we actually need to have an iterator or if a "resolve_node" function is just
+// better
+impl<'a> FallibleIterator for ResolveNodeIter<'a> {
     type Item = Arc<Node>;
+    type Error = ResolveError;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
         if self.iterations_left == 0 {
-            return None;
+            return Err(Self::Error::MaxIterations);
         }
         self.iterations_left -= 1;
         if let Some(next_node) = self.next_nodes.pop() {
             self.search_stack.push(next_node.clone());
-            return Some(next_node);
+            return Ok(Some(next_node));
         }
         while let Some(current_node) = self.search_stack.stack.pop() {
             self.seen_nodes.push(current_node.clone());
@@ -379,16 +392,16 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
                 self.iterations_left = 0;
                 self.document_stack.stack.clear();
                 self.search_stack.stack.clear();
-                return None;
+                return Err(Self::Error::MaxIterations);
             }
             let start = Instant::now();
             if let Some(resolved) = self.handle_node(current_node) {
                 log::debug!("Successfull handled node in {:?}", start.elapsed());
-                return Some(resolved);
+                return Ok(Some(resolved));
             }
             log::debug!("failed to handle node in {:?}", start.elapsed());
         }
-        None
+        Ok(None)
     }
 }
 
@@ -396,6 +409,7 @@ impl<'a> Iterator for ResolveNodeIter<'a> {
 mod test {
     use std::sync::Arc;
 
+    use fallible_iterator::FallibleIterator;
     use grustonnet_node::{
         stack::NodeStack,
         types::{literals::LiteralString, node::Node, node_kind::NodeKind},
@@ -420,6 +434,7 @@ mod test {
         };
         let resolved = ResolveNodeIter::new(node.clone(), &mut stack, &cache)
             .last()
+            .unwrap()
             .unwrap();
 
         assert_eq!(resolved.node_kind, node.node_kind);

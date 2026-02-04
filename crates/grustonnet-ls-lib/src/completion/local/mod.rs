@@ -14,6 +14,7 @@ use crate::{
     documentation::DocumentationInfo,
 };
 use anyhow::Result;
+use fallible_iterator::FallibleIterator;
 use grustonnet_config::CompletionConfig;
 use grustonnet_node::{
     stack::NodeStack,
@@ -91,7 +92,7 @@ impl<'a> LocalCompletion<'a> {
             };
             base_object = Some(
                 ResolveNodeIter::new(to_complete_object, document_stack, self.cache)
-                    .last()
+                    .last()?
                     .ok_or(LocalError::ReolveLastNode)?,
             );
         }
@@ -167,7 +168,9 @@ impl<'a> Completion for LocalCompletion<'a> {
                 .collect(),
             NodeKind::Var(var) => {
                 if var.is_std() {
-                    StdCompletion::new(Some(self.config.target_version)).complete(location, uri)?.items
+                    StdCompletion::new(Some(self.config.target_version))
+                        .complete(location, uri)?
+                        .items
                 } else {
                     log::warn!("Tried to complete var that is not std! {}", node.node_kind);
                     vec![]

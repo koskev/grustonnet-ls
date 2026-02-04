@@ -5,6 +5,7 @@
 
 use std::sync::Arc;
 
+use fallible_iterator::FallibleIterator;
 use grustonnet_node::{
     stack::NodeStack,
     types::{node::Node, node_kind::NodeKind},
@@ -78,8 +79,10 @@ impl<'a> Iterator for CallStackIter<'a> {
                     // always resolve the index to also handle functions etc in foo[bar()]
                     let mut idx = idx.clone();
                     let mut stack = self.document_stack.clone();
-                    let iter = ResolveNodeIter::new(idx.index.clone(), &mut stack, self.cache);
-                    idx.index = iter.last()?;
+                    let resolved = ResolveNodeIter::new(idx.index.clone(), &mut stack, self.cache)
+                        .last()
+                        .ok()??;
+                    idx.index = resolved;
 
                     log::trace!(
                         "Index idx {} index targe {}",
@@ -112,8 +115,9 @@ impl<'a> Iterator for CallStackIter<'a> {
             },
         };
         // Actually resolve the object
-        let new_object =
-            ResolveNodeIter::new(to_complete_object, self.document_stack, self.cache).last()?;
+        let new_object = ResolveNodeIter::new(to_complete_object, self.document_stack, self.cache)
+            .last()
+            .ok()??;
         log::trace!(
             "New object: {} Stack: {}",
             new_object.node_kind,
