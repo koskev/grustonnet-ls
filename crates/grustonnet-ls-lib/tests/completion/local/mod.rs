@@ -40,5 +40,6 @@ pub mod object;
 pub mod selfnode;
 pub mod shadow;
 pub mod std_completion;
+pub mod stdfunctions;
 pub mod stdlib;
 pub mod superindex;

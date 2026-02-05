@@ -6,13 +6,30 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use grustonnet_node::{stack::NodeStack, types::{
-    base::NodeBase, function::{Arguments, Function, Parameter}, node::Node, node_kind::NodeKind, Identifier
-}};
+use grustonnet_node::{
+    stack::NodeStack,
+    types::{
+        Identifier,
+        base::NodeBase,
+        function::{Arguments, Function, Parameter},
+        node::Node,
+        node_kind::NodeKind,
+    },
+};
 use itertools::Itertools;
 use language_server::cache::Cache;
 
-use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::{std::STD_FUNCTIONS, stdlib::functions::{ext_vars::ExtVar, flatten_array::FlattenArray, fold::Fold, get::Get, make_array::MakeArray, object_has_ex::ObjectHasEx}}};
+use crate::{
+    bridge::GenerateAST,
+    cache::JsonnetASTGenerator,
+    completion::{
+        std::STD_FUNCTIONS,
+        stdlib::functions::{
+            ext_vars::ExtVar, flatten_array::FlattenArray, fold::Fold, get::Get,
+            make_array::MakeArray, object_has_ex::ObjectHasEx,
+        },
+    },
+};
 use thiserror::Error;
 
 pub mod functions;
@@ -72,12 +89,19 @@ pub fn call_std_function(
 ) -> Result<Arc<Node>, StdLibCallError> {
     let target: Box<dyn StdLibFunction> = match name {
         "makeArray" => Box::new(MakeArray {}),
-        "objectHasEx" => Box::new(ObjectHasEx {document_stack}),
+        "objectHasEx" => Box::new(ObjectHasEx { document_stack }),
         "extVar" => Box::new(ExtVar { cache }),
-        "get" => Box::new(Get {cache, document_stack}),
-        "foldl" => Box::new(Fold{cache, document_stack, reverse: false}),
-        "foldr" => Box::new(Fold{cache, document_stack, reverse: true}),
-        "flattenArrays" => Box::new(FlattenArray{cache, document_stack}),
+        "get" => Box::new(Get {
+            cache,
+            document_stack,
+        }),
+        // XXXX: Disabled due to infinite loops
+        //"foldl" => Box::new(Fold{cache, document_stack, reverse: false}),
+        //"foldr" => Box::new(Fold{cache, document_stack, reverse: true}),
+        "flattenArrays" => Box::new(FlattenArray {
+            cache,
+            document_stack,
+        }),
         // Current non Rust functions that return objects we might want to complete
         // prune
         // split
@@ -149,7 +173,9 @@ pub fn call_std_function(
         .map(|arg| arg.expr.clone())
         .collect();
     if params.len() > std_args.len() {
-        return Err(StdLibCallError::InvalidArgument{reason: "Too many arguments".into()});
+        return Err(StdLibCallError::InvalidArgument {
+            reason: "Too many arguments".into(),
+        });
     }
 
     std_args.drain(0..params.len());
@@ -158,9 +184,13 @@ pub fn call_std_function(
         match std_args
             .iter()
             .find_position(|std_arg| std_arg.name == named_arg.name.0)
-            .ok_or(StdLibCallError::InvalidArgument{reason: format!("Named argument {} not found in {:#?}", named_arg.name.0, &std_args)})
-        {
-            Ok((pos,_)) => {
+            .ok_or(StdLibCallError::InvalidArgument {
+                reason: format!(
+                    "Named argument {} not found in {:#?}",
+                    named_arg.name.0, &std_args
+                ),
+            }) {
+            Ok((pos, _)) => {
                 std_args.remove(pos);
                 params.push(named_arg.arg.clone());
             }
@@ -184,4 +214,3 @@ trait StdLibFunction: Sync {
         vec![]
     }
 }
-
