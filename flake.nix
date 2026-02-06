@@ -118,7 +118,7 @@
               reuse
 
               conform
-              pre-commit
+              prek
             ];
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
           LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";

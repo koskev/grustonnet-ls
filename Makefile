@@ -8,7 +8,7 @@ clippy:
 	cargo clippy -- --deny "warnings"
 
 install-hooks:
-	pre-commit install
+	prek install
 
 conform:
 	conform enforce --base-branch main~1
