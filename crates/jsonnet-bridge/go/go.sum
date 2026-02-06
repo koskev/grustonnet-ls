@@ -6,6 +6,8 @@ github.com/google/go-jsonnet v0.21.0 h1:43Bk3K4zMRP/aAZm9Po2uSEjY6ALCkYUVIcz9HLG
 github.com/google/go-jsonnet v0.21.0/go.mod h1:tCGAu8cpUpEZcdGMmdOu37nh8bGgqubhI5v2iSk3KJQ=
 github.com/ihciah/rust2go v0.0.0-20250905150534-7eab29ad7274 h1:HF7xj8RLDe6ayf79UAYdU/qvJvpZOewctiDFF4F9g6Q=
 github.com/ihciah/rust2go v0.0.0-20250905150534-7eab29ad7274/go.mod h1:SpcZZoVYDXYhx373JZ1onR8dnEcalKA0H61x/FJ9O0s=
+github.com/ihciah/rust2go v0.0.0-20260204100215-11857866675c h1:4SOS3jHy8y2ccJuofG0Eo3JDCX3NrZTvNtKNdHWo2+8=
+github.com/ihciah/rust2go v0.0.0-20260204100215-11857866675c/go.mod h1:SpcZZoVYDXYhx373JZ1onR8dnEcalKA0H61x/FJ9O0s=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sergi/go-diff v1.3.1 h1:xkr+Oxo4BOQKmkn/B9eMK0g5Kg/983T9DqqPHwYqD+8=
