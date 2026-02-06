@@ -15,7 +15,7 @@ jobs:
         uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
-          args: --verbose
+          args: --verbose --current
         env:
           OUTPUT: CHANGELOG.md
       - name: Upload changelog
