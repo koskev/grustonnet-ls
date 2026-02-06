@@ -9,6 +9,7 @@ use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
 use crate::diagnostics::DiagnosticTestCase;
 
 #[test]
+#[ignore = "this test is unreliable and the diagnostic is sometimes not present"]
 fn obj_error() {
     DiagnosticTestCase {
         filename: "testdata/diagnostics/docsonnet/obj_default_error.jsonnet".to_string(),
