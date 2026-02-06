@@ -10,11 +10,9 @@ workspace = true
 bincode = "2.0.1"
 lsp-types = { version = "0.97.0", features = ["proposed"] }
 serde = { version = "1.0.219", features = ["derive", "rc"] }
-tree-sitter = "0.25.10"
 language-server = { path = "../language-server"}
 jsonnet-location = { path = "../jsonnet-location"}
 log = "0.4.27"
-anyhow = "1.0.98"
 itertools = "0.14.0"
 name-variant = { path = "../name-variant"}
 jsonnet-bridge = { path = "../jsonnet-bridge"}

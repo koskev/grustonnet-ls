@@ -908,12 +908,10 @@ dependencies = [
  "glob",
  "grustonnet-ls-lib",
  "language-server",
- "log",
  "lsp-types",
  "miette",
  "ropey",
  "rust2go-env",
- "schemars 1.2.0",
  "serde",
  "serde_json",
  "tokio",
@@ -952,20 +950,15 @@ dependencies = [
  "reqwest",
  "rmp-serde",
  "ropey",
- "rust2go",
  "schemars 1.2.0",
  "semver",
  "serde",
  "serde_json",
- "similar",
- "smart-default",
  "strum",
  "test-macros",
  "thiserror",
- "tokio",
  "tracy-client",
  "tree-sitter",
- "tree-sitter-jsonnet",
  "utils",
  "walkdir",
 ]
@@ -974,7 +967,6 @@ dependencies = [
 name = "grustonnet-node"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "bincode",
  "grustonnet-config",
  "itertools 0.14.0",
@@ -985,7 +977,6 @@ dependencies = [
  "lsp-types",
  "name-variant",
  "serde",
- "tree-sitter",
 ]
 
 [[package]]
@@ -1429,13 +1420,9 @@ dependencies = [
  "jsonnet-location",
  "language-server",
  "lsp-server",
- "lsp-types",
  "name-variant",
  "regex",
  "rust2go",
- "schemars 1.2.0",
- "serde",
- "smart-default",
 ]
 
 [[package]]
@@ -2831,7 +2818,6 @@ checksum = "8f50febec83f5ee1df3015341d8bd429f2d1cc62bcba7ea2076759d315084683"
 name = "test-macros"
 version = "0.1.0"
 dependencies = [
- "proc-macro2",
  "quote",
  "syn 2.0.114",
  "utils",
