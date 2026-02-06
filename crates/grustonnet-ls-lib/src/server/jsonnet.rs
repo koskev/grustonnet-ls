@@ -10,7 +10,6 @@ use std::{
 
 use ::utils::RwLockPanic;
 use anyhow::{Result, anyhow};
-use bevy_tasks::TaskPool;
 use grustonnet_config::{Configuration, VariableNaming};
 use jsonnet_cst::{
     completion::{CompletionInfo, CompletionType},
@@ -36,6 +35,7 @@ use lsp_types::{
     SemanticTokensOptions, SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp,
     SignatureHelpOptions, SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 use crate::{
     bridge::GenerateAST,
@@ -100,11 +100,10 @@ impl JsonnetServer {
             JsonnetDiagnosticFilter::new(cache.clone()),
         );
         let task_queue = diagnostics_queue.clone();
-        bevy_tasks::ComputeTaskPool::get_or_init(bevy_tasks::TaskPool::default)
-            .spawn(async move {
-                task_queue.run();
-            })
-            .detach();
+        rayon::spawn(move || {
+            task_queue.run();
+        });
+
         Self {
             diagnostics_queue: Some(diagnostics_queue),
             connection,
@@ -318,20 +317,18 @@ impl LSPServer for JsonnetServer {
             let all_files = utils::files::get_all_jsonnnet_files(&eval_params.jpaths);
             let cache = self.cache.clone();
             let sender = self.connection.connection.sender.clone();
-            bevy_tasks::ComputeTaskPool::get_or_init(bevy_tasks::TaskPool::default)
-                .spawn(async move {
-                    let mut progress = WorkProgressSender::new(sender);
-                    progress.work_start("Analyzing workspace".into(), Some("Test".into()));
-                    for (i, uri) in all_files.iter().enumerate() {
-                        let _ = cache.get_document(uri);
-                        progress.work_progress(
-                            (i * 100 / all_files.len()) as u32,
-                            Some(format!("Loading file {}/{}", i, all_files.len())),
-                        );
-                    }
-                    progress.work_done();
-                })
-                .detach();
+            rayon::spawn(move || {
+                let mut progress = WorkProgressSender::new(sender);
+                progress.work_start("Analyzing workspace".into(), Some("Test".into()));
+                for (i, uri) in all_files.iter().enumerate() {
+                    let _ = cache.get_document(uri);
+                    progress.work_progress(
+                        (i * 100 / all_files.len()) as u32,
+                        Some(format!("Loading file {}/{}", i, all_files.len())),
+                    );
+                }
+                progress.work_done();
+            });
         }
 
         Ok(())
@@ -407,14 +404,14 @@ impl LSPServer for JsonnetServer {
             _ => (),
         }
 
-        let pool = TaskPool::new();
-        let lists = pool.scope(|s| {
-            for provider in completion_list {
+        let lists: Vec<_> = completion_list
+            .into_par_iter()
+            .map(|provider| {
                 let location = completion_info.pos.clone().into();
                 let uri = params.text_document_position.text_document.uri.clone();
-                s.spawn(async move { provider.complete(location, &uri) });
-            }
-        });
+                provider.complete(location, &uri)
+            })
+            .collect();
 
         let failed: Vec<_> = lists.iter().filter_map(|res| res.as_ref().err()).collect();
         let succeeded: Vec<&CompletionList> =
