@@ -7,7 +7,7 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-bincode = "2.0.1"
+bincode = "3.0.0"
 lsp-types = { version = "0.97.0", features = ["proposed"] }
 serde = { version = "1.0.219", features = ["derive", "rc"] }
 language-server = { path = "../language-server"}
