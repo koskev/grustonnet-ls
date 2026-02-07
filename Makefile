@@ -1,19 +1,52 @@
-build:
-	cargo build --release
+HOOK_BINARY ?= prek
+CONFORM ?= conform
+REUSE ?= reuse
+CARGO ?= cargo
+SCHEMA_OUTPUT ?= schema.json
 
-test:
-	cargo test
 
-clippy:
-	cargo clippy -- --deny "warnings"
+.PHONY: all
+all: build
 
-install-hooks:
-	prek install
+check-%:
+	@which $* > /dev/null 2>&1 || (echo "Could not find '$*' in PATH. Just install Nix and run 'direnv allow' if you are having issues installing the dependencies" && exit 1)
 
-conform:
-	conform enforce --base-branch main~1
+.PHONY: build
+build: check-$(CARGO)
+	$(CARGO) build --release
 
+build-%: check-$(CARGO)
+	$(CARGO) build --release --target $*
+
+.PHONY: clean
+clean: check-$(CARGO)
+	$(CARGO) clean
+
+.PHONY: test
+test: check-$(CARGO)
+	$(CARGO) test
+
+.PHONY: clippy
+clippy: check-$(CARGO)
+	$(CARGO) clippy -- --deny "warnings"
+
+.PHONY: install-hooks
+install-hooks: check-$(HOOK_BINARY)
+	$(HOOK_BINARY) install
+
+.PHONY: conform
+conform: check-$(CONFORM)
+	$(CONFORM) enforce --base-branch main
+
+.PHONY: check
 check: test conform
 
-license:
-	reuse annotate --copyright="Kevin Köster" --license="AGPL-3.0-or-later" -t default $$(find crates -type f -not \( -path "crates/name-variant/*" -prune \) -name '*.rs')
+.PHONY: license
+license: check-$(REUSE)
+	$(REUSE) annotate --copyright="Kevin Köster" --license="AGPL-3.0-or-later" -t default $$(find crates -type f -not \( -path "crates/name-variant/*" -prune \) -name '*.rs')
+
+$(SCHEMA_OUTPUT): check-cargo
+	$(CARGO) run -- --export-config-schema > $(SCHEMA_OUTPUT)
+
+.PHONY: schema
+schema: $(SCHEMA_OUTPUT)

@@ -71,7 +71,7 @@ jobs:
         if: ${{ contains(matrix.platform.target, 'windows') && contains(matrix.platform.runs-on, 'ubuntu') }}
         run: sudo apt update && sudo apt install gcc-mingw-w64 && rustup target add x86_64-pc-windows-gnu
       - name: Build binary
-        run: cargo build --release --target ${{ matrix.platform.target }}
+        run: make build-${{ matrix.platform.target }}
         env:
           RUST_BACKTRACE: 1
           GODEBUG: "invalidptr=0,cgocheck=0"
