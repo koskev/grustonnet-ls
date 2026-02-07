@@ -3,8 +3,11 @@ use std::sync::Arc;
 use grustonnet_node::types::{node::Node, node_kind::NodeKind};
 use language_server::cache::Cache;
 
-use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator, completion::stdlib::{StdArgument, StdLibCallError, StdLibFunction}};
-
+use crate::{
+    bridge::GenerateAST,
+    cache::JsonnetASTGenerator,
+    completion::stdlib::{StdArgument, StdLibCallError, StdLibFunction},
+};
 
 pub struct ExtVar<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,
@@ -32,12 +35,13 @@ impl<'a> StdLibFunction for ExtVar<'a> {
                 .ast_generator
                 .jsonnet
                 .get_ast_snippet_binary(&arg_node.node_base.loc_range.file_name, val)
-                .map_err(|_| StdLibCallError::Unknown)?
+                .map_err(|e| StdLibCallError::Wrapped { error: Box::new(e) })?
                 .into();
             Ok(ext_node)
         } else {
-            Err(StdLibCallError::InvalidArgument{reason: "Arg is not a string".into()})
+            Err(StdLibCallError::InvalidArgument {
+                reason: "Arg is not a string".into(),
+            })
         }
     }
 }
-

@@ -70,7 +70,7 @@ impl<'a> StdLibFunction for Get<'a> {
                 reason: "Unable to create callsack".into(),
             })?
             .last()
-            .map_err(|_e| StdLibCallError::Unknown)?
+            .map_err(|e| StdLibCallError::Wrapped { error: Box::new(e) })?
             .ok_or(StdLibCallError::InvalidArgument {
                 reason: "Can't resolve variable".into(),
             })?;
