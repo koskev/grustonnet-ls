@@ -502,7 +502,6 @@ fn function_return_arg_index_unnamed_arg() {
 }
 
 #[test]
-#[ignore = "broken"]
 fn function_return_arg_index_last() {
     CompletionTestCase {
         filename: "testdata/complete/functions/function_in_object.jsonnet".into(),

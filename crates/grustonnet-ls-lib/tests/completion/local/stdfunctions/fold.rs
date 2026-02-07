@@ -3,7 +3,6 @@ use lsp_types::{CompletionItem, CompletionList};
 use crate::completion::{common::CompletionTestCase, local::local_config};
 
 #[test]
-#[ignore = "fold disabled due to crash"]
 fn foldl_basic() {
     CompletionTestCase {
         filename: "testdata/complete/std/functions/fold.jsonnet".into(),
@@ -23,7 +22,6 @@ fn foldl_basic() {
 }
 
 #[test]
-#[ignore = "fold disabled due to crash"]
 fn foldr_basic() {
     CompletionTestCase {
         filename: "testdata/complete/std/functions/fold.jsonnet".into(),
