@@ -66,6 +66,8 @@ impl<'a> CallStackIter<'a> {
 pub enum CallStackError {
     #[error("Max iterations reached")]
     MaxIterations,
+    #[error("The stack is getting too large")]
+    StackTooLarge,
     #[error("Target is not indexable")]
     NotIndexable,
     #[error("Unable to resolve node {resolve_error}")]
@@ -73,6 +75,8 @@ pub enum CallStackError {
     #[error("Unknown resolve error")]
     Unknown,
 }
+
+const MIN_STACK_SIZE: usize = 1000 * 1024;
 
 // This iterator resolves one of a.b.c.d in every iteration
 impl<'a> FallibleIterator for CallStackIter<'a> {
@@ -87,6 +91,12 @@ impl<'a> FallibleIterator for CallStackIter<'a> {
         if self.iterations > 10_000 {
             return Err(Self::Error::MaxIterations);
         }
+        if let Some(remaining_stack) = stacker::remaining_stack()
+            && remaining_stack < MIN_STACK_SIZE
+        {
+            return Err(Self::Error::StackTooLarge);
+        }
+
         log::trace!("New call node: {}", call_node.node_kind);
         // Get the next object to complete. If we don't have a base object: Just use the call node
         // if we have a base object: Check for the DesugaredObject fields and get the correct one
