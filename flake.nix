@@ -68,10 +68,13 @@
           outputHash = "sha256-74BTSol7xE0uTYY5KOUC80NG2y79NstxNr57vi3ZG6k=";
         };
         nativeBuildInputs = with pkgs; [
+          pkg-config
+        ];
+
+        buildInputs = with pkgs; [
           go
 
           clang
-          pkg-config
         ];
 
       in
@@ -95,6 +98,7 @@
           '';
 
           inherit nativeBuildInputs;
+          inherit buildInputs;
           LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
           GODEBUG = "invalidptr=0,cgocheck=0";
         };
@@ -106,7 +110,6 @@
             nativeBuildInputs
             ++ [
               cargo
-              rustc
               cargo-tarpaulin
               clippy
               rustfmt
@@ -119,6 +122,12 @@
 
               conform
               prek
+            ];
+          buildInputs =
+            with pkgs;
+            buildInputs
+            ++ [
+              rustc
             ];
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
           LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
