@@ -98,8 +98,16 @@ pub fn call_std_function(
             document_stack,
         }),
         // XXXX: Disabled due to infinite loops
-        //"foldl" => Box::new(Fold{cache, document_stack, reverse: false}),
-        //"foldr" => Box::new(Fold{cache, document_stack, reverse: true}),
+        "foldl" => Box::new(Fold {
+            cache,
+            document_stack,
+            reverse: false,
+        }),
+        "foldr" => Box::new(Fold {
+            cache,
+            document_stack,
+            reverse: true,
+        }),
         "flattenArrays" => Box::new(FlattenArray {
             cache,
             document_stack,
