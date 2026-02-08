@@ -119,13 +119,35 @@ impl Var {
             if let Some(found) = match next_node.node_kind.as_ref() {
                 NodeKind::DesugaredObject(obj) => get_node_with_id(&obj.locals),
                 NodeKind::Local(local) => get_node_with_id(&local.binds),
-                NodeKind::Function(func) => func.parameters.iter().find_map(|p| {
-                    if p.name == *id {
-                        p.default_arg.clone()
-                    } else {
-                        None
-                    }
-                }),
+                NodeKind::Function(func) => {
+                    let found_default = func.parameters.iter().find_map(|p| {
+                        if p.name == *id {
+                            p.default_arg.clone()
+                        } else {
+                            None
+                        }
+                    });
+                    found_default.or(
+                        // If the parent is a map -> use one of the params as the default
+                        // The next one is the name of the func and after that the std node
+                        // The logic is kind of fucked and fragile, but works for now
+                        if let Some(next_node) = document_stack.peek()
+                        && let NodeKind::Apply(apply) = next_node.node_kind.as_ref()
+                        && let NodeKind::Index(target) = apply.target.node_kind.as_ref()
+                        && target.get_name().unwrap_or_default() == "map"
+                        && let NodeKind::Var(var) = target.target.node_kind.as_ref()
+                        && var.is_std()
+                        && let Some(array_arg) = apply.arguments.get_argument(1)
+                        // TODO: Resolve the array to support vars etc
+                        && let NodeKind::Array(arr) = array_arg.node_kind.as_ref()
+                        && !arr.elements.is_empty()
+                        {
+                            Some(arr.elements[0].expr.clone())
+                        } else {
+                            None
+                        },
+                    )
+                }
                 _ => None,
             } {
                 log::trace!("Found var: {}", found.node_kind.variant_name());

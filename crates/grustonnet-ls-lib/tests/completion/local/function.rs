@@ -553,3 +553,28 @@ fn function_return_arg_index_with_default_override() {
     }
     .check();
 }
+
+#[test]
+fn std_map_default_simple() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/map_default.jsonnet".into(),
+        replace_string: "x,".into(),
+        replace_by_string: "x.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "one".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "two".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
