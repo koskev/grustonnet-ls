@@ -31,7 +31,7 @@ use lsp_types::{
         SemanticTokensFullRequest, SignatureHelpRequest,
     },
 };
-use rand::RngCore;
+use rand::Rng;
 use ropey::Rope;
 use serde::Serialize;
 use utils::MutexPanic;
