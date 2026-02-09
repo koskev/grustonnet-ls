@@ -52,13 +52,15 @@ impl<'a> DefinitionProvider<'a> {
         match top_node.node_kind.as_ref() {
             // Special case: If we goto the name of a local function
             // TODO: what about a function definition itself?
-            NodeKind::Function(_func) => {
+            NodeKind::Function(_) | NodeKind::Conditional(_) => {
                 // If we have a local with a function and want issue a definition on the local
                 // identifier we have to ignore the function node as it would
                 // resolve to the body content and location
                 // e.g. local goto_test(arg) = {};
                 //              ^
                 //             <goto>
+
+                // If we don't remove the binary we won't get the correct position
                 let _ = document_stack.stack.pop();
             }
             NodeKind::LiteralString(import_str) => {

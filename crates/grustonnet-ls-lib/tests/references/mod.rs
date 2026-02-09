@@ -318,3 +318,44 @@ fn import_references() {
     }
     .check();
 }
+
+#[test]
+fn other_field_with_assert() {
+    ReferenceTestCase {
+        filename: "testdata/references/other_field_assert.jsonnet".into(),
+        source: Position {
+            line: 3,
+            character: 5,
+        },
+        targets: vec![
+            TargetInfo {
+                range: Range {
+                    start: Position {
+                        line: 3,
+                        character: 5,
+                    },
+                    end: Position {
+                        line: 3,
+                        character: 10,
+                    },
+                },
+                ..Default::default()
+            },
+            TargetInfo {
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 6,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 11,
+                    },
+                },
+                ..Default::default()
+            },
+        ],
+        ..Default::default()
+    }
+    .check();
+}
