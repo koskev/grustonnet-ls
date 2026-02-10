@@ -20,7 +20,10 @@ use language_server::cache::Cache;
 use crate::{
     cache::JsonnetASTGenerator,
     completion::{local::call_stack_iter::CallStackIter, stdlib::get_std_function_node},
+    node::var::VarHelper,
 };
+
+pub mod var;
 
 pub trait Stackhelper {
     fn get_last_unbuilt_node(&mut self, cache: &Cache<JsonnetASTGenerator>) -> Result<Arc<Node>>;
@@ -109,7 +112,7 @@ impl NodeHelper for Node {
             // TODO: If we have a().b().c().d() we will build the node way more than needed
             let mut last_node = temp_stack.get_last_unbuilt_node(cache).ok()?;
             if let NodeKind::Var(var) = last_node.node_kind.as_ref() {
-                last_node = var.resolve(&mut temp_stack)?;
+                last_node = var.resolve(cache.clone(), &mut temp_stack)?;
             }
             last_node
         };

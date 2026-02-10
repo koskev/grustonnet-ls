@@ -7,9 +7,12 @@ use std::sync::Arc;
 
 use grustonnet_node::types::{node::Node, node_kind::NodeKind};
 use jsonnet_location::LocationRange;
+use language_server::cache::Cache;
 use lsp_types::{SemanticTokenModifier, SemanticTokenType, SemanticTokens, SemanticTokensLegend};
 use name_variant::NamedVariant;
 use strum::{EnumDiscriminants, EnumIter, IntoEnumIterator};
+
+use crate::{cache::JsonnetASTGenerator, node::var::VarHelper};
 
 macro_rules! token_enum {
     ($name: ident, $lsp_type: ty, $($item: expr),*) => {
@@ -158,7 +161,7 @@ impl From<SemanticDataList> for lsp_types::SemanticTokens {
     }
 }
 
-pub fn get_tokens(root: Arc<Node>) -> SemanticDataList {
+pub fn get_tokens(root: Arc<Node>, cache: &Cache<JsonnetASTGenerator>) -> SemanticDataList {
     let document_stack = root.get_complete_stack();
 
     let mut search_stack = document_stack.clone();
@@ -184,7 +187,9 @@ pub fn get_tokens(root: Arc<Node>) -> SemanticDataList {
                 };
                 if var.id.clone().unwrap_or_default().0 == "std" {
                     data.node_modifier = vec![SemanticModifier::DefaultLibrary];
-                } else if let Some(var_node) = var.resolve(&mut document_stack.clone()) {
+                } else if let Some(var_node) =
+                    var.resolve(cache.clone(), &mut document_stack.clone())
+                {
                     match var_node.node_kind.as_ref() {
                         NodeKind::SelfNode => {
                             data.node_modifier = vec![SemanticModifier::DefaultLibrary];

@@ -1,12 +1,23 @@
 use std::sync::Arc;
 
-use grustonnet_node::{stack::NodeStack, types::{literals::LiteralBoolean, node::Node, node_kind::NodeKind}};
+use grustonnet_node::{
+    stack::NodeStack,
+    types::{literals::LiteralBoolean, node::Node, node_kind::NodeKind},
+};
+use language_server::cache::Cache;
 
-use crate::completion::stdlib::{functions::{get_parameter, get_parameter_value, get_parameter_value_parse}, StdLibCallError, StdLibFunction};
-
+use crate::{
+    cache::{self, JsonnetASTGenerator},
+    completion::stdlib::{
+        StdLibCallError, StdLibFunction,
+        functions::{get_parameter, get_parameter_value, get_parameter_value_parse},
+    },
+    node::var::VarHelper,
+};
 
 pub struct ObjectHasEx<'a> {
-    pub document_stack: &'a NodeStack
+    pub document_stack: &'a NodeStack,
+    pub cache: &'a Cache<JsonnetASTGenerator>,
 }
 
 impl<'a> ObjectHasEx<'a> {
@@ -31,7 +42,7 @@ impl<'a> ObjectHasEx<'a> {
     }
     pub fn object_has_ex(&self, object: Arc<Node>, name: &str, include_hidden: bool) -> bool {
         let object = if let NodeKind::Var(var) = object.node_kind.as_ref() {
-            var.resolve(&mut self.document_stack.clone())
+            var.resolve(self.cache.clone(), &mut self.document_stack.clone())
         } else {
             Some(object)
         };
@@ -42,9 +53,9 @@ impl<'a> ObjectHasEx<'a> {
             return false;
         };
 
-        obj.fields.iter().any(|field| {
-            field.name.get_name() == name && (field.hide == 1 || include_hidden)
-        })
+        obj.fields
+            .iter()
+            .any(|field| field.name.get_name() == name && (field.hide == 1 || include_hidden))
     }
 }
 

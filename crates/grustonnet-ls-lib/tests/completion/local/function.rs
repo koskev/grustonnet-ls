@@ -578,3 +578,30 @@ fn std_map_default_simple() {
     }
     .check();
 }
+
+#[test]
+fn std_map_default_from_var() {
+    CompletionTestCase {
+        filename: "testdata/complete/functions/map_default.jsonnet".into(),
+        replace_string: "y,".into(),
+        // XXX: Need to add the , to avoid an implicit binary :/
+        replace_by_string: "y.,".into(),
+        position_offset: -1,
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "one".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "two".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}

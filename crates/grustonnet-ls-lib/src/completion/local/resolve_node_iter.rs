@@ -15,7 +15,7 @@ use lsp_types::Uri;
 
 use crate::{
     cache::JsonnetASTGenerator,
-    completion::{local::call_stack_iter::CallStackIter, stdlib::call_std_function},
+    completion::{local::call_stack_iter::CallStackIter, stdlib::call_std_function}, node::var::VarHelper,
 };
 use thiserror::Error;
 
@@ -166,7 +166,7 @@ impl<'a> ResolveNodeIter<'a> {
                     return Some(dollar_node);
                 }
 
-                if let Some(resolved) = var.resolve(self.document_stack) {
+                if let Some(resolved) = var.resolve(self.cache.clone(), self.document_stack) {
                     log::debug!(
                         "{} Resolved to {:?} at {}:{:?}: {}",
                         var.id.clone().unwrap_or_default().0,

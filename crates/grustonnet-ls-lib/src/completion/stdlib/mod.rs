@@ -91,7 +91,10 @@ pub fn call_std_function(
 ) -> Result<Arc<Node>, StdLibCallError> {
     let target: Box<dyn StdLibFunction> = match name {
         "makeArray" => Box::new(MakeArray {}),
-        "objectHasEx" => Box::new(ObjectHasEx { document_stack }),
+        "objectHasEx" => Box::new(ObjectHasEx {
+            document_stack,
+            cache,
+        }),
         "extVar" => Box::new(ExtVar { cache }),
         "get" => Box::new(Get {
             cache,

@@ -68,8 +68,8 @@ pub enum CallStackError {
     MaxIterations,
     #[error("The stack is getting too large")]
     StackTooLarge,
-    #[error("Target is not indexable")]
-    NotIndexable,
+    #[error("Target is not indexable {}", node.node_kind.variant_name())]
+    NotIndexable { node: Arc<Node> },
     #[error("Unable to resolve node {resolve_error}")]
     Resolve { resolve_error: ResolveError },
     #[error("Unknown resolve error")]
@@ -138,7 +138,11 @@ impl<'a> FallibleIterator for CallStackIter<'a> {
                         }
                         // Index does not point to an object
                         //_ => base_object.clone(),
-                        _ => return Err(CallStackError::NotIndexable),
+                        _ => {
+                            return Err(CallStackError::NotIndexable {
+                                node: base_object.clone(),
+                            });
+                        }
                     }
                 }
                 // Not an index

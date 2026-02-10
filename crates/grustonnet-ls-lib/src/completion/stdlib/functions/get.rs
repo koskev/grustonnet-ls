@@ -77,6 +77,7 @@ impl<'a> StdLibFunction for Get<'a> {
 
         let found = ObjectHasEx {
             document_stack: self.document_stack,
+            cache: self.cache,
         }
         .object_has_ex(resolved.clone(), &name, inc_hidden);
         Ok(

@@ -509,7 +509,9 @@ impl LSPServer for JsonnetServer {
         let root = doc.get_ast()?;
         let mut tokens = SemanticDataList::default();
         if config.semantic_tokens.semantic_tokens {
-            tokens.data.extend(semantic_tokens::get_tokens(root).data);
+            tokens
+                .data
+                .extend(semantic_tokens::get_tokens(root, &self.cache).data);
         }
         if config.semantic_tokens.treesitter_tokens {
             tokens
