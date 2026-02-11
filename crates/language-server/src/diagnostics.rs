@@ -143,11 +143,18 @@ where
 
     pub fn run(&self) {
         *self.running.write_or_panic() = true;
+        // TODO: Fix this mess
         let mut lock = self.queue.lock_or_panic();
         while *self.running.read_or_panic() {
+            let mut work_data = vec![];
             while let Some((uri, list)) = lock.pop() {
+                work_data.push((uri, list));
+            }
+            drop(lock);
+            for (uri, list) in work_data {
                 self.process_queue(uri, list);
             }
+            lock = self.queue.lock_or_panic();
             lock = self
                 .cv
                 .wait_timeout(lock, Duration::from_millis(200))
