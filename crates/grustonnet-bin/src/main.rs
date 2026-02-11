@@ -48,8 +48,11 @@ async fn main() {
     } else {
         LSPConnection::default()
     };
+    let queue_channel = crossbeam::channel::unbounded();
     let server = LSPServerManager {
-        server: JsonnetServer::new(connection, args.full_sync),
+        server: JsonnetServer::new(queue_channel.0.clone(), args.full_sync),
+        queue_channel,
+        connection,
     };
     server.run().unwrap();
 }

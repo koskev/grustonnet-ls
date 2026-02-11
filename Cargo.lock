@@ -841,6 +841,7 @@ name = "grustonnet-bin"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "crossbeam",
  "env_logger",
  "exec",
  "grustonnet-config",
@@ -895,6 +896,7 @@ dependencies = [
  "anyhow",
  "assert_unordered",
  "bincode",
+ "crossbeam",
  "env_logger",
  "fallible-iterator",
  "grustonnet-config",
@@ -1451,6 +1453,7 @@ dependencies = [
  "mockall",
  "pretty_assertions",
  "rand 0.10.0",
+ "rayon",
  "ropey",
  "serde",
  "serde_json",

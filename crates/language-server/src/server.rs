@@ -11,7 +11,7 @@ use std::{
 };
 
 use anyhow::Result;
-use crossbeam::channel::Sender;
+use crossbeam::channel::{Receiver, Sender};
 use lsp_server::{
     Connection, ErrorCode, ExtractError, IoThreads, Message, Notification, Request, RequestId,
     Response, ResponseError,
@@ -176,6 +176,10 @@ where
     S: LSPServer,
 {
     pub server: S,
+    /// A channel used to queue new data to send to the language server
+    pub queue_channel: (Sender<lsp_server::Message>, Receiver<lsp_server::Message>),
+    /// The actual connection with the client
+    pub connection: LSPConnection,
 }
 
 impl<S> LSPServerManager<S>
@@ -186,20 +190,29 @@ where
         let server_capabilities = serde_json::to_value(self.server.get_capabilities())
             .expect("Unable to get server capabilities");
         let params = self
-            .server
-            .connection()
+            .connection
             .connection
             .initialize(server_capabilities)
             .expect("init connection");
+
+        // Handle actually sending the data
+        let receiver = self.queue_channel.1.clone();
+        let lsp_tx = self.connection.connection.sender.clone();
+
+        rayon::spawn(move || {
+            for msg in receiver {
+                lsp_tx.send(msg).expect("Broken connection");
+            }
+        });
 
         let params: InitializeParams =
             serde_json::from_value(params).expect("InitializeParams are in the wrong format");
         self.server.handle_init_parameters(params);
         log::info!("Starting main loop");
-        for msg in &self.server.connection().connection.receiver {
+        for msg in &self.connection.connection.receiver {
             match msg {
                 Message::Request(req) => {
-                    if self.server.connection().connection.handle_shutdown(&req)? {
+                    if self.connection.connection.handle_shutdown(&req)? {
                         return Ok(());
                     }
                     let resp = self.handle_request(req.clone());
@@ -208,7 +221,7 @@ where
                         Err(e) => Err(e.into()),
                     };
 
-                    self.server.connection().send(Message::Response(Response {
+                    self.queue_channel.0.send(Message::Response(Response {
                         id: req.id,
                         result: result.clone().ok(),
                         error: result.err(),
@@ -222,7 +235,7 @@ where
                 }
             }
         }
-        if let Some(threads) = self.server.connection().threads.lock_or_panic().take() {
+        if let Some(threads) = self.connection.threads.lock_or_panic().take() {
             let _ = threads.join();
         }
         Ok(())
@@ -397,7 +410,6 @@ pub trait LSPServer {
     type AstGenerator: ASTGenerator;
 
     fn handle_init_parameters(&self, params: InitializeParams) {}
-    fn connection(&self) -> &LSPConnection;
     fn cache(&self) -> &Cache<Self::AstGenerator>;
     fn get_capabilities(&self) -> ServerCapabilities;
 
