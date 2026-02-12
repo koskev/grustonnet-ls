@@ -59,7 +59,8 @@ impl JsonnetDiagnostics for ShadowVariableDiagnostics {
                                         .first()?
                                         .loc_range
                                         .clone()
-                                        .into(),
+                                        .try_into()
+                                        .ok()?,
                                 })
                             })
                             .collect(),
@@ -79,7 +80,7 @@ impl JsonnetDiagnostics for ShadowVariableDiagnostics {
                         message: "This variable is shadowed".into(),
                         severity: Some(DiagnosticSeverity::INFORMATION),
                         related_information: Some(vec![DiagnosticRelatedInformation {
-                            location: bind_location.clone().into(),
+                            location: bind_location.clone().try_into().ok()?,
                             message: "This variable shadows other variables".into(),
                         }]),
                         ..Default::default()

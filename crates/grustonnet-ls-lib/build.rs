@@ -42,8 +42,11 @@ fn build_stdlib() {
     for (name, url) in urls {
         let url_path = gen_path.join(name);
         if !url_path.exists() {
-            let content = reqwest::blocking::get(url).unwrap().text().unwrap();
-            fs::write(url_path, content).unwrap();
+            let content = reqwest::blocking::get(url)
+                .expect("Unable to download stdlib")
+                .text()
+                .expect("Unable to get text of stdlib");
+            fs::write(url_path, content).expect("Unable to write stdlib");
         }
     }
     let content = include_str!("stdlib.jsonnet");
@@ -51,7 +54,12 @@ fn build_stdlib() {
         STDLIB_FILE.to_string(),
         content.to_string(),
         EvaluateParams {
-            jpaths: vec![gen_path.to_str().unwrap().to_string()],
+            jpaths: vec![
+                gen_path
+                    .to_str()
+                    .expect("Unable to convert path to str")
+                    .to_string(),
+            ],
             ..Default::default()
         },
     );
@@ -67,18 +75,21 @@ fn build_stdlib() {
     );
 
     // Convert html to md
-    let mut lib: StdLib = serde_json::from_str(&String::from_utf8(info.ast_data).unwrap()).unwrap();
+    let mut lib: StdLib = serde_json::from_str(
+        &String::from_utf8(info.ast_data).expect("Unable to convert ast data to string"),
+    )
+    .expect("Unable to convert ast_data to StdLib");
     lib.groups.iter_mut().for_each(|group| {
         group.fields.iter_mut().for_each(|func| {
             func.description = htmd::HtmlToMarkdown::new()
                 .convert(&func.description)
-                .unwrap();
+                .expect("Unable to convert html to markdown");
         });
     });
 
-    let out_content = serde_json::to_string(&lib).unwrap();
+    let out_content = serde_json::to_string(&lib).expect("Unable to convert new stdlib to string");
 
-    let out_dir = std::env::var("OUT_DIR").unwrap();
+    let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR is not set");
     let out_path = Path::new(&out_dir);
     let stdlib_path = out_path.join("stdlib.json");
     fs::write(stdlib_path.clone(), out_content)

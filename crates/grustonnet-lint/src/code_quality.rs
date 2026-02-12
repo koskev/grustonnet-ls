@@ -40,7 +40,7 @@ impl CodeClimate {
     pub fn from_diagnostics_result(value: DiagnosticsResult, uri: &Uri) -> Self {
         let uri_str = uri.path().to_string();
         let absolute_path = Path::new(&uri_str);
-        let current_dir = std::env::current_dir().unwrap();
+        let current_dir = std::env::current_dir().expect("Unable to get current dir");
         let mut hasher = hash::DefaultHasher::default();
         value.diagnostics.message.hash(&mut hasher);
         value.diagnostics.range.hash(&mut hasher);
@@ -54,8 +54,7 @@ impl CodeClimate {
                 path: absolute_path
                     .strip_prefix(current_dir)
                     .unwrap_or(absolute_path)
-                    .to_str()
-                    .unwrap()
+                    .to_string_lossy()
                     .to_string(),
                 lines: LineRange {
                     begin: value.diagnostics.range.start.line + 1,

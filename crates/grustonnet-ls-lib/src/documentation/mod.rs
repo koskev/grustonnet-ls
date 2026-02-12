@@ -161,8 +161,8 @@ impl DocumentationInfo {
             &node.node_base.loc_range
         };
         let uri = Uri::from_path(&loc.file_name).ok()?;
-        let doc = cache.get_document(&uri).unwrap();
-        let mut doc_stack = doc.get_ast().unwrap().get_stack_by_position(&loc.end);
+        let doc = cache.get_document(&uri).ok()?;
+        let mut doc_stack = doc.get_ast().ok()?.get_stack_by_position(&loc.end);
         // Pop the function body
         doc_stack.stack.pop();
         if let NodeKind::DesugaredObject(obj) = doc_stack.peek()?.node_kind.as_ref() {
@@ -172,8 +172,8 @@ impl DocumentationInfo {
                 }
                 // TODO: better detection
                 if let Some(documentation_node) = &last_docsonnet_node
-                    && documentation_node.get_name().unwrap()
-                        == format!("#{}", field.get_name().unwrap())
+                    && documentation_node.get_name().unwrap_or_default()
+                        == format!("#{}", field.get_name().unwrap_or_default())
                 {
                     return Some(documentation_node.body.clone());
                 }

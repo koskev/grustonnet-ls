@@ -57,7 +57,9 @@ impl<'a> CompletionInfo<'a> {
         info.pos = pos.into();
 
         let root_node = tree.root_node();
-        let node_at = root_node.get_node_at(pos).unwrap();
+        let Some(node_at) = root_node.get_node_at(pos) else {
+            return Self::default();
+        };
         // TODO: Do we need to check the whole stack? Or is it enough to check if the next node is a dot?
         let mut current_node = node_at;
         let mut nodes = vec![];

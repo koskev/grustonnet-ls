@@ -46,6 +46,7 @@ pub struct SuperIndex {
 
 #[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
+#[derive(Default)]
 pub enum NodeKind {
     Binary(Binary),
     Array(Array),
@@ -72,6 +73,7 @@ pub enum NodeKind {
     SuperIndex(SuperIndex),
     Dollar,
     // Leftover nodes. Most likely something is broken
+    #[default]
     Other,
 }
 
@@ -121,12 +123,6 @@ impl Display for NodeKind {
             _ => (),
         };
         Ok(())
-    }
-}
-
-impl Default for NodeKind {
-    fn default() -> Self {
-        Self::Other
     }
 }
 

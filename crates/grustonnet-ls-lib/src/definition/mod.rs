@@ -80,7 +80,7 @@ impl<'a> DefinitionProvider<'a> {
                         return Ok(DefinitionInfo {
                             name: "".into(),
                             location: lsp_types::Location {
-                                uri: Uri::from_path(p).unwrap(),
+                                uri: Uri::from_path(p)?,
                                 range: Range::default(),
                             },
                         });

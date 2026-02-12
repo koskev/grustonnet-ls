@@ -71,7 +71,7 @@ impl UnusedDiagnostics {
         }])
     }
     fn get_diagnostics(&self, uri: &Uri) -> Option<Vec<DiagnosticsResult>> {
-        let doc = self.cache.get_document(uri).unwrap();
+        let doc = self.cache.get_document(uri).ok()?;
         let stack = doc.get_ast().ok()?.get_complete_stack();
         let handle_function = |func: &Function| -> Vec<PotentialUnused> {
             func.parameters

@@ -98,7 +98,7 @@ fn show_self(stack: &NodeStack) -> bool {
 
 impl<'a> Completion for KeywordCompletion<'a> {
     fn complete(&self, location: Position, uri: &Uri) -> CompletionResult {
-        let doc = self.cache.get_document(uri).unwrap();
+        let doc = self.cache.get_document(uri)?;
 
         let stack = doc.get_ast()?.get_stack_by_position(&location.into());
 

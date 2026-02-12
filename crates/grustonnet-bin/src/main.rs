@@ -39,7 +39,10 @@ async fn main() {
         });
         let generator = settings.into_generator();
         let schema = generator.into_root_schema_for::<Configuration>();
-        println!("{}", serde_json::to_string_pretty(&schema).unwrap());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&schema).expect("Invalid schema")
+        );
         return;
     }
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
@@ -51,5 +54,5 @@ async fn main() {
     let server = LSPServerManager {
         server: JsonnetServer::new(connection, args.full_sync),
     };
-    server.run().unwrap();
+    server.run().expect("Unable to run server");
 }

@@ -72,7 +72,7 @@ impl<'a> Completion for DocsonnetSnippets<'a> {
         location: lsp_types::Position,
         uri: &lsp_types::Uri,
     ) -> language_server::completion::CompletionResult {
-        let doc = self.cache.get_document(uri).unwrap();
+        let doc = self.cache.get_document(uri)?;
 
         let stack = doc.get_ast()?.get_stack_by_position(&location.into());
         let in_object = stack

@@ -7,7 +7,7 @@ use grustonnet_node::{
 use language_server::cache::Cache;
 
 use crate::{
-    cache::{self, JsonnetASTGenerator},
+    cache::JsonnetASTGenerator,
     completion::stdlib::{
         StdLibCallError, StdLibFunction,
         functions::{get_parameter, get_parameter_value, get_parameter_value_parse},

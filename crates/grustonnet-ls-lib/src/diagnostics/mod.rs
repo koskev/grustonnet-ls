@@ -58,6 +58,7 @@ pub trait JsonnetDiagnostics: Send + Sync {
     add_diag!(check_desugared_object_field, field: &DesugaredObjectField);
     add_diag!(check_unary, field: &Unary);
 
+    #[allow(unused)]
     fn check_file(&self, uri: &Uri) -> Option<Vec<DiagnosticsResult>> {
         None
     }

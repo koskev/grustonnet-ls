@@ -16,7 +16,7 @@ use crate::{
     },
     documentation::DocumentationInfo,
 };
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use fallible_iterator::FallibleIterator;
 use grustonnet_config::CompletionConfig;
 use grustonnet_node::{
@@ -113,10 +113,10 @@ impl<'a> LocalCompletion<'a> {
 impl<'a> Completion for LocalCompletion<'a> {
     fn complete(&self, location: Position, uri: &Uri) -> CompletionResult {
         let start = Instant::now();
-        let doc = self.cache.get_document(uri).unwrap();
+        let doc = self.cache.get_document(uri)?;
 
         let stack = doc.get_ast()?.get_stack_by_position(&location.into());
-        let top_node = stack.peek().unwrap();
+        let top_node = stack.peek().ok_or(anyhow!("Stack empty"))?;
         log::debug!(
             "Completing {} at {:?}",
             top_node.node_kind.variant_name(),
@@ -138,12 +138,12 @@ impl<'a> Completion for LocalCompletion<'a> {
                     if field.get_name()?.starts_with("#") {
                         last_docsonnet_node = Some(field);
                     }
-                    let mut detail = field.body.node_kind.get_value();
+                    let detail = field.body.node_kind.get_value();
                     let mut documentation = None;
                     // TODO: better detection
                     if let Some(documentation_node) = &last_docsonnet_node
-                        && documentation_node.get_name().unwrap()
-                            == format!("#{}", field.get_name().unwrap())
+                        && documentation_node.get_name().unwrap_or_default()
+                            == format!("#{}", field.get_name().unwrap_or_default())
                     {
                         let doc_info = DocumentationInfo::from_docsonnet_node(
                             self.cache,

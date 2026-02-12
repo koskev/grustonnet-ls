@@ -87,15 +87,16 @@ impl From<Range> for LocationRange {
     }
 }
 
-impl From<LocationRange> for lsp_types::Location {
-    fn from(val: LocationRange) -> Self {
-        lsp_types::Location {
-            uri: Uri::from_path(val.file_name).unwrap(),
+impl TryFrom<LocationRange> for lsp_types::Location {
+    type Error = anyhow::Error;
+    fn try_from(val: LocationRange) -> Result<Self, Self::Error> {
+        Ok(lsp_types::Location {
+            uri: Uri::from_path(val.file_name)?,
             range: Range {
                 start: val.begin.into(),
                 end: val.end.into(),
             },
-        }
+        })
     }
 }
 

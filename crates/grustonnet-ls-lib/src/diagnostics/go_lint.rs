@@ -26,7 +26,9 @@ impl Diagnostics for GoLintDiagnostics {
         "GoLint".into()
     }
     fn diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
-        let doc = self.cache.get_document(uri).unwrap();
+        let Ok(doc) = self.cache.get_document(uri) else {
+            return vec![];
+        };
         let res = self
             .cache
             .ast_generator

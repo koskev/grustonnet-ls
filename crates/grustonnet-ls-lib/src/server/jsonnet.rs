@@ -35,7 +35,7 @@ use lsp_types::{
     SemanticTokensOptions, SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp,
     SignatureHelpOptions, SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::{
     bridge::GenerateAST,
@@ -308,8 +308,7 @@ impl LSPServer for JsonnetServer {
                 .ast_generator
                 .jsonnet
                 .params
-                .read()
-                .unwrap()
+                .read_or_panic()
                 .jpaths
         );
 
@@ -418,8 +417,10 @@ impl LSPServer for JsonnetServer {
         let succeeded: Vec<&CompletionList> =
             lists.iter().filter_map(|res| res.as_ref().ok()).collect();
 
-        if succeeded.is_empty() && !failed.is_empty() {
-            let first_err = *failed.first().unwrap();
+        if succeeded.is_empty()
+            && let Some(e) = failed.first()
+        {
+            let first_err = *e;
             return Err(first_err.into());
         }
 
@@ -601,7 +602,7 @@ impl LSPServer for JsonnetServer {
         let actions: Vec<CodeActionOrCommand> = self
             .diagnostics_queue
             .as_ref()
-            .unwrap()
+            .ok_or(anyhow!("No diagnostics queue"))?
             .current_diagnostics
             .read_or_panic()
             .iter()

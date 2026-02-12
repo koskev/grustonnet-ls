@@ -1423,6 +1423,7 @@ dependencies = [
 name = "jsonnet-location"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "bincode",
  "language-server",
  "lsp-types",

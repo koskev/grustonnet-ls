@@ -11,6 +11,7 @@ use strum::EnumString;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema, EnumString)]
 #[strum(ascii_case_insensitive)]
+#[allow(unused)]
 enum Type {
     String,
     Number,
@@ -22,9 +23,11 @@ enum Type {
     Function,
 }
 
+#[allow(unused)]
 type Fields = HashMap<String, Field>;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[allow(unused)]
 struct Field {
     function: Function,
     object: Object,
@@ -32,12 +35,14 @@ struct Field {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[allow(unused)]
 struct Object {
     help: String,
     fields: Fields,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[allow(unused)]
 struct Function {
     name: String,
     help: String,
@@ -45,6 +50,7 @@ struct Function {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[allow(unused)]
 struct Argument {
     r#type: Type,
     name: String,
@@ -52,6 +58,7 @@ struct Argument {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[allow(unused)]
 struct Value {
     help: String,
 
@@ -60,9 +67,9 @@ struct Value {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
+#[allow(unused)]
 struct Package {
     name: String,
     import: String,
     help: String,
 }
-

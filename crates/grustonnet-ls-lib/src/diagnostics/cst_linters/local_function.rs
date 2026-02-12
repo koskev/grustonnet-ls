@@ -36,19 +36,19 @@ impl LocalFunctionDiagnostics {
         let id = cap
             .captures
             .iter()
-            .find(|c| c.index == query.capture_index_for_name("id").unwrap())?;
+            .find(|c| c.index == query.capture_index_for_name("id").expect("BUG"))?;
         let bind = cap
             .captures
             .iter()
-            .find(|c| c.index == query.capture_index_for_name("bind").unwrap())?;
+            .find(|c| c.index == query.capture_index_for_name("bind").expect("BUG"))?;
         let params = cap
             .captures
             .iter()
-            .find(|c| c.index == query.capture_index_for_name("params").unwrap());
+            .find(|c| c.index == query.capture_index_for_name("params").expect("BUG"));
         let params_end = cap
             .captures
             .iter()
-            .find(|c| c.index == query.capture_index_for_name("params_end").unwrap())?;
+            .find(|c| c.index == query.capture_index_for_name("params_end").expect("BUG"))?;
         let start: Location = bind.node.start_position().into();
         let end: Location = bind.node.end_position().into();
         let name = id.node.get_name(content)?;
@@ -117,7 +117,7 @@ impl Diagnostics for LocalFunctionDiagnostics {
         let captures = cursor.matches(&query, tree.root_node(), doc.content.as_bytes());
 
         captures.for_each(|cap| {
-            if let Some(result) = self.handle_query(uri, &cap, &query, &doc.content) {
+            if let Some(result) = self.handle_query(uri, cap, &query, &doc.content) {
                 results.extend(result);
             }
         });

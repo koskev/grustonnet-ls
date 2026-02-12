@@ -24,7 +24,7 @@ impl<'a> GlobalCompletion<'a> {
 
 impl<'a> Completion for GlobalCompletion<'a> {
     fn complete(&self, pos: Position, uri: &Uri) -> CompletionResult {
-        let doc = self.cache.get_document(uri).unwrap();
+        let doc = self.cache.get_document(uri)?;
 
         let stack = doc.get_ast()?.get_stack_by_position(&pos.into());
         let binds: Vec<LocalBind> = stack

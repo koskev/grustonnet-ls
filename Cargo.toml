@@ -6,7 +6,6 @@ edition = "2024"
 uninlined_format_args = "allow"
 needless_update = "allow"
 unwrap_used = "warn"
-allow-unwrap-in-tests = "allow"
 
 [workspace.lints.rust]
 missing_docs = "allow"

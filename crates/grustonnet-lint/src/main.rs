@@ -104,7 +104,7 @@ async fn main() -> Result<()> {
                     "{}/**/*.*sonnet",
                     path.to_str().expect("invalid path string")
                 ))
-                .unwrap()
+                .expect("Unable to execute glob")
                 .filter_map(|g| {
                     if g.as_ref().ok()?.is_file() {
                         Some(g.ok()?)

@@ -68,14 +68,8 @@ fn find_upwards(cwd: &str, suffix: &str) -> HashMap<String, String> {
                 Err(_) => false,
             })
             .for_each(|found| {
-                let name = found
-                    .file_name()
-                    .into_string()
-                    .unwrap()
-                    .strip_suffix(suffix)
-                    .unwrap()
-                    .to_string();
-                if let Entry::Vacant(e) = files_found.entry(name)
+                if let Some(name) = found.file_name().to_string_lossy().strip_suffix(suffix)
+                    && let Entry::Vacant(e) = files_found.entry(name.to_string())
                     && let Ok(content) = fs::read_to_string(found.path())
                 {
                     e.insert(content);
@@ -193,7 +187,7 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(rmp_serde::from_slice(&res.ast_data).unwrap())
+        rmp_serde::from_slice(&res.ast_data).map_err(|e| EvaluateError::from(e.to_string()))
     }
     fn get_ast_data(&self, source_file: &str, snippet: &str) -> Result<Vec<u8>, EvaluateError> {
         let start = Instant::now();
@@ -257,7 +251,7 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(String::from_utf8(res.ast_data).unwrap())
+        String::from_utf8(res.ast_data).map_err(|e| e.to_string().into())
     }
 
     fn evaluate_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError> {
@@ -269,7 +263,7 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(String::from_utf8(res.ast_data).unwrap())
+        String::from_utf8(res.ast_data).map_err(|e| e.to_string().into())
     }
 
     fn lint_snippet(&self, filename: &str, snippet: &str) -> Result<String, EvaluateError> {
@@ -281,7 +275,7 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(String::from_utf8(res.ast_data).unwrap())
+        String::from_utf8(res.ast_data).map_err(|e| e.to_string().into())
     }
 
     fn format_snippet(
@@ -298,7 +292,7 @@ impl GenerateAST for GoJsonnet {
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));
         }
-        Ok(String::from_utf8(res.ast_data).unwrap())
+        String::from_utf8(res.ast_data).map_err(|e| e.to_string().into())
     }
 }
 
@@ -334,11 +328,11 @@ mod test {
                 }
                 "base" => {
                     let _result: (NodeBase, usize) =
-                        bincode::decode_from_slice(&test_object.data, config).unwrap();
+                        bincode::decode_from_slice(&test_object.data, config).expect("decode");
                 }
                 "fodder" => {
                     let (result, _): (Fodder, usize) =
-                        bincode::decode_from_slice(&test_object.data, config).unwrap();
+                        bincode::decode_from_slice(&test_object.data, config).expect("decode");
 
                     assert_eq!(result.0.len(), 1);
                     assert_eq!(result.0[0].kind, 1);
@@ -350,7 +344,7 @@ mod test {
                 }
                 "node_base" => {
                     let (result, _): (NodeBase, usize) =
-                        bincode::decode_from_slice(&test_object.data, config).unwrap();
+                        bincode::decode_from_slice(&test_object.data, config).expect("decode");
                     assert_eq!(result.ctx, "\0", "Wrong CTX");
                     assert_eq!(result.fodder.0.len(), 0);
                     assert_eq!(result.free_vars.len(), 0);

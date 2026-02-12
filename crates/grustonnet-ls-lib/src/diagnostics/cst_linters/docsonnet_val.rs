@@ -33,11 +33,11 @@ impl DocsonnetDefaultDiagnostics {
         let default_value = cap
             .captures
             .iter()
-            .find(|c| c.index == query.capture_index_for_name("default_value").unwrap())?;
+            .find(|c| c.index == query.capture_index_for_name("default_value").expect("BUG"))?;
         let field = cap
             .captures
             .iter()
-            .find(|c| c.index == query.capture_index_for_name("field").unwrap())?;
+            .find(|c| c.index == query.capture_index_for_name("field").expect("BUG"))?;
 
         let field_name = field.node.get_name(content)?;
         let default_value_name = default_value.node.get_name(content)?;
@@ -106,7 +106,7 @@ impl Diagnostics for DocsonnetDefaultDiagnostics {
         let captures = cursor.matches(&query, tree.root_node(), doc.content.as_bytes());
 
         captures.for_each(|cap| {
-            if let Some(result) = self.handle_query(uri, &cap, &query, &doc.content) {
+            if let Some(result) = self.handle_query(uri, cap, &query, &doc.content) {
                 results.extend(result);
             }
         });
