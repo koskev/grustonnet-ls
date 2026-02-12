@@ -99,11 +99,6 @@ impl JsonnetServer {
             connection.connection.sender.clone(),
             JsonnetDiagnosticFilter::new(cache.clone()),
         );
-        let task_queue = diagnostics_queue.clone();
-        rayon::spawn(move || {
-            task_queue.run();
-        });
-
         Self {
             diagnostics_queue: Some(diagnostics_queue),
             connection,
@@ -222,6 +217,12 @@ impl LSPServer for JsonnetServer {
                     .expect("Unable to load workspace directory"),
             );
         }
+        if let Some(task_queue) = self.diagnostics_queue.clone() {
+            rayon::spawn(move || {
+                task_queue.run();
+            });
+        }
+
         log::info!("Starting with workpaces: {:?}", workspaces);
     }
 
