@@ -4,6 +4,8 @@ REUSE ?= reuse
 CARGO ?= cargo
 SCHEMA_OUTPUT ?= schema.json
 
+JUNIT_REPORT_FILE ?= report.xml
+
 
 .PHONY: all
 all: build
@@ -50,3 +52,7 @@ $(SCHEMA_OUTPUT): check-cargo
 
 .PHONY: schema
 schema: $(SCHEMA_OUTPUT)
+
+.PHONY: test-ci
+test-ci:
+	cargo-tarpaulin --tests --out xml --engine llvm -- -Z unstable-options --format=json | cargo2junit > $(JUNIT_REPORT_FILE)

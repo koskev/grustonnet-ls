@@ -103,35 +103,57 @@
           GODEBUG = "invalidptr=0,cgocheck=0";
         };
 
-        # For `nix develop`:
-        devShell = pkgs.mkShell {
-          nativeBuildInputs =
-            with pkgs;
-            nativeBuildInputs
-            ++ [
-              cargo
-              cargo-tarpaulin
-              clippy
-              rustfmt
+        devShells = {
+          clippy = pkgs.mkShell {
+            nativeBuildInputs =
+              with pkgs;
+              nativeBuildInputs
+              ++ [
+                cargo
+                clippy
+                gnumake
+              ];
+            buildInputs =
+              with pkgs;
+              buildInputs
+              ++ [
+                rustc
+              ];
+            RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+            LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
+          };
 
-              go-jsonnet
-              rust-analyzer
-              bacon
-              tracy
-              reuse
+          # For `nix develop`:
+          default = pkgs.mkShell {
+            nativeBuildInputs =
+              with pkgs;
+              nativeBuildInputs
+              ++ [
+                cargo
+                cargo-tarpaulin
+                clippy
+                rustfmt
 
-              conform
-              prek
-            ];
-          buildInputs =
-            with pkgs;
-            buildInputs
-            ++ [
-              rustc
-            ];
-          RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
-          LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
-          GODEBUG = "invalidptr=0,cgocheck=0";
+                go-jsonnet
+                rust-analyzer
+                bacon
+                tracy
+                reuse
+
+                conform
+                prek
+                gnumake
+              ];
+            buildInputs =
+              with pkgs;
+              buildInputs
+              ++ [
+                rustc
+              ];
+            RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+            LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
+            GODEBUG = "invalidptr=0,cgocheck=0";
+          };
         };
       }
     );

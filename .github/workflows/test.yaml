@@ -38,9 +38,9 @@ jobs:
     - name: Install nightly rust
       run: rustup toolchain install nightly && rustup default nightly
     - name: Install Rust test dependencies
-      run: cargo install --root . cargo2junit cargo-tarpaulin
+      run: cargo install cargo2junit cargo-tarpaulin
     - name: Run tests
-      run: bin/cargo-tarpaulin --tests --out xml --engine llvm -- -Z unstable-options --format=json | bin/cargo2junit > report.xml
+      run: make test-ci
       if: ${{ !contains(matrix.platform.target, 'windows') }}
       env:
         GODEBUG: "invalidptr=0,cgocheck=0"
