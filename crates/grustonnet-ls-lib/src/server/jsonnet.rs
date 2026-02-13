@@ -450,14 +450,11 @@ impl LSPServer for JsonnetServer {
         let uri = params.text_document.uri;
         let options = &self.configuration.read_or_panic().format;
         let doc = self.cache.get_document(&uri)?;
-        let formatted = match self.cache.ast_generator.jsonnet.format_snippet(
-            uri.as_str(),
-            &doc.content,
-            options,
-        ) {
-            Ok(res) => res,
-            Err(e) => return Err(e.into()),
-        };
+        let formatted =
+            self.cache
+                .ast_generator
+                .jsonnet
+                .format_snippet(uri.as_str(), &doc.content, options)?;
 
         let edits = diff::get_text_edits(&doc.content, &formatted);
 
