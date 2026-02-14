@@ -287,7 +287,7 @@ impl GenerateAST for GoJsonnet {
         let res = ASTBridgeImpl::format_snippet(
             filename.to_string(),
             snippet.to_string(),
-            options.clone(),
+            options.clone().into(),
         );
         if !res.error_data.is_empty() {
             return Err(EvaluateError::from(res.error_data));

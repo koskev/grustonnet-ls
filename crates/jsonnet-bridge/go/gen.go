@@ -346,6 +346,75 @@ func refC_intptr_t(p *int, _ *[]byte) C.intptr_t    { return C.intptr_t(*p) }
 func refC_float(p *float32, _ *[]byte) C.float      { return C.float(*p) }
 func refC_double(p *float64, _ *[]byte) C.double    { return C.double(*p) }
 
+type FormatOptions struct {
+	indent                 int32
+	max_blank_lines        int32
+	string_style           int32
+	comment_style          int32
+	pretty_field_names     bool
+	pad_arrays             bool
+	pad_objects            bool
+	sort_imports           bool
+	use_implicit_plus      bool
+	strip_everything       bool
+	strip_comments         bool
+	strip_all_but_comments bool
+}
+
+func newFormatOptions(p C.FormatOptionsRef) FormatOptions {
+	return FormatOptions{
+		indent:                 newC_int32_t(p.indent),
+		max_blank_lines:        newC_int32_t(p.max_blank_lines),
+		string_style:           newC_int32_t(p.string_style),
+		comment_style:          newC_int32_t(p.comment_style),
+		pretty_field_names:     newC_bool(p.pretty_field_names),
+		pad_arrays:             newC_bool(p.pad_arrays),
+		pad_objects:            newC_bool(p.pad_objects),
+		sort_imports:           newC_bool(p.sort_imports),
+		use_implicit_plus:      newC_bool(p.use_implicit_plus),
+		strip_everything:       newC_bool(p.strip_everything),
+		strip_comments:         newC_bool(p.strip_comments),
+		strip_all_but_comments: newC_bool(p.strip_all_but_comments),
+	}
+}
+func ownFormatOptions(p C.FormatOptionsRef) FormatOptions {
+	return FormatOptions{
+		indent:                 newC_int32_t(p.indent),
+		max_blank_lines:        newC_int32_t(p.max_blank_lines),
+		string_style:           newC_int32_t(p.string_style),
+		comment_style:          newC_int32_t(p.comment_style),
+		pretty_field_names:     newC_bool(p.pretty_field_names),
+		pad_arrays:             newC_bool(p.pad_arrays),
+		pad_objects:            newC_bool(p.pad_objects),
+		sort_imports:           newC_bool(p.sort_imports),
+		use_implicit_plus:      newC_bool(p.use_implicit_plus),
+		strip_everything:       newC_bool(p.strip_everything),
+		strip_comments:         newC_bool(p.strip_comments),
+		strip_all_but_comments: newC_bool(p.strip_all_but_comments),
+	}
+}
+func cntFormatOptions(s *FormatOptions, cnt *uint) [0]C.FormatOptionsRef {
+	_ = s
+	_ = cnt
+	return [0]C.FormatOptionsRef{}
+}
+func refFormatOptions(p *FormatOptions, buffer *[]byte) C.FormatOptionsRef {
+	return C.FormatOptionsRef{
+		indent:                 refC_int32_t(&p.indent, buffer),
+		max_blank_lines:        refC_int32_t(&p.max_blank_lines, buffer),
+		string_style:           refC_int32_t(&p.string_style, buffer),
+		comment_style:          refC_int32_t(&p.comment_style, buffer),
+		pretty_field_names:     refC_bool(&p.pretty_field_names, buffer),
+		pad_arrays:             refC_bool(&p.pad_arrays, buffer),
+		pad_objects:            refC_bool(&p.pad_objects, buffer),
+		sort_imports:           refC_bool(&p.sort_imports, buffer),
+		use_implicit_plus:      refC_bool(&p.use_implicit_plus, buffer),
+		strip_everything:       refC_bool(&p.strip_everything, buffer),
+		strip_comments:         refC_bool(&p.strip_comments, buffer),
+		strip_all_but_comments: refC_bool(&p.strip_all_but_comments, buffer),
+	}
+}
+
 type ExtValue struct {
 	name  string
 	value string
@@ -464,75 +533,6 @@ func refTestData(p *TestData, buffer *[]byte) C.TestDataRef {
 	return C.TestDataRef{
 		name: refString(&p.name, buffer),
 		data: ref_list_mapper_primitive(refC_uint8_t)(&p.data, buffer),
-	}
-}
-
-type FormatOptions struct {
-	indent                 int32
-	max_blank_lines        int32
-	string_style           int32
-	comment_style          int32
-	pretty_field_names     bool
-	pad_arrays             bool
-	pad_objects            bool
-	sort_imports           bool
-	use_implicit_plus      bool
-	strip_everything       bool
-	strip_comments         bool
-	strip_all_but_comments bool
-}
-
-func newFormatOptions(p C.FormatOptionsRef) FormatOptions {
-	return FormatOptions{
-		indent:                 newC_int32_t(p.indent),
-		max_blank_lines:        newC_int32_t(p.max_blank_lines),
-		string_style:           newC_int32_t(p.string_style),
-		comment_style:          newC_int32_t(p.comment_style),
-		pretty_field_names:     newC_bool(p.pretty_field_names),
-		pad_arrays:             newC_bool(p.pad_arrays),
-		pad_objects:            newC_bool(p.pad_objects),
-		sort_imports:           newC_bool(p.sort_imports),
-		use_implicit_plus:      newC_bool(p.use_implicit_plus),
-		strip_everything:       newC_bool(p.strip_everything),
-		strip_comments:         newC_bool(p.strip_comments),
-		strip_all_but_comments: newC_bool(p.strip_all_but_comments),
-	}
-}
-func ownFormatOptions(p C.FormatOptionsRef) FormatOptions {
-	return FormatOptions{
-		indent:                 newC_int32_t(p.indent),
-		max_blank_lines:        newC_int32_t(p.max_blank_lines),
-		string_style:           newC_int32_t(p.string_style),
-		comment_style:          newC_int32_t(p.comment_style),
-		pretty_field_names:     newC_bool(p.pretty_field_names),
-		pad_arrays:             newC_bool(p.pad_arrays),
-		pad_objects:            newC_bool(p.pad_objects),
-		sort_imports:           newC_bool(p.sort_imports),
-		use_implicit_plus:      newC_bool(p.use_implicit_plus),
-		strip_everything:       newC_bool(p.strip_everything),
-		strip_comments:         newC_bool(p.strip_comments),
-		strip_all_but_comments: newC_bool(p.strip_all_but_comments),
-	}
-}
-func cntFormatOptions(s *FormatOptions, cnt *uint) [0]C.FormatOptionsRef {
-	_ = s
-	_ = cnt
-	return [0]C.FormatOptionsRef{}
-}
-func refFormatOptions(p *FormatOptions, buffer *[]byte) C.FormatOptionsRef {
-	return C.FormatOptionsRef{
-		indent:                 refC_int32_t(&p.indent, buffer),
-		max_blank_lines:        refC_int32_t(&p.max_blank_lines, buffer),
-		string_style:           refC_int32_t(&p.string_style, buffer),
-		comment_style:          refC_int32_t(&p.comment_style, buffer),
-		pretty_field_names:     refC_bool(&p.pretty_field_names, buffer),
-		pad_arrays:             refC_bool(&p.pad_arrays, buffer),
-		pad_objects:            refC_bool(&p.pad_objects, buffer),
-		sort_imports:           refC_bool(&p.sort_imports, buffer),
-		use_implicit_plus:      refC_bool(&p.use_implicit_plus, buffer),
-		strip_everything:       refC_bool(&p.strip_everything, buffer),
-		strip_comments:         refC_bool(&p.strip_comments, buffer),
-		strip_all_but_comments: refC_bool(&p.strip_all_but_comments, buffer),
 	}
 }
 func main() {}

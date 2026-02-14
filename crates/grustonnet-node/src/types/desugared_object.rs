@@ -63,7 +63,7 @@ impl Display for DesugaredObject {
         let formatted = ASTBridgeImpl::format_snippet(
             "".into(),
             format!("{{ {} }}", body),
-            FormatOptions::default(),
+            FormatOptions::default().into(),
         );
         if !formatted.error_data.is_empty() {
             write!(f, "{{ {} }}", body)
