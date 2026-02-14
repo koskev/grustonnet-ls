@@ -36,11 +36,12 @@ use lsp_types::{
     SignatureHelpOptions, SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use strum::IntoEnumIterator;
 
 use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
-    command::handle_command,
+    command::{Commands, handle_command},
     completion::{
         apply_arguments::ApplyArgumentCompletion, global::GlobalCompletion,
         import::ImportCompletion, keyword::KeywordCompletion, local::LocalCompletion,
@@ -262,12 +263,7 @@ impl LSPServer for JsonnetServer {
             references_provider: Some(OneOf::Left(true)),
             rename_provider: Some(OneOf::Left(true)),
             execute_command_provider: Some(ExecuteCommandOptions {
-                commands: vec![
-                    "jsonnet.evalFile".into(),
-                    "config.jpaths".into(),
-                    "config.extcode".into(),
-                    "config.extvars".into(),
-                ],
+                commands: Commands::iter().map(|c| c.to_string()).collect(),
                 ..Default::default()
             }),
             code_action_provider: Some(CodeActionProviderCapability::Simple(true)),

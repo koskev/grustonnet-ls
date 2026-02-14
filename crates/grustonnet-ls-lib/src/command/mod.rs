@@ -12,7 +12,7 @@ use language_server::{
 };
 use lsp_server::ErrorCode;
 use lsp_types::Uri;
-use strum::EnumString;
+use strum::{Display, EnumIter, EnumString};
 use thiserror::Error;
 use utils::RwLockPanic;
 
@@ -26,7 +26,7 @@ pub enum CommandError {
     InvalidArguments,
 }
 
-#[derive(EnumString)]
+#[derive(EnumString, EnumIter, Display)]
 /// All available LSP Commands
 pub enum Commands {
     #[strum(serialize = "jsonnet.evalFile")]
