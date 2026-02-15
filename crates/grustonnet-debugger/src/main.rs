@@ -120,13 +120,19 @@ impl DAPServer for JsonnetDAPServer {
     fn set_breakpoints(&self, args: SetBreakpointsArguments) -> Result<DAPResponse, DAPError> {
         log::debug!("SET BREAKPOINT");
 
+        let filename = args
+            .source
+            .path
+            .clone()
+            .ok_or(anyhow!("Invalid filename"))?;
+        DebuggerBridgeImpl::clear_breakpoints(filename.clone());
         let breakpoints = args
             .breakpoints
             .unwrap_or_default()
             .iter()
             .filter_map(|breakpoint| {
                 let ret_val = DebuggerBridgeImpl::add_breakpoint(
-                    args.source.path.clone().expect("Invalid source"),
+                    filename.clone(),
                     breakpoint.line as i64,
                     //breakpoint.column.unwrap_or_default(),
                     -1,
@@ -134,7 +140,6 @@ impl DAPServer for JsonnetDAPServer {
                 if !ret_val.error.is_empty() {
                     None
                 } else {
-                    log::error!("RET: {:?}", ret_val);
                     Some(Breakpoint {
                         line: Some(breakpoint.line),
                         verified: true,
@@ -151,11 +156,6 @@ impl DAPServer for JsonnetDAPServer {
                 }
             })
             .collect();
-
-        log::warn!(
-            "SET Breakpoints {:?}",
-            DebuggerBridgeImpl::get_breakpoints()
-        );
 
         Ok(SetBreakpointsResponse { breakpoints }.into())
     }
