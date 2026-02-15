@@ -6,6 +6,7 @@
 use std::{
     collections::HashMap,
     fs,
+    process::exit,
     sync::{Arc, RwLock},
 };
 
@@ -351,38 +352,39 @@ async fn main() -> Result<()> {
     };
     let server_tx = server.server.connection.sender.clone();
     rayon::spawn(move || {
-        loop {
-            log::debug!("Waiting for Jsonnet Debugger Event");
-            let res = DebuggerBridgeImpl::wait_for_event();
-            let (node, _) = bincode::decode_from_slice::<DebugEvent, _>(
-                &res.ast_data,
-                bincode::config::legacy(),
-            )
-            .expect("Decoding data");
-            log::info!("INFO 2: {:#?}", node);
-            match node {
-                DebugEvent::Stop(_stop_event) => {
-                    server_tx
-                        .send(MessageType::Event(EventMessage {
-                            event: events::Stopped::EVENT.into(),
-                            body: Some(
-                                serde_json::to_value(StoppedEvent {
-                                    description: None,
-                                    thread_id: Some(1),
-                                    preserve_focus_hint: None,
-                                    text: None,
-                                    all_threads_stopped: Some(true),
-                                    hit_breakpoint_ids: None,
-                                    reason: rust_dap::types::types::StoppedEventReason::Breakpoint,
-                                })
-                                .expect("Converting to json"),
-                            ),
-                        }))
-                        .expect("Sending event");
-                }
-                DebugEvent::Exit(_exit_event) => (),
-            };
+        let mut running = true;
+        while running {
+            let _ = (|| -> Result<()> {
+                log::debug!("Waiting for Jsonnet Debugger Event");
+                let res = DebuggerBridgeImpl::wait_for_event();
+                let event_data: DebugEvent = decode(&res)?;
+                let event = match event_data {
+                    DebugEvent::Stop(_stop_event) => EventMessage {
+                        event: events::Stopped::EVENT.into(),
+                        body: Some(serde_json::to_value(StoppedEvent {
+                            description: None,
+                            thread_id: Some(1),
+                            preserve_focus_hint: None,
+                            text: None,
+                            all_threads_stopped: Some(true),
+                            hit_breakpoint_ids: None,
+                            reason: rust_dap::types::types::StoppedEventReason::Breakpoint,
+                        })?),
+                    },
+                    DebugEvent::Exit(_exit_event) => {
+                        running = false;
+                        EventMessage {
+                            event: events::Terminated::EVENT.into(),
+                            body: None,
+                        }
+                    }
+                };
+                server_tx.send(MessageType::Event(event))?;
+                Ok(())
+            })();
         }
+        // Just exit as an easy solution :D
+        exit(0);
     });
 
     log::info!("Starting server");
