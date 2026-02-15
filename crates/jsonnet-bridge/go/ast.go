@@ -120,7 +120,7 @@ func (GoAst) get_ast_snippet_binary(source_file *string, snippet *string) (info 
 			info.error_data = fmt.Sprintf("GO Error: %v", r)
 		}
 	}()
-	node, err := jsonnet.SnippetToAST(*source_file, *snippet)
+	node, err := jsonnet.SnippetToASTNoAnalyze(*source_file, *snippet)
 	if err != nil {
 		// Since go is stupid we are not able to get the underlying error type and thus are forced to just use the string
 		info.error_data = err.Error()
