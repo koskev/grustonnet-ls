@@ -41,7 +41,7 @@ jobs:
             runs-on: ubuntu-24.04
             target: x86_64-pc-windows-gnu
 
-          - os-name: macOS-arm64
+          - os-name: macOS-aarch64
             runs-on: macos-latest
             target: aarch64-apple-darwin
 
@@ -50,11 +50,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set Cargo Version
+      - name: Generate Version
         run: |
           GITHUB_TAG_NAME=${{ github.ref_name }}
           TAG_NAME=${GITHUB_TAG_NAME:-v0.0.0}
           TAG_VERSION=${TAG_NAME:1}
+          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+      - name: Generate output name
+        run: |
+          RELEASE_TAR=$(echo "grustonnet_${{ matrix.platform.os-name }}.tar.gz" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+          echo ${RELEASE_TAR}
+          echo "RELEASE_TAR=${RELEASE_TAR}" >> $GITHUB_ENV
+          cat $GITHUB_ENV
+      - name: Set Cargo Version
+        run: |
           # TODO: Suffix handling (e.g. -RC1)
           cargo install cargo-set-version
           echo "Setting program version to ${TAG_VERSION}"
@@ -75,10 +84,19 @@ jobs:
         env:
           RUST_BACKTRACE: 1
           GODEBUG: "invalidptr=0,cgocheck=0"
-      # TODO: Replace AI action
+      - name: Compress binary
+        run: |
+          tmpdir=$(mktemp -d)
+          # Mac is stupid so we can't use transform in tar nor -executable in find
+          find ./ -type f -perm -111 -iname "grustonnet-*" -exec cp {} "$tmpdir/" \;
+          # Stupid but makes sure it works everywhere
+          pushd "$tmpdir"
+          tar -czf "$RELEASE_TAR" *
+          popd
+          mv "$tmpdir"/"$RELEASE_TAR" ./
+          rm -rf "$tmpdir"
       - name: Publish artifacts and release
-        uses: houseabsolute/actions-rust-release@v0
+        uses:  softprops/action-gh-release@v2
         with:
-          executable-name: grustonnet-ls${{ contains(matrix.platform.target, 'windows') && '.exe' || ''}}
-          target: ${{ matrix.platform.target }}
-          changes-file: changelog/CHANGELOG.md
+          files: ${{ env.RELEASE_TAR }}
+          body_path: changelog/CHANGELOG.md
