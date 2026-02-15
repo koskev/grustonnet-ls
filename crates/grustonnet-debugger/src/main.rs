@@ -18,7 +18,7 @@ use bincode::{
 use clap::Parser;
 use env_logger::Env;
 use grustonnet_node::types::{Identifier, node::Node};
-use jsonnet_bridge::go::{ASTInfo, DebuggerBridge, DebuggerBridgeImpl, EvaluateParams};
+use jsonnet_bridge::go::{ASTInfo, DebuggerBridge, DebuggerBridgeImpl, EvaluateParams, ExtValue};
 use jsonnet_location::LocationRange;
 use rust_dap::{
     server::{DAPConnection, DAPError, DAPResponse, DAPServer, DAPServerManager},
@@ -166,12 +166,29 @@ impl DAPServer for JsonnetDAPServer {
         let content = fs::read_to_string(&filename).expect("Reading file");
         // XXX: "Launch" will also start the debugger. So we can only start it after the
         // configuration is done
+        let mut jpaths = vec![".".into()];
+        jpaths.extend(self.launch_config.read_or_panic().j_paths.clone());
         DebuggerBridgeImpl::launch(
             filename,
             content,
             EvaluateParams {
-                jpaths: vec![".".into()],
-                ..Default::default()
+                jpaths,
+                ext_vars: self
+                    .launch_config
+                    .read_or_panic()
+                    .ext_vars
+                    .clone()
+                    .into_iter()
+                    .map(|(name, value)| ExtValue { name, value })
+                    .collect(),
+                ext_code: self
+                    .launch_config
+                    .read_or_panic()
+                    .ext_code
+                    .clone()
+                    .into_iter()
+                    .map(|(name, value)| ExtValue { name, value })
+                    .collect(),
             },
         );
         log::info!("Launch done");

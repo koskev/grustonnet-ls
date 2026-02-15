@@ -80,6 +80,13 @@ func (self GoDebugger) launch(filename *string, content *string, params *Evaluat
 	// We need to make a copy of the content since the launch will start a go routine
 	content_copy := copy_string(content)
 	filename_copy := copy_string(filename)
+	for _, val := range params.ext_vars {
+		debugger.GetVM().ExtVar(val.name, val.value)
+	}
+	for _, val := range params.ext_code {
+		debugger.GetVM().ExtCode(val.name, val.value)
+	}
+
 	debugger.Launch(filename_copy, content_copy, []string{})
 }
 
