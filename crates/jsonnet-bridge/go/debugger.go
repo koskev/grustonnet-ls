@@ -8,10 +8,7 @@ import (
 
 type GoDebugger struct{}
 
-var (
-	debugger = jsonnet.MakeDebugger()
-	global   = 0
-)
+var debugger = jsonnet.MakeDebugger()
 
 func init() {
 	DebuggerBridgeImpl = GoDebugger{}
@@ -23,6 +20,26 @@ func copy_string(input *string) string {
 
 func (self GoDebugger) step() {
 	debugger.Step()
+}
+
+func (self GoDebugger) lookup_value(identifier *string) StringInfo {
+	info, err := debugger.LookupValue(copy_string(identifier))
+	err_str := ""
+	if err != nil {
+		err_str = err.Error()
+	}
+	return StringInfo{
+		data:  info,
+		error: err_str,
+	}
+}
+
+func (self GoDebugger) list_vars() ASTInfo {
+	encoder := JsonnetEncoder{}
+	encoder.encode_bincode(debugger.ListVars())
+	return ASTInfo{
+		ast_data: encoder.buf.Bytes(),
+	}
 }
 
 func (self GoDebugger) continue_debugger() {

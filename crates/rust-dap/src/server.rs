@@ -16,8 +16,8 @@ use crate::{
         events::{self, Event},
         messages::{EventMessage, MessageBase, MessageType, RequestMessage, ResponseMessage},
         requests::{
-            self, ConfigurationDone, Continue, Initialize, Launch, Request, SetBreakpoints,
-            StackTrace, StepIn, Threads,
+            self, ConfigurationDone, Continue, Initialize, Launch, Request, Scopes, SetBreakpoints,
+            StackTrace, StepIn, Threads, Variables,
         },
     },
 };
@@ -192,6 +192,8 @@ where
         req = dap_handle_request!(self.server, get_stack_trace, requests::StackTrace, req);
         req = dap_handle_request!(self.server, step_in, requests::StepIn, req);
         req = dap_handle_request!(self.server, continue_debugger, requests::Continue, req);
+        req = dap_handle_request!(self.server, variables, requests::Variables, req);
+        req = dap_handle_request!(self.server, scopes, requests::Scopes, req);
         req = dap_handle_request!(
             self.server,
             configuration_done,
@@ -256,6 +258,8 @@ pub trait DAPServer {
     dap_function_req!(get_stack_trace, StackTrace);
     dap_function_req!(step_in, StepIn);
     dap_function_req!(continue_debugger, Continue);
+    dap_function_req!(variables, Variables);
+    dap_function_req!(scopes, Scopes);
 
     // Notifications
 }

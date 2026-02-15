@@ -212,6 +212,8 @@ type DebuggerBridge interface {
 	get_stack_trace() ASTInfo
 	launch(filename *string, content *string, params *EvaluateParams)
 	wait_for_event() ASTInfo
+	list_vars() ASTInfo
+	lookup_value(identifier *string) StringInfo
 }
 
 //export CDebuggerBridge_step
@@ -275,6 +277,27 @@ func CDebuggerBridge_launch(filename C.StringRef, content C.StringRef, params C.
 func CDebuggerBridge_wait_for_event(slot *C.void, cb *C.void) {
 	resp := DebuggerBridgeImpl.wait_for_event()
 	resp_ref, buffer := cvt_ref(cntASTInfo, refASTInfo)(&resp)
+	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
+	runtime.KeepAlive(resp_ref)
+	runtime.KeepAlive(resp)
+	runtime.KeepAlive(buffer)
+}
+
+//export CDebuggerBridge_list_vars
+func CDebuggerBridge_list_vars(slot *C.void, cb *C.void) {
+	resp := DebuggerBridgeImpl.list_vars()
+	resp_ref, buffer := cvt_ref(cntASTInfo, refASTInfo)(&resp)
+	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
+	runtime.KeepAlive(resp_ref)
+	runtime.KeepAlive(resp)
+	runtime.KeepAlive(buffer)
+}
+
+//export CDebuggerBridge_lookup_value
+func CDebuggerBridge_lookup_value(identifier C.StringRef, slot *C.void, cb *C.void) {
+	_new_identifier := newString(identifier)
+	resp := DebuggerBridgeImpl.lookup_value(&_new_identifier)
+	resp_ref, buffer := cvt_ref(cntStringInfo, refStringInfo)(&resp)
 	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
 	runtime.KeepAlive(resp_ref)
 	runtime.KeepAlive(resp)

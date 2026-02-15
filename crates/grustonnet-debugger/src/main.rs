@@ -9,23 +9,27 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use anyhow::Result;
-use bincode::{Decode, Encode};
+use anyhow::{Result, anyhow};
+use bincode::{
+    Decode, Encode,
+    de::{self},
+};
 use clap::Parser;
 use env_logger::Env;
-use grustonnet_node::types::node::Node;
-use jsonnet_bridge::go::{DebuggerBridge, DebuggerBridgeImpl, EvaluateParams};
+use grustonnet_node::types::{Identifier, node::Node};
+use jsonnet_bridge::go::{ASTInfo, DebuggerBridge, DebuggerBridgeImpl, EvaluateParams};
 use jsonnet_location::LocationRange;
 use rust_dap::{
     server::{DAPConnection, DAPError, DAPResponse, DAPServer, DAPServerManager},
     types::{
         events::{self, Event},
         messages::{EventMessage, MessageType},
-        requests::{Continue, Request, StackTrace, StepIn, Threads},
+        requests::{Continue, Request, Scopes, StackTrace, StepIn, Threads, Variables},
         types::{
             Breakpoint, Capabilities, ConfigurationDoneArguments, InitializeRequestArguments,
-            LaunchRequestArguments, SetBreakpointsArguments, SetBreakpointsResponse, Source,
-            StackFrame, StackTraceResponse, StoppedEvent, Thread, ThreadsResponse,
+            LaunchRequestArguments, Scope, ScopesResponse, SetBreakpointsArguments,
+            SetBreakpointsResponse, Source, StackFrame, StackTraceResponse, StoppedEvent, Thread,
+            ThreadsResponse, Variable, VariablesResponse,
         },
     },
 };
@@ -261,6 +265,70 @@ impl DAPServer for JsonnetDAPServer {
     fn step_in(&self, _args: <StepIn as Request>::Arguments) -> Result<DAPResponse, DAPError> {
         DebuggerBridgeImpl::step();
         Ok(().into())
+    }
+
+    fn scopes(&self, _args: <Scopes as Request>::Arguments) -> Result<DAPResponse, DAPError> {
+        Ok(ScopesResponse {
+            scopes: vec![Scope {
+                name: "Local".into(),
+                variables_reference: 1,
+                presentation_hint: None,
+                named_variables: None,
+                indexed_variables: None,
+                source: None,
+                line: None,
+                column: None,
+                end_line: None,
+                end_column: None,
+                expensive: false,
+            }],
+        }
+        .into())
+    }
+
+    fn variables(&self, _args: <Variables as Request>::Arguments) -> Result<DAPResponse, DAPError> {
+        let info = DebuggerBridgeImpl::list_vars();
+        let decoded: Vec<Identifier> = decode(&info)?;
+
+        let dap_vars = decoded
+            .iter()
+            .filter_map(|identifier| {
+                let value = DebuggerBridgeImpl::lookup_value(identifier.0.clone())
+                    .get_string()
+                    .ok()?;
+
+                Some(Variable {
+                    name: identifier.0.clone(),
+                    value,
+                    presentation_hint: None,
+                    type_: None,
+                    evaluate_name: None,
+                    variables_reference: 0,
+                    named_variables: None,
+                    indexed_variables: None,
+                    memory_reference: None,
+                    declaration_location_reference: None,
+                    value_location_reference: None,
+                })
+            })
+            .collect();
+
+        Ok(VariablesResponse {
+            variables: dap_vars,
+        }
+        .into())
+    }
+}
+
+fn decode<D>(input: &ASTInfo) -> Result<D>
+where
+    D: de::Decode<()>,
+{
+    if !input.error_data.is_empty() {
+        Err(anyhow!(input.error_data.clone()))
+    } else {
+        let (data, _) = bincode::decode_from_slice(&input.ast_data, bincode::config::legacy())?;
+        Ok(data)
     }
 }
 
