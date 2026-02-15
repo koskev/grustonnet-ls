@@ -44,6 +44,12 @@ pub struct ASTInfo {
     pub error_data: String,
 }
 
+#[derive(rust2go::R2G, Debug)]
+pub struct StringInfo {
+    pub data: String,
+    pub error: String,
+}
+
 #[derive(rust2go::R2G, Default, Debug, Clone)]
 pub struct EvaluateParams {
     pub ext_vars: Vec<ExtValue>,
@@ -84,4 +90,16 @@ pub trait ASTBridge {
     fn version() -> String;
 
     fn get_test_objects() -> Vec<TestData>;
+}
+
+#[rust2go::r2g]
+pub trait DebuggerBridge {
+    fn step();
+    fn continue_debugger();
+    fn add_breakpoint(filename: String, line: i64, column: i64) -> StringInfo;
+    fn get_breakpoints() -> Vec<String>;
+    fn clear_breakpoints(filename: String);
+    fn get_stack_trace() -> ASTInfo;
+    fn launch(filename: String, content: String, params: EvaluateParams);
+    fn wait_for_event() -> ASTInfo;
 }

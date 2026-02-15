@@ -49,6 +49,11 @@ typedef struct FormatOptionsRef {
   bool strip_all_but_comments;
 } FormatOptionsRef;
 
+typedef struct StringInfoRef {
+  struct StringRef data;
+  struct StringRef error;
+} StringInfoRef;
+
 typedef struct TestDataRef {
   struct StringRef name;
   struct ListRef data;
@@ -190,6 +195,86 @@ func CASTBridge_version(slot *C.void, cb *C.void) {
 func CASTBridge_get_test_objects(slot *C.void, cb *C.void) {
 	resp := ASTBridgeImpl.get_test_objects()
 	resp_ref, buffer := cvt_ref(cnt_list_mapper(cntTestData), ref_list_mapper(refTestData))(&resp)
+	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
+	runtime.KeepAlive(resp_ref)
+	runtime.KeepAlive(resp)
+	runtime.KeepAlive(buffer)
+}
+
+var DebuggerBridgeImpl DebuggerBridge
+
+type DebuggerBridge interface {
+	step()
+	continue_debugger()
+	add_breakpoint(filename *string, line *int64, column *int64) StringInfo
+	get_breakpoints() []string
+	clear_breakpoints(filename *string)
+	get_stack_trace() ASTInfo
+	launch(filename *string, content *string, params *EvaluateParams)
+	wait_for_event() ASTInfo
+}
+
+//export CDebuggerBridge_step
+func CDebuggerBridge_step() {
+	DebuggerBridgeImpl.step()
+}
+
+//export CDebuggerBridge_continue_debugger
+func CDebuggerBridge_continue_debugger() {
+	DebuggerBridgeImpl.continue_debugger()
+}
+
+//export CDebuggerBridge_add_breakpoint
+func CDebuggerBridge_add_breakpoint(filename C.StringRef, line C.int64_t, column C.int64_t, slot *C.void, cb *C.void) {
+	_new_filename := newString(filename)
+	_new_line := newC_int64_t(line)
+	_new_column := newC_int64_t(column)
+	resp := DebuggerBridgeImpl.add_breakpoint(&_new_filename, &_new_line, &_new_column)
+	resp_ref, buffer := cvt_ref(cntStringInfo, refStringInfo)(&resp)
+	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
+	runtime.KeepAlive(resp_ref)
+	runtime.KeepAlive(resp)
+	runtime.KeepAlive(buffer)
+}
+
+//export CDebuggerBridge_get_breakpoints
+func CDebuggerBridge_get_breakpoints(slot *C.void, cb *C.void) {
+	resp := DebuggerBridgeImpl.get_breakpoints()
+	resp_ref, buffer := cvt_ref(cnt_list_mapper(cntString), ref_list_mapper(refString))(&resp)
+	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
+	runtime.KeepAlive(resp_ref)
+	runtime.KeepAlive(resp)
+	runtime.KeepAlive(buffer)
+}
+
+//export CDebuggerBridge_clear_breakpoints
+func CDebuggerBridge_clear_breakpoints(filename C.StringRef) {
+	_new_filename := newString(filename)
+	DebuggerBridgeImpl.clear_breakpoints(&_new_filename)
+}
+
+//export CDebuggerBridge_get_stack_trace
+func CDebuggerBridge_get_stack_trace(slot *C.void, cb *C.void) {
+	resp := DebuggerBridgeImpl.get_stack_trace()
+	resp_ref, buffer := cvt_ref(cntASTInfo, refASTInfo)(&resp)
+	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
+	runtime.KeepAlive(resp_ref)
+	runtime.KeepAlive(resp)
+	runtime.KeepAlive(buffer)
+}
+
+//export CDebuggerBridge_launch
+func CDebuggerBridge_launch(filename C.StringRef, content C.StringRef, params C.EvaluateParamsRef) {
+	_new_filename := newString(filename)
+	_new_content := newString(content)
+	_new_params := newEvaluateParams(params)
+	DebuggerBridgeImpl.launch(&_new_filename, &_new_content, &_new_params)
+}
+
+//export CDebuggerBridge_wait_for_event
+func CDebuggerBridge_wait_for_event(slot *C.void, cb *C.void) {
+	resp := DebuggerBridgeImpl.wait_for_event()
+	resp_ref, buffer := cvt_ref(cntASTInfo, refASTInfo)(&resp)
 	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
 	runtime.KeepAlive(resp_ref)
 	runtime.KeepAlive(resp)
@@ -470,6 +555,35 @@ func refASTInfo(p *ASTInfo, buffer *[]byte) C.ASTInfoRef {
 	return C.ASTInfoRef{
 		ast_data:   ref_list_mapper_primitive(refC_uint8_t)(&p.ast_data, buffer),
 		error_data: refString(&p.error_data, buffer),
+	}
+}
+
+type StringInfo struct {
+	data  string
+	error string
+}
+
+func newStringInfo(p C.StringInfoRef) StringInfo {
+	return StringInfo{
+		data:  newString(p.data),
+		error: newString(p.error),
+	}
+}
+func ownStringInfo(p C.StringInfoRef) StringInfo {
+	return StringInfo{
+		data:  ownString(p.data),
+		error: ownString(p.error),
+	}
+}
+func cntStringInfo(s *StringInfo, cnt *uint) [0]C.StringInfoRef {
+	_ = s
+	_ = cnt
+	return [0]C.StringInfoRef{}
+}
+func refStringInfo(p *StringInfo, buffer *[]byte) C.StringInfoRef {
+	return C.StringInfoRef{
+		data:  refString(&p.data, buffer),
+		error: refString(&p.error, buffer),
 	}
 }
 

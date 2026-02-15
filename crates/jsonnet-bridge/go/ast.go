@@ -40,6 +40,10 @@ const (
 	Dollar     = iota
 	// Leftover nodes. Most likely something is broken
 	Other = iota
+
+	// Debugger
+	DebuggerStop = 0
+	DebuggerExit = 1
 )
 
 type GoAst struct{}
@@ -302,6 +306,24 @@ func (self *JsonnetEncoder) encode_string_option(data string) *JsonnetEncoder {
 	return self
 }
 
+func (self *JsonnetEncoder) encode_error(err error) *JsonnetEncoder {
+	if err != nil {
+		self.encode_string(err.Error())
+	} else {
+		self.encode_string("")
+	}
+	return self
+}
+
+func (self *JsonnetEncoder) encode_string_ptr(data *string) *JsonnetEncoder {
+	if data != nil {
+		self.encode_string(*data)
+	} else {
+		self.encode_string("")
+	}
+	return self
+}
+
 func (self *JsonnetEncoder) encode_string(data string) *JsonnetEncoder {
 	self.write(uint64(len(data)))
 	if len(data) > 0 {
@@ -321,9 +343,7 @@ func (self *JsonnetEncoder) encode_bincode_val(val reflect.Value) *JsonnetEncode
 			self.encode_bincode_val(slice_val)
 		}
 	case reflect.Pointer:
-		if val.IsNil() ||
-			// Filter out Source as it contains a pointer to the whole file
-			reflect.TypeOf(val.Elem().Interface()) == reflect.TypeFor[ast.Source]() {
+		if val.IsNil() {
 			self.write(int8(0))
 		} else {
 			self.write(int8(1))
@@ -492,6 +512,28 @@ func (self *JsonnetEncoder) encode_bincode(val any) *JsonnetEncoder {
 		self.encode_bincode(currNode.EqFodder)
 		self.encode_option(currNode.DefaultArg)
 		self.encode_bincode(currNode.LocRange)
+		return self
+	case jsonnet.DebugEventStop:
+		self.write(uint32(DebuggerStop))
+		self.write(uint32(currNode.Reason))
+		self.encode_string(currNode.Breakpoint)
+		self.encode_bincode(currNode.Current)
+		self.encode_string_ptr(currNode.LastEvaluation)
+		self.encode_error(currNode.Error)
+		return self
+	case jsonnet.DebugEventExit:
+		self.write(uint32(DebuggerExit))
+		self.encode_string(currNode.Output)
+		if currNode.Error != nil {
+			self.encode_string(currNode.Error.Error())
+		} else {
+			self.encode_string("")
+		}
+		return self
+	case ast.Source:
+		self.encode_string(string(currNode.DiagnosticFileName))
+		// XXX: Skip the lines as this is currently not a pointer but the whole source for each location
+		self.write(uint64(0))
 		return self
 	}
 	for i := range reflect_type.NumField() {

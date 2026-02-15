@@ -14,6 +14,8 @@ missing_docs = "allow"
 members = [
 "crates/grustonnet-bin",
 "crates/grustonnet-lint",
+"crates/grustonnet-debugger",
+"crates/rust-dap",
 "crates/grustonnet-ls-lib",
 "crates/jsonnet-bridge",
 "crates/jsonnet-location",

@@ -140,6 +140,7 @@
               nativeBuildInputs
               ++ [
                 cargo
+                gdb
                 cargo-tarpaulin
                 clippy
                 rustfmt
