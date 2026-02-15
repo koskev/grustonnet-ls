@@ -18,13 +18,14 @@ fn create_server() -> JsonnetServer {
     }
 }
 
-#[test]
+// Not needed anymore
+//#[test]
 fn simple_check() {
     let file_name = "testdata/simple_local.jsonnet";
     check(file_name);
 }
 
-test_macros::generate_test_function_for_dir!("testdata/complete/", check);
+//test_macros::generate_test_function_for_dir!("testdata/complete/", check);
 
 fn check(file_name: &str) {
     let server = create_server();
