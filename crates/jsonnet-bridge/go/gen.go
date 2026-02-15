@@ -205,6 +205,7 @@ var DebuggerBridgeImpl DebuggerBridge
 
 type DebuggerBridge interface {
 	step()
+	step_over()
 	continue_debugger()
 	add_breakpoint(filename *string, line *int64, column *int64) StringInfo
 	get_breakpoints() []string
@@ -219,6 +220,11 @@ type DebuggerBridge interface {
 //export CDebuggerBridge_step
 func CDebuggerBridge_step() {
 	DebuggerBridgeImpl.step()
+}
+
+//export CDebuggerBridge_step_over
+func CDebuggerBridge_step_over() {
+	DebuggerBridgeImpl.step_over()
 }
 
 //export CDebuggerBridge_continue_debugger

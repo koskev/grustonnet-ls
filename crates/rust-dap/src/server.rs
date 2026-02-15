@@ -16,8 +16,8 @@ use crate::{
         events::{self, Event},
         messages::{EventMessage, MessageBase, MessageType, RequestMessage, ResponseMessage},
         requests::{
-            self, ConfigurationDone, Continue, Initialize, Launch, Request, Scopes, SetBreakpoints,
-            StackTrace, StepIn, Threads, Variables,
+            self, ConfigurationDone, Continue, Initialize, Launch, Next, Request, Scopes,
+            SetBreakpoints, StackTrace, StepIn, Threads, Variables,
         },
     },
 };
@@ -194,6 +194,7 @@ where
         req = dap_handle_request!(self.server, continue_debugger, requests::Continue, req);
         req = dap_handle_request!(self.server, variables, requests::Variables, req);
         req = dap_handle_request!(self.server, scopes, requests::Scopes, req);
+        req = dap_handle_request!(self.server, next, requests::Next, req);
         req = dap_handle_request!(
             self.server,
             configuration_done,
@@ -216,8 +217,8 @@ pub struct DAPConnection {
     //pub threads: Arc<Mutex<Option<IoThreads>>>,
 }
 
-impl Default for DAPConnection {
-    fn default() -> Self {
+impl DAPConnection {
+    pub fn new_stdio() -> Self {
         let (tx, rx, _, _) = stdio();
         Self {
             sender: tx,
@@ -225,9 +226,6 @@ impl Default for DAPConnection {
             //threads: Arc::new(Mutex::new(Some(threads))),
         }
     }
-}
-
-impl DAPConnection {
     pub fn new_network(port: u16) -> Self {
         let (sender, receiver, _, _) = network(&format!("127.0.0.1:{}", port));
         Self { sender, receiver }
@@ -260,6 +258,7 @@ pub trait DAPServer {
     dap_function_req!(continue_debugger, Continue);
     dap_function_req!(variables, Variables);
     dap_function_req!(scopes, Scopes);
+    dap_function_req!(next, Next);
 
     // Notifications
 }

@@ -25,7 +25,7 @@ use rust_dap::{
     types::{
         events::{self, Event},
         messages::{EventMessage, MessageType},
-        requests::{Continue, Request, Scopes, StackTrace, StepIn, Threads, Variables},
+        requests::{Continue, Next, Request, Scopes, StackTrace, StepIn, Threads, Variables},
         types::{
             Breakpoint, Capabilities, ConfigurationDoneArguments, InitializeRequestArguments,
             LaunchRequestArguments, Scope, ScopesResponse, SetBreakpointsArguments,
@@ -90,7 +90,6 @@ pub struct LaunchConfig {
     ext_code: HashMap<String, String>,
 }
 
-#[derive(Default)]
 pub struct JsonnetDAPServer {
     pub connection: DAPConnection,
     pub launch_config: Arc<RwLock<LaunchConfig>>,
@@ -267,6 +266,10 @@ impl DAPServer for JsonnetDAPServer {
         DebuggerBridgeImpl::step();
         Ok(().into())
     }
+    fn next(&self, _args: <Next as Request>::Arguments) -> Result<DAPResponse, DAPError> {
+        DebuggerBridgeImpl::step_over();
+        Ok(().into())
+    }
 
     fn scopes(&self, _args: <Scopes as Request>::Arguments) -> Result<DAPResponse, DAPError> {
         Ok(ScopesResponse {
@@ -342,12 +345,12 @@ async fn main() -> Result<()> {
     let connection = if let Some(port) = args.port {
         DAPConnection::new_network(port)
     } else {
-        DAPConnection::default()
+        DAPConnection::new_stdio()
     };
     let server = DAPServerManager {
         server: JsonnetDAPServer {
             connection,
-            ..Default::default()
+            launch_config: Arc::default(),
         },
     };
     let server_tx = server.server.connection.sender.clone();

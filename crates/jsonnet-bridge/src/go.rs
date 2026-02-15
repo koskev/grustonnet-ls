@@ -107,6 +107,7 @@ pub trait ASTBridge {
 #[rust2go::r2g]
 pub trait DebuggerBridge {
     fn step();
+    fn step_over();
     fn continue_debugger();
     fn add_breakpoint(filename: String, line: i64, column: i64) -> StringInfo;
     fn get_breakpoints() -> Vec<String>;

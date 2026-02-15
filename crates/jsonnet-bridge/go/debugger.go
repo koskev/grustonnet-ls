@@ -4,11 +4,15 @@ import (
 	"fmt"
 
 	"github.com/google/go-jsonnet"
+	"github.com/google/go-jsonnet/ast"
 )
 
 type GoDebugger struct{}
 
-var debugger = jsonnet.MakeDebugger()
+var (
+	debugger  = jsonnet.MakeDebugger()
+	last_node ast.Node
+)
 
 func init() {
 	DebuggerBridgeImpl = GoDebugger{}
@@ -16,6 +20,10 @@ func init() {
 
 func copy_string(input *string) string {
 	return fmt.Sprintf("%s", *input)
+}
+
+func (self GoDebugger) step_over() {
+	debugger.ContinueUntilAfter(last_node)
 }
 
 func (self GoDebugger) step() {
@@ -58,6 +66,10 @@ func (GoDebugger) get_stack_trace() ASTInfo {
 func (self GoDebugger) wait_for_event() ASTInfo {
 	info := ASTInfo{}
 	event := <-debugger.Events()
+	switch ev := event.(type) {
+	case *jsonnet.DebugEventStop:
+		last_node = ev.Current
+	}
 	encoder := JsonnetEncoder{}
 	encoder.encode_bincode(event)
 	info.ast_data = encoder.buf.Bytes()
