@@ -29,8 +29,8 @@ use rust_dap::{
         types::{
             Breakpoint, Capabilities, ConfigurationDoneArguments, InitializeRequestArguments,
             LaunchRequestArguments, Scope, ScopesResponse, SetBreakpointsArguments,
-            SetBreakpointsResponse, Source, StackFrame, StackTraceResponse, StoppedEvent, Thread,
-            ThreadsResponse, Variable, VariablesResponse,
+            SetBreakpointsResponse, Source, StackFrame, StackTraceResponse, StoppedEvent,
+            StoppedEventReason, Thread, ThreadsResponse, Variable, VariablesResponse,
         },
     },
 };
@@ -359,18 +359,30 @@ async fn main() -> Result<()> {
                 let res = DebuggerBridgeImpl::wait_for_event();
                 let event_data: DebugEvent = decode(&res)?;
                 let event = match event_data {
-                    DebugEvent::Stop(_stop_event) => EventMessage {
-                        event: events::Stopped::EVENT.into(),
-                        body: Some(serde_json::to_value(StoppedEvent {
-                            description: None,
-                            thread_id: Some(1),
-                            preserve_focus_hint: None,
-                            text: None,
-                            all_threads_stopped: Some(true),
-                            hit_breakpoint_ids: None,
-                            reason: rust_dap::types::types::StoppedEventReason::Breakpoint,
-                        })?),
-                    },
+                    DebugEvent::Stop(stop_event) => {
+                        let reason = match stop_event.reason {
+                            0 => StoppedEventReason::Step,
+                            1 => StoppedEventReason::Breakpoint,
+                            2 => StoppedEventReason::Exception,
+                            _ => StoppedEventReason::Unknown,
+                        };
+                        EventMessage {
+                            event: events::Stopped::EVENT.into(),
+                            body: Some(serde_json::to_value(StoppedEvent {
+                                description: None,
+                                thread_id: Some(1),
+                                preserve_focus_hint: None,
+                                text: if stop_event.error.is_empty() {
+                                    None
+                                } else {
+                                    Some(stop_event.error.clone())
+                                },
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: None,
+                                reason,
+                            })?),
+                        }
+                    }
                     DebugEvent::Exit(_exit_event) => {
                         running = false;
                         EventMessage {
