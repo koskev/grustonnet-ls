@@ -10,6 +10,10 @@ unwrap_used = "warn"
 [workspace.lints.rust]
 missing_docs = "allow"
 
+[profile.release]
+strip = true
+lto = true
+
 [workspace]
 members = [
 "crates/grustonnet-bin",
