@@ -97,7 +97,19 @@ impl RequestMessage {
         if self.command != method {
             return Err(ExtractError::MethodMismatch(self));
         }
-        match serde_json::from_value(self.arguments.unwrap_or_default()) {
+        // Some clients send "null" and some send "{}"
+        // If the val is an empty object we'll just replace it with "null".
+        let val = self
+            .arguments
+            .and_then(|val| {
+                if val == serde_json::Value::Object(serde_json::Map::new()) {
+                    Some(serde_json::Value::Null)
+                } else {
+                    Some(val)
+                }
+            })
+            .unwrap_or_default();
+        match serde_json::from_value(val) {
             Ok(params) => Ok(params),
             Err(error) => Err(ExtractError::JsonError {
                 method: self.command,
