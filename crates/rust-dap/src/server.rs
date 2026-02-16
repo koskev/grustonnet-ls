@@ -42,7 +42,7 @@ macro_rules! dap_handle_request {
                 log::debug!("Request {} took {:?}", stringify!($name), start.elapsed());
                 return resp;
             }
-            Err(_err @ ExtractError::JsonError { .. }) => panic!("Json error in DAP"),
+            Err(err @ ExtractError::JsonError { .. }) => panic!("Json error in DAP {err:?}"),
             Err(ExtractError::MethodMismatch(req)) => req,
         }
     };

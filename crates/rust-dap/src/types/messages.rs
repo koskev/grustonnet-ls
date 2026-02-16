@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::types::types::Capabilities;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct MessageBase {
     pub seq: u64,
@@ -73,7 +73,7 @@ impl MessageBase {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
 pub enum MessageType {
@@ -82,7 +82,7 @@ pub enum MessageType {
     Event(EventMessage),
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct RequestMessage {
     pub command: String,
     // TODO: Rewrite generator to use enums instead of raw values
@@ -107,13 +107,13 @@ impl RequestMessage {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct EventMessage {
     pub event: String,
     pub body: Option<serde_json::Value>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct ResponseMessage {
     pub request_seq: u64,
     pub success: bool,
