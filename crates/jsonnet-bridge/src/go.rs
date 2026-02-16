@@ -117,4 +117,5 @@ pub trait DebuggerBridge {
     fn wait_for_event() -> ASTInfo;
     fn list_vars() -> ASTInfo;
     fn lookup_value(identifier: String) -> StringInfo;
+    fn evaluate(snippet: String) -> StringInfo;
 }

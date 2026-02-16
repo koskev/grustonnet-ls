@@ -25,12 +25,15 @@ use rust_dap::{
     types::{
         events::{self, Event},
         messages::{EventMessage, MessageType},
-        requests::{Continue, Next, Request, Scopes, StackTrace, StepIn, Threads, Variables},
+        requests::{
+            Continue, Evaluate, Next, Request, Scopes, StackTrace, StepIn, Threads, Variables,
+        },
         types::{
-            Breakpoint, Capabilities, ConfigurationDoneArguments, InitializeRequestArguments,
-            LaunchRequestArguments, Scope, ScopesResponse, SetBreakpointsArguments,
-            SetBreakpointsResponse, Source, StackFrame, StackTraceResponse, StoppedEvent,
-            StoppedEventReason, Thread, ThreadsResponse, Variable, VariablesResponse,
+            Breakpoint, Capabilities, ConfigurationDoneArguments, EvaluateResponse,
+            InitializeRequestArguments, LaunchRequestArguments, Scope, ScopesResponse,
+            SetBreakpointsArguments, SetBreakpointsResponse, Source, StackFrame,
+            StackTraceResponse, StoppedEvent, StoppedEventReason, Thread, ThreadsResponse,
+            Variable, VariablesResponse,
         },
     },
 };
@@ -97,6 +100,7 @@ pub struct LaunchConfig {
 pub struct JsonnetDAPServer {
     pub connection: DAPConnection,
     pub launch_config: Arc<RwLock<LaunchConfig>>,
+    pub init_args: Option<InitializeRequestArguments>,
 }
 
 impl DAPServer for JsonnetDAPServer {
@@ -347,6 +351,23 @@ impl DAPServer for JsonnetDAPServer {
         }
         .into())
     }
+
+    fn evaluate(&self, args: <Evaluate as Request>::Arguments) -> Result<DAPResponse, DAPError> {
+        let info = DebuggerBridgeImpl::evaluate(args.expression);
+
+        let resp = EvaluateResponse {
+            presentation_hint: None,
+            variables_reference: 0,
+            named_variables: None,
+            indexed_variables: None,
+            memory_reference: None,
+            value_location_reference: None,
+            result: info.data.clone(),
+            type_: None,
+        };
+
+        Ok(resp.into())
+    }
 }
 
 fn decode<D>(input: &ASTInfo) -> Result<D>
@@ -380,6 +401,7 @@ async fn main() -> Result<()> {
         server: JsonnetDAPServer {
             connection,
             launch_config: Arc::default(),
+            init_args: None,
         },
     };
     let server_tx = server.server.connection.sender.clone();

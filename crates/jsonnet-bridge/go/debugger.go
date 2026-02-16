@@ -30,6 +30,31 @@ func (self GoDebugger) step() {
 	debugger.Step()
 }
 
+func (GoDebugger) evaluate(snippet *string) (info StringInfo) {
+	filename := ""
+	if last_node != nil {
+		filename = last_node.Loc().FileName
+		filename = "MYFILE"
+	}
+
+	ast, err := jsonnet.SnippetToASTNoAnalyze(filename, copy_string(snippet))
+	if err != nil {
+		return StringInfo{error: err.Error()}
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			info.error = fmt.Sprintf("GO Error: %v", r)
+		}
+	}()
+	res, err := debugger.LookupNode(ast)
+	if err != nil {
+		return StringInfo{error: err.Error()}
+	}
+
+	info.data = res
+	return info
+}
+
 func (self GoDebugger) lookup_value(identifier *string) StringInfo {
 	info, err := debugger.LookupValue(copy_string(identifier))
 	err_str := ""

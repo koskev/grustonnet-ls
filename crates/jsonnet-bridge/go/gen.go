@@ -215,6 +215,7 @@ type DebuggerBridge interface {
 	wait_for_event() ASTInfo
 	list_vars() ASTInfo
 	lookup_value(identifier *string) StringInfo
+	evaluate(snippet *string) StringInfo
 }
 
 //export CDebuggerBridge_step
@@ -303,6 +304,17 @@ func CDebuggerBridge_list_vars(slot *C.void, cb *C.void) {
 func CDebuggerBridge_lookup_value(identifier C.StringRef, slot *C.void, cb *C.void) {
 	_new_identifier := newString(identifier)
 	resp := DebuggerBridgeImpl.lookup_value(&_new_identifier)
+	resp_ref, buffer := cvt_ref(cntStringInfo, refStringInfo)(&resp)
+	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
+	runtime.KeepAlive(resp_ref)
+	runtime.KeepAlive(resp)
+	runtime.KeepAlive(buffer)
+}
+
+//export CDebuggerBridge_evaluate
+func CDebuggerBridge_evaluate(snippet C.StringRef, slot *C.void, cb *C.void) {
+	_new_snippet := newString(snippet)
+	resp := DebuggerBridgeImpl.evaluate(&_new_snippet)
 	resp_ref, buffer := cvt_ref(cntStringInfo, refStringInfo)(&resp)
 	asmcall.CallFuncG0P2(unsafe.Pointer(cb), unsafe.Pointer(&resp_ref), unsafe.Pointer(slot))
 	runtime.KeepAlive(resp_ref)
