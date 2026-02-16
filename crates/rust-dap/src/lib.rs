@@ -74,6 +74,7 @@ fn network(
     JoinHandle<()>,
 ) {
     let listener = TcpListener::bind(addr).expect("Binding socket");
+    log::info!("Waiting for connection on {addr}");
     let (mut stream, _) = listener.accept().expect("Accepting stream");
     let (message_tx, message_rx) = crossbeam::channel::bounded::<MessageType>(0);
     let (reader_tx, reader_rx) = crossbeam::channel::bounded::<MessageBase>(0);
