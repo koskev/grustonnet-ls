@@ -313,7 +313,11 @@ impl DAPServer for JsonnetDAPServer {
 
     fn variables(&self, _args: <Variables as Request>::Arguments) -> Result<DAPResponse, DAPError> {
         let info = DebuggerBridgeImpl::list_vars();
-        let decoded: Vec<Identifier> = decode(&info)?;
+        let mut decoded: Vec<Identifier> = decode(&info)?;
+        let self_identifier = Identifier("self".into());
+        if !decoded.contains(&self_identifier) {
+            decoded.push(self_identifier);
+        }
 
         let dap_vars = decoded
             .iter()
