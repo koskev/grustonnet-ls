@@ -65,7 +65,7 @@
           outputHashMode = "recursive";
           outputHashAlgo = "sha256";
           # Do NOT set to `null` for testing. `go mod vendor` WILL break
-          outputHash = "sha256-2RLRbXjZvK81CVCCvhvgmgSdi/xWIVB+dOWeT0heyuE=";
+          outputHash = "sha256-FocxrN342wE0ROJ4M04uTk6LKnOF/D6b80+6O0GzBOY=";
         };
 
         rust2gocli = pkgs.rustPlatform.buildRustPackage rec {
