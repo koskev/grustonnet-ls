@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Arguments for `cancel` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct CancelArguments {
     /// The ID (attribute `seq`) of the request to cancel. If missing no request is cancelled.
     /// Both a `requestId` and a `progressId` can be specified in one request.
@@ -19,7 +19,7 @@ pub struct CancelArguments {
 
 /// The event indicates that the execution of the debuggee has stopped due to some condition.
 /// This can be caused by a breakpoint previously set, a stepping request has completed, by executing a debugger statement etc.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StoppedEvent {
     /// The reason for the event.
     /// For backward compatibility this string is shown in the UI if the `description` attribute is missing (but it must not be translated).
@@ -58,9 +58,10 @@ pub struct StoppedEvent {
 
 /// The reason for the event.
 /// For backward compatibility this string is shown in the UI if the `description` attribute is missing (but it must not be translated).
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum StoppedEventReason {
+    #[default]
     #[serde(rename = "step")]
     Step,
     #[serde(rename = "breakpoint")]
@@ -86,7 +87,7 @@ pub enum StoppedEventReason {
 /// The event indicates that the execution of the debuggee has continued.
 /// Please note: a debug adapter is not expected to send this event in response to a request that implies that execution continues, e.g. `launch` or `continue`.
 /// It is only necessary to send a `continued` event if there was no previous request that implied this.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ContinuedEvent {
     /// The thread which was continued.
     #[serde(rename = "threadId")]
@@ -98,7 +99,7 @@ pub struct ContinuedEvent {
 }
 
 /// The event indicates that the debuggee has exited and returns its exit code.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ExitedEvent {
     /// The exit code returned from the debuggee.
     #[serde(rename = "exitCode")]
@@ -106,7 +107,7 @@ pub struct ExitedEvent {
 }
 
 /// The event indicates that debugging of the debuggee has terminated. This does **not** mean that the debuggee itself has exited.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct TerminatedEvent {
     /// A debug adapter may set `restart` to true (or to an arbitrary object) to request that the client restarts the session.
     /// The value is not interpreted by the client and passed unmodified as an attribute `__restart` to the `launch` and `attach` requests.
@@ -116,7 +117,7 @@ pub struct TerminatedEvent {
 }
 
 /// The event indicates that a thread has started or exited.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ThreadEvent {
     /// The reason for the event.
     #[serde(rename = "reason")]
@@ -127,9 +128,10 @@ pub struct ThreadEvent {
 }
 
 /// The reason for the event.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum ThreadEventReason {
+    #[default]
     #[serde(rename = "started")]
     Started,
     #[serde(rename = "exited")]
@@ -139,7 +141,7 @@ pub enum ThreadEventReason {
 }
 
 /// The event indicates that the target has produced some output.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct OutputEvent {
     /// The output category. If not specified or if the category is not understood by the client, `console` is assumed.
     #[serde(rename = "category")]
@@ -185,10 +187,11 @@ pub struct OutputEvent {
 }
 
 /// The output category. If not specified or if the category is not understood by the client, `console` is assumed.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum OutputEventCategory {
     /// Show the output in the client's default message UI, e.g. a 'debug console'. This category should only be used for informational output from the debugger (as opposed to the debuggee).
+    #[default]
     #[serde(rename = "console")]
     Console,
     /// A hint for the client to show the output in the client's UI for important and highly visible information, e.g. as a popup notification. This category should only be used for important messages from the debugger (as opposed to the debuggee). Since this category value is a hint, clients might ignore the hint and assume the `console` category.
@@ -208,10 +211,11 @@ pub enum OutputEventCategory {
 }
 
 /// Support for keeping an output log organized by grouping related messages.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum OutputEventGroup {
     /// Start a new group in expanded mode. Subsequent output events are members of the group and should be shown indented.
     /// The `output` attribute becomes the name of the group and is not indented.
+    #[default]
     #[serde(rename = "start")]
     Start,
     /// Start a new group in collapsed mode. Subsequent output events are members of the group and should be shown indented (as soon as the group is expanded).
@@ -225,7 +229,7 @@ pub enum OutputEventGroup {
 }
 
 /// The event indicates that some information about a breakpoint has changed. While debug adapters may notify the clients of `changed` breakpoints using this event, clients should continue to use the breakpoint's original properties when updating a source's breakpoints in the `breakpoint` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct BreakpointEvent {
     /// The reason for the event.
     #[serde(rename = "reason")]
@@ -236,9 +240,10 @@ pub struct BreakpointEvent {
 }
 
 /// The reason for the event.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum BreakpointEventReason {
+    #[default]
     #[serde(rename = "changed")]
     Changed,
     #[serde(rename = "new")]
@@ -250,7 +255,7 @@ pub enum BreakpointEventReason {
 }
 
 /// The event indicates that some information about a module has changed.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ModuleEvent {
     /// The reason for the event.
     #[serde(rename = "reason")]
@@ -261,8 +266,9 @@ pub struct ModuleEvent {
 }
 
 /// The reason for the event.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum ModuleEventReason {
+    #[default]
     #[serde(rename = "new")]
     New,
     #[serde(rename = "changed")]
@@ -272,7 +278,7 @@ pub enum ModuleEventReason {
 }
 
 /// The event indicates that some source has been added, changed, or removed from the set of all loaded sources.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct LoadedSourceEvent {
     /// The reason for the event.
     #[serde(rename = "reason")]
@@ -283,8 +289,9 @@ pub struct LoadedSourceEvent {
 }
 
 /// The reason for the event.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum LoadedSourceEventReason {
+    #[default]
     #[serde(rename = "new")]
     New,
     #[serde(rename = "changed")]
@@ -294,7 +301,7 @@ pub enum LoadedSourceEventReason {
 }
 
 /// The event indicates that the debugger has begun debugging a new process. Either one that it has launched, or one that it has attached to.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ProcessEvent {
     /// The logical name of the process. This is usually the full path to process's executable file. Example: /home/example/myproj/program.js.
     #[serde(rename = "name")]
@@ -318,9 +325,10 @@ pub struct ProcessEvent {
 }
 
 /// Describes how the debug engine started debugging this process.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum ProcessEventStartMethod {
     /// Process was launched under the debugger.
+    #[default]
     #[serde(rename = "launch")]
     Launch,
     /// Debugger attached to an existing process.
@@ -335,7 +343,7 @@ pub enum ProcessEventStartMethod {
 /// Since the capabilities are dependent on the client and its UI, it might not be possible to change that at random times (or too late).
 /// Consequently this event has a hint characteristic: a client can only be expected to make a 'best effort' in honoring individual capabilities but there are no guarantees.
 /// Only changed capabilities need to be included, all other capabilities keep their values.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct CapabilitiesEvent {
     /// The set of updated capabilities.
     #[serde(rename = "capabilities")]
@@ -345,7 +353,7 @@ pub struct CapabilitiesEvent {
 /// The event signals that a long running operation is about to start and provides additional information for the client to set up a corresponding progress and cancellation UI.
 /// The client is free to delay the showing of the UI in order to reduce flicker.
 /// This event should only be sent if the corresponding capability `supportsProgressReporting` is true.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ProgressStartEvent {
     /// An ID that can be used in subsequent `progressUpdate` and `progressEnd` events to make them refer to the same progress reporting.
     /// IDs must be unique within a debug session.
@@ -378,7 +386,7 @@ pub struct ProgressStartEvent {
 /// The event signals that the progress reporting needs to be updated with a new message and/or percentage.
 /// The client does not have to update the UI immediately, but the clients needs to keep track of the message and/or percentage values.
 /// This event should only be sent if the corresponding capability `supportsProgressReporting` is true.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ProgressUpdateEvent {
     /// The ID that was introduced in the initial `progressStart` event.
     #[serde(rename = "progressId")]
@@ -395,7 +403,7 @@ pub struct ProgressUpdateEvent {
 
 /// The event signals the end of the progress reporting with a final message.
 /// This event should only be sent if the corresponding capability `supportsProgressReporting` is true.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ProgressEndEvent {
     /// The ID that was introduced in the initial `ProgressStartEvent`.
     #[serde(rename = "progressId")]
@@ -409,7 +417,7 @@ pub struct ProgressEndEvent {
 /// This event signals that some state in the debug adapter has changed and requires that the client needs to re-render the data snapshot previously requested.
 /// Debug adapters do not have to emit this event for runtime changes like stopped or thread events because in that case the client refetches the new state anyway. But the event can be used for example to refresh the UI after rendering formatting has changed in the debug adapter.
 /// This event should only be sent if the corresponding capability `supportsInvalidatedEvent` is true.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct InvalidatedEvent {
     /// Set of logical areas that got invalidated. This property has a hint characteristic: a client can only be expected to make a 'best effort' in honoring the areas but there are no guarantees. If this property is missing, empty, or if values are not understood, the client should assume a single value `all`.
     #[serde(rename = "areas")]
@@ -428,7 +436,7 @@ pub struct InvalidatedEvent {
 /// This event indicates that some memory range has been updated. It should only be sent if the corresponding capability `supportsMemoryEvent` is true.
 /// Clients typically react to the event by re-issuing a `readMemory` request if they show the memory identified by the `memoryReference` and if the updated memory range overlaps the displayed range. Clients should not make assumptions how individual memory references relate to each other, so they should not assume that they are part of a single continuous address range and might overlap.
 /// Debug adapters can use this event to indicate that the contents of a memory range has changed due to some other request like `setVariable` or `setExpression`. Debug adapters are not expected to emit this event for each and every memory change of a running program, because that information is typically not available from debuggers and it would flood clients with too many events.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct MemoryEvent {
     /// Memory reference of a memory range that has been updated.
     #[serde(rename = "memoryReference")]
@@ -442,7 +450,7 @@ pub struct MemoryEvent {
 }
 
 /// Arguments for `runInTerminal` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct RunInTerminalRequestArguments {
     /// What kind of terminal to launch. Defaults to `integrated` if not specified.
     #[serde(rename = "kind")]
@@ -469,8 +477,9 @@ pub struct RunInTerminalRequestArguments {
 }
 
 /// What kind of terminal to launch. Defaults to `integrated` if not specified.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum RunInTerminalRequestArgumentsKind {
+    #[default]
     #[serde(rename = "integrated")]
     Integrated,
     #[serde(rename = "external")]
@@ -478,7 +487,7 @@ pub enum RunInTerminalRequestArgumentsKind {
 }
 
 /// Response to `runInTerminal` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct RunInTerminalResponse {
     /// The process ID.
     #[serde(rename = "processId")]
@@ -491,7 +500,7 @@ pub struct RunInTerminalResponse {
 }
 
 /// Arguments for `startDebugging` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StartDebuggingRequestArguments {
     /// Arguments passed to the new debug session. The arguments must only contain properties understood by the `launch` or `attach` requests of the debug adapter and they must not contain any client-specific properties (e.g. `type`) or client-specific features (e.g. substitutable 'variables').
     #[serde(rename = "configuration")]
@@ -506,8 +515,9 @@ pub struct StartDebuggingRequestArguments {
 }
 
 /// Hints whether output of the child sessions should be presented separately or merged with that of the parent session's.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum StartDebuggingRequestArgumentsOutputPresentation {
+    #[default]
     #[serde(rename = "separate")]
     Separate,
     #[serde(rename = "mergeWithParent")]
@@ -515,8 +525,9 @@ pub enum StartDebuggingRequestArgumentsOutputPresentation {
 }
 
 /// Indicates whether the new debug session should be started with a `launch` or `attach` request.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum StartDebuggingRequestArgumentsRequest {
+    #[default]
     #[serde(rename = "launch")]
     Launch,
     #[serde(rename = "attach")]
@@ -524,7 +535,7 @@ pub enum StartDebuggingRequestArgumentsRequest {
 }
 
 /// Arguments for `initialize` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct InitializeRequestArguments {
     /// The ID of the client using this adapter.
     #[serde(rename = "clientID")]
@@ -596,9 +607,10 @@ pub struct InitializeRequestArguments {
 }
 
 /// Determines in what format paths are specified. The default is `path`, which is the native format.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum InitializeRequestArgumentsPathFormat {
+    #[default]
     #[serde(rename = "path")]
     Path,
     #[serde(rename = "uri")]
@@ -608,11 +620,11 @@ pub enum InitializeRequestArgumentsPathFormat {
 }
 
 /// Arguments for `configurationDone` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ConfigurationDoneArguments;
 
 /// Arguments for `disconnect` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct DisconnectArguments {
     /// A value of true indicates that this `disconnect` request is part of a restart sequence.
     #[serde(rename = "restart")]
@@ -633,7 +645,7 @@ pub struct DisconnectArguments {
 }
 
 /// Arguments for `terminate` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct TerminateArguments {
     /// A value of true indicates that this `terminate` request is part of a restart sequence.
     #[serde(rename = "restart")]
@@ -642,7 +654,7 @@ pub struct TerminateArguments {
 }
 
 /// Arguments for `breakpointLocations` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct BreakpointLocationsArguments {
     /// The source location of the breakpoints; either `source.path` or `source.sourceReference` must be specified.
     #[serde(rename = "source")]
@@ -666,7 +678,7 @@ pub struct BreakpointLocationsArguments {
 
 /// Response to `breakpointLocations` request.
 /// Contains possible locations for source breakpoints.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct BreakpointLocationsResponse {
     /// Sorted set of possible breakpoint locations.
     #[serde(rename = "breakpoints")]
@@ -674,7 +686,7 @@ pub struct BreakpointLocationsResponse {
 }
 
 /// Arguments for `setBreakpoints` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetBreakpointsArguments {
     /// The source location of the breakpoints; either `source.path` or `source.sourceReference` must be specified.
     #[serde(rename = "source")]
@@ -698,7 +710,7 @@ pub struct SetBreakpointsArguments {
 /// This includes the actual code location and whether the breakpoint could be verified.
 /// The breakpoints returned are in the same order as the elements of the `breakpoints`
 /// (or the deprecated `lines`) array in the arguments.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetBreakpointsResponse {
     /// Information about the breakpoints.
     /// The array elements are in the same order as the elements of the `breakpoints` (or the deprecated `lines`) array in the arguments.
@@ -707,7 +719,7 @@ pub struct SetBreakpointsResponse {
 }
 
 /// Arguments for `setFunctionBreakpoints` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetFunctionBreakpointsArguments {
     /// The function names of the breakpoints.
     #[serde(rename = "breakpoints")]
@@ -716,7 +728,7 @@ pub struct SetFunctionBreakpointsArguments {
 
 /// Response to `setFunctionBreakpoints` request.
 /// Returned is information about each breakpoint created by this request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetFunctionBreakpointsResponse {
     /// Information about the breakpoints. The array elements correspond to the elements of the `breakpoints` array.
     #[serde(rename = "breakpoints")]
@@ -724,7 +736,7 @@ pub struct SetFunctionBreakpointsResponse {
 }
 
 /// Arguments for `setExceptionBreakpoints` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetExceptionBreakpointsArguments {
     /// Set of exception filters specified by their ID. The set of all possible exception filters is defined by the `exceptionBreakpointFilters` capability. The `filter` and `filterOptions` sets are additive.
     #[serde(rename = "filters")]
@@ -744,7 +756,7 @@ pub struct SetExceptionBreakpointsArguments {
 /// The response contains an array of `Breakpoint` objects with information about each exception breakpoint or filter. The `Breakpoint` objects are in the same order as the elements of the `filters`, `filterOptions`, `exceptionOptions` arrays given as arguments. If both `filters` and `filterOptions` are given, the returned array must start with `filters` information first, followed by `filterOptions` information.
 /// The `verified` property of a `Breakpoint` object signals whether the exception breakpoint or filter could be successfully created and whether the condition is valid. In case of an error the `message` property explains the problem. The `id` property can be used to introduce a unique ID for the exception breakpoint or filter so that it can be updated subsequently by sending breakpoint events.
 /// For backward compatibility both the `breakpoints` array and the enclosing `body` are optional. If these elements are missing a client is not able to show problems for individual exception breakpoints or filters.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetExceptionBreakpointsResponse {
     /// Information about the exception breakpoints or filters.
     /// The breakpoints returned are in the same order as the elements of the `filters`, `filterOptions`, `exceptionOptions` arrays in the arguments. If both `filters` and `filterOptions` are given, the returned array must start with `filters` information first, followed by `filterOptions` information.
@@ -754,7 +766,7 @@ pub struct SetExceptionBreakpointsResponse {
 }
 
 /// Arguments for `dataBreakpointInfo` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct DataBreakpointInfoArguments {
     /// Reference to the variable container if the data breakpoint is requested for a child of the container. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
     #[serde(rename = "variablesReference")]
@@ -788,7 +800,7 @@ pub struct DataBreakpointInfoArguments {
 }
 
 /// Response to `dataBreakpointInfo` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct DataBreakpointInfoResponse {
     /// An identifier for the data on which a data breakpoint can be registered with the `setDataBreakpoints` request or null if no data breakpoint is available. If a `variablesReference` or `frameId` is passed, the `dataId` is valid in the current suspended state, otherwise it's valid indefinitely. See 'Lifetime of Object References' in the Overview section for details. Breakpoints set using the `dataId` in the `setDataBreakpoints` request may outlive the lifetime of the associated `dataId`.
     #[serde(rename = "dataId")]
@@ -807,7 +819,7 @@ pub struct DataBreakpointInfoResponse {
 }
 
 /// Arguments for `setDataBreakpoints` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetDataBreakpointsArguments {
     /// The contents of this array replaces all existing data breakpoints. An empty array clears all data breakpoints.
     #[serde(rename = "breakpoints")]
@@ -816,7 +828,7 @@ pub struct SetDataBreakpointsArguments {
 
 /// Response to `setDataBreakpoints` request.
 /// Returned is information about each breakpoint created by this request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetDataBreakpointsResponse {
     /// Information about the data breakpoints. The array elements correspond to the elements of the input argument `breakpoints` array.
     #[serde(rename = "breakpoints")]
@@ -824,7 +836,7 @@ pub struct SetDataBreakpointsResponse {
 }
 
 /// Arguments for `setInstructionBreakpoints` request
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetInstructionBreakpointsArguments {
     /// The instruction references of the breakpoints
     #[serde(rename = "breakpoints")]
@@ -832,7 +844,7 @@ pub struct SetInstructionBreakpointsArguments {
 }
 
 /// Response to `setInstructionBreakpoints` request
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetInstructionBreakpointsResponse {
     /// Information about the breakpoints. The array elements correspond to the elements of the `breakpoints` array.
     #[serde(rename = "breakpoints")]
@@ -840,7 +852,7 @@ pub struct SetInstructionBreakpointsResponse {
 }
 
 /// Arguments for `continue` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ContinueArguments {
     /// Specifies the active thread. If the debug adapter supports single thread execution (see `supportsSingleThreadExecutionRequests`) and the argument `singleThread` is true, only the thread with this ID is resumed.
     #[serde(rename = "threadId")]
@@ -852,7 +864,7 @@ pub struct ContinueArguments {
 }
 
 /// Response to `continue` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ContinueResponse {
     /// If omitted or set to `true`, this response signals to the client that all threads have been resumed. The value `false` indicates that not all threads were resumed.
     #[serde(rename = "allThreadsContinued")]
@@ -861,7 +873,7 @@ pub struct ContinueResponse {
 }
 
 /// Arguments for `next` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct NextArguments {
     /// Specifies the thread for which to resume execution for one step (of the given granularity).
     #[serde(rename = "threadId")]
@@ -877,7 +889,7 @@ pub struct NextArguments {
 }
 
 /// Arguments for `stepIn` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StepInArguments {
     /// Specifies the thread for which to resume execution for one step-into (of the given granularity).
     #[serde(rename = "threadId")]
@@ -897,7 +909,7 @@ pub struct StepInArguments {
 }
 
 /// Arguments for `stepOut` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StepOutArguments {
     /// Specifies the thread for which to resume execution for one step-out (of the given granularity).
     #[serde(rename = "threadId")]
@@ -913,7 +925,7 @@ pub struct StepOutArguments {
 }
 
 /// Arguments for `stepBack` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StepBackArguments {
     /// Specifies the thread for which to resume execution for one step backwards (of the given granularity).
     #[serde(rename = "threadId")]
@@ -929,7 +941,7 @@ pub struct StepBackArguments {
 }
 
 /// Arguments for `reverseContinue` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ReverseContinueArguments {
     /// Specifies the active thread. If the debug adapter supports single thread execution (see `supportsSingleThreadExecutionRequests`) and the `singleThread` argument is true, only the thread with this ID is resumed.
     #[serde(rename = "threadId")]
@@ -941,7 +953,7 @@ pub struct ReverseContinueArguments {
 }
 
 /// Arguments for `restartFrame` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct RestartFrameArguments {
     /// Restart the stack frame identified by `frameId`. The `frameId` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
     #[serde(rename = "frameId")]
@@ -949,7 +961,7 @@ pub struct RestartFrameArguments {
 }
 
 /// Arguments for `goto` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct GotoArguments {
     /// Set the goto target for this thread.
     #[serde(rename = "threadId")]
@@ -960,7 +972,7 @@ pub struct GotoArguments {
 }
 
 /// Arguments for `pause` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct PauseArguments {
     /// Pause execution for this thread.
     #[serde(rename = "threadId")]
@@ -968,7 +980,7 @@ pub struct PauseArguments {
 }
 
 /// Arguments for `stackTrace` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StackTraceArguments {
     /// Retrieve the stacktrace for this thread.
     #[serde(rename = "threadId")]
@@ -989,7 +1001,7 @@ pub struct StackTraceArguments {
 }
 
 /// Response to `stackTrace` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StackTraceResponse {
     /// The frames of the stack frame. If the array has length zero, there are no stack frames available.
     /// This means that there is no location information available.
@@ -1002,7 +1014,7 @@ pub struct StackTraceResponse {
 }
 
 /// Arguments for `scopes` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ScopesArguments {
     /// Retrieve the scopes for the stack frame identified by `frameId`. The `frameId` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
     #[serde(rename = "frameId")]
@@ -1010,7 +1022,7 @@ pub struct ScopesArguments {
 }
 
 /// Response to `scopes` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ScopesResponse {
     /// The scopes of the stack frame. If the array has length zero, there are no scopes available.
     #[serde(rename = "scopes")]
@@ -1018,7 +1030,7 @@ pub struct ScopesResponse {
 }
 
 /// Arguments for `variables` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct VariablesArguments {
     /// The variable for which to retrieve its children. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
     #[serde(rename = "variablesReference")]
@@ -1045,8 +1057,9 @@ pub struct VariablesArguments {
 }
 
 /// Filter to limit the child variables to either named or indexed. If omitted, both types are fetched.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum VariablesArgumentsFilter {
+    #[default]
     #[serde(rename = "indexed")]
     Indexed,
     #[serde(rename = "named")]
@@ -1054,7 +1067,7 @@ pub enum VariablesArgumentsFilter {
 }
 
 /// Response to `variables` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct VariablesResponse {
     /// All (or a range) of variables for the given variable reference.
     #[serde(rename = "variables")]
@@ -1062,7 +1075,7 @@ pub struct VariablesResponse {
 }
 
 /// Arguments for `setVariable` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetVariableArguments {
     /// The reference of the variable container. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.
     #[serde(rename = "variablesReference")]
@@ -1080,7 +1093,7 @@ pub struct SetVariableArguments {
 }
 
 /// Response to `setVariable` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetVariableResponse {
     /// The new value of the variable.
     #[serde(rename = "value")]
@@ -1122,7 +1135,7 @@ pub struct SetVariableResponse {
 }
 
 /// Arguments for `source` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SourceArguments {
     /// Specifies the source content to load. Either `source.path` or `source.sourceReference` must be specified.
     #[serde(rename = "source")]
@@ -1135,7 +1148,7 @@ pub struct SourceArguments {
 }
 
 /// Response to `source` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SourceResponse {
     /// Content of the source reference.
     #[serde(rename = "content")]
@@ -1147,7 +1160,7 @@ pub struct SourceResponse {
 }
 
 /// Response to `threads` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ThreadsResponse {
     /// All threads.
     #[serde(rename = "threads")]
@@ -1155,7 +1168,7 @@ pub struct ThreadsResponse {
 }
 
 /// Arguments for `terminateThreads` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct TerminateThreadsArguments {
     /// Ids of threads to be terminated.
     #[serde(rename = "threadIds")]
@@ -1164,7 +1177,7 @@ pub struct TerminateThreadsArguments {
 }
 
 /// Arguments for `modules` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ModulesArguments {
     /// The index of the first module to return; if omitted modules start at 0.
     #[serde(rename = "startModule")]
@@ -1177,7 +1190,7 @@ pub struct ModulesArguments {
 }
 
 /// Response to `modules` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ModulesResponse {
     /// All modules or range of modules.
     #[serde(rename = "modules")]
@@ -1189,11 +1202,11 @@ pub struct ModulesResponse {
 }
 
 /// Arguments for `loadedSources` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct LoadedSourcesArguments;
 
 /// Response to `loadedSources` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct LoadedSourcesResponse {
     /// Set of loaded sources.
     #[serde(rename = "sources")]
@@ -1201,7 +1214,7 @@ pub struct LoadedSourcesResponse {
 }
 
 /// Arguments for `evaluate` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct EvaluateArguments {
     /// The expression to evaluate.
     #[serde(rename = "expression")]
@@ -1236,10 +1249,11 @@ pub struct EvaluateArguments {
 }
 
 /// The context in which the evaluate request is used.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum EvaluateArgumentsContext {
     /// evaluate is called from a watch view context.
+    #[default]
     #[serde(rename = "watch")]
     Watch,
     /// evaluate is called from a REPL context.
@@ -1261,7 +1275,7 @@ pub enum EvaluateArgumentsContext {
 }
 
 /// Response to `evaluate` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct EvaluateResponse {
     /// The result of the evaluate request.
     #[serde(rename = "result")]
@@ -1305,7 +1319,7 @@ pub struct EvaluateResponse {
 }
 
 /// Arguments for `setExpression` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetExpressionArguments {
     /// The l-value expression to assign to.
     #[serde(rename = "expression")]
@@ -1324,7 +1338,7 @@ pub struct SetExpressionArguments {
 }
 
 /// Response to `setExpression` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SetExpressionResponse {
     /// The new value of the expression.
     #[serde(rename = "value")]
@@ -1369,7 +1383,7 @@ pub struct SetExpressionResponse {
 }
 
 /// Arguments for `stepInTargets` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StepInTargetsArguments {
     /// The stack frame for which to retrieve the possible step-in targets.
     #[serde(rename = "frameId")]
@@ -1377,7 +1391,7 @@ pub struct StepInTargetsArguments {
 }
 
 /// Response to `stepInTargets` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StepInTargetsResponse {
     /// The possible step-in targets of the specified source location.
     #[serde(rename = "targets")]
@@ -1385,7 +1399,7 @@ pub struct StepInTargetsResponse {
 }
 
 /// Arguments for `gotoTargets` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct GotoTargetsArguments {
     /// The source location for which the goto targets are determined.
     #[serde(rename = "source")]
@@ -1400,7 +1414,7 @@ pub struct GotoTargetsArguments {
 }
 
 /// Response to `gotoTargets` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct GotoTargetsResponse {
     /// The possible goto targets of the specified location.
     #[serde(rename = "targets")]
@@ -1408,7 +1422,7 @@ pub struct GotoTargetsResponse {
 }
 
 /// Arguments for `completions` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct CompletionsArguments {
     /// Returns completions in the scope of this stack frame. If not specified, the completions are returned for the global scope.
     #[serde(rename = "frameId")]
@@ -1427,7 +1441,7 @@ pub struct CompletionsArguments {
 }
 
 /// Response to `completions` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct CompletionsResponse {
     /// The possible completions for .
     #[serde(rename = "targets")]
@@ -1435,7 +1449,7 @@ pub struct CompletionsResponse {
 }
 
 /// Arguments for `exceptionInfo` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ExceptionInfoArguments {
     /// Thread for which exception information should be retrieved.
     #[serde(rename = "threadId")]
@@ -1443,7 +1457,7 @@ pub struct ExceptionInfoArguments {
 }
 
 /// Response to `exceptionInfo` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ExceptionInfoResponse {
     /// ID of the exception that was thrown.
     #[serde(rename = "exceptionId")]
@@ -1462,7 +1476,7 @@ pub struct ExceptionInfoResponse {
 }
 
 /// Arguments for `readMemory` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ReadMemoryArguments {
     /// Memory reference to the base location from which data should be read.
     #[serde(rename = "memoryReference")]
@@ -1477,7 +1491,7 @@ pub struct ReadMemoryArguments {
 }
 
 /// Response to `readMemory` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ReadMemoryResponse {
     /// The address of the first byte of data returned.
     /// Treated as a hex value if prefixed with `0x`, or as a decimal value otherwise.
@@ -1495,7 +1509,7 @@ pub struct ReadMemoryResponse {
 }
 
 /// Arguments for `writeMemory` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct WriteMemoryArguments {
     /// Memory reference to the base location to which data should be written.
     #[serde(rename = "memoryReference")]
@@ -1515,7 +1529,7 @@ pub struct WriteMemoryArguments {
 }
 
 /// Response to `writeMemory` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct WriteMemoryResponse {
     /// Property that should be returned when `allowPartial` is true to indicate the offset of the first byte of data successfully written. Can be negative.
     #[serde(rename = "offset")]
@@ -1528,7 +1542,7 @@ pub struct WriteMemoryResponse {
 }
 
 /// Arguments for `disassemble` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct DisassembleArguments {
     /// Memory reference to the base location containing the instructions to disassemble.
     #[serde(rename = "memoryReference")]
@@ -1552,7 +1566,7 @@ pub struct DisassembleArguments {
 }
 
 /// Response to `disassemble` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct DisassembleResponse {
     /// The list of disassembled instructions.
     #[serde(rename = "instructions")]
@@ -1560,7 +1574,7 @@ pub struct DisassembleResponse {
 }
 
 /// Arguments for `locations` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct LocationsArguments {
     /// Location reference to resolve.
     #[serde(rename = "locationReference")]
@@ -1568,7 +1582,7 @@ pub struct LocationsArguments {
 }
 
 /// Response to `locations` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct LocationsResponse {
     /// The source containing the location; either `source.path` or `source.sourceReference` must be specified.
     #[serde(rename = "source")]
@@ -1591,7 +1605,7 @@ pub struct LocationsResponse {
 }
 
 /// Information about the capabilities of a debug adapter.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Capabilities {
     /// The debug adapter supports the `configurationDone` request.
     #[serde(rename = "supportsConfigurationDoneRequest")]
@@ -1766,7 +1780,7 @@ pub struct Capabilities {
 }
 
 /// An `ExceptionBreakpointsFilter` is shown in the UI as an filter option for configuring how exceptions are dealt with.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ExceptionBreakpointsFilter {
     /// The internal ID of the filter option. This value is passed to the `setExceptionBreakpoints` request.
     #[serde(rename = "filter")]
@@ -1793,7 +1807,7 @@ pub struct ExceptionBreakpointsFilter {
 }
 
 /// A structured message object. Used to return errors from requests.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Message {
     /// Unique (within a debug adapter implementation) identifier for the message. The purpose of these error IDs is to help extension authors that have the requirement that every user visible error message needs a corresponding error number, so that users or customer support can find information about the specific error more easily.
     #[serde(rename = "id")]
@@ -1831,7 +1845,7 @@ pub struct Message {
 /// Additional attributes can be added to the module. They show up in the module view if they have a corresponding `ColumnDescriptor`.
 ///
 /// To avoid an unnecessary proliferation of additional attributes with similar semantics but different names, we recommend to re-use attributes from the 'recommended' list below first, and only introduce new attributes if nothing appropriate could be found.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Module {
     /// Unique identifier for the module.
     #[serde(rename = "id")]
@@ -1876,7 +1890,7 @@ pub struct Module {
 /// A `ColumnDescriptor` specifies what module attribute to show in a column of the modules view, how to format it,
 /// and what the column's label should be.
 /// It is only used if the underlying UI actually supports this level of customization.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ColumnDescriptor {
     /// Name of the attribute rendered in this column.
     #[serde(rename = "attributeName")]
@@ -1899,8 +1913,9 @@ pub struct ColumnDescriptor {
 }
 
 /// Datatype of values in this column. Defaults to `string` if not specified.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum ColumnDescriptorType {
+    #[default]
     #[serde(rename = "string")]
     String,
     #[serde(rename = "number")]
@@ -1912,7 +1927,7 @@ pub enum ColumnDescriptorType {
 }
 
 /// A Thread
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Thread {
     /// Unique identifier for the thread.
     #[serde(rename = "id")]
@@ -1924,7 +1939,7 @@ pub struct Thread {
 
 /// A `Source` is a descriptor for source code.
 /// It is returned from the debug adapter as part of a `StackFrame` and it is used by clients when specifying breakpoints.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Source {
     /// The short name of the source. Every source returned from the debug adapter has a name.
     /// When sending a source to the debug adapter this name is optional.
@@ -1968,8 +1983,9 @@ pub struct Source {
 
 /// A hint for how to present the source in the UI.
 /// A value of `deemphasize` can be used to indicate that the source is not available or that it is skipped on stepping.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum SourcePresentationHint {
+    #[default]
     #[serde(rename = "normal")]
     Normal,
     #[serde(rename = "emphasize")]
@@ -1979,7 +1995,7 @@ pub enum SourcePresentationHint {
 }
 
 /// A Stackframe contains the source location.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StackFrame {
     /// An identifier for the stack frame. It must be unique across all threads.
     /// This id can be used to retrieve the scopes of the frame with the `scopes` request or to restart the execution of a stack frame.
@@ -2027,8 +2043,9 @@ pub struct StackFrame {
 
 /// A hint for how to present this frame in the UI.
 /// A value of `label` can be used to indicate that the frame is an artificial frame that is used as a visual label or separator. A value of `subtle` can be used to change the appearance of a frame in a 'subtle' way.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum StackFramePresentationHint {
+    #[default]
     #[serde(rename = "normal")]
     Normal,
     #[serde(rename = "label")]
@@ -2038,7 +2055,7 @@ pub enum StackFramePresentationHint {
 }
 
 /// A `Scope` is a named container for variables. Optionally a scope can map to a source or a range within a source.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Scope {
     /// Name of the scope such as 'Arguments', 'Locals', or 'Registers'. This string is shown in the UI as is and can be translated.
     #[serde(rename = "name")]
@@ -2086,10 +2103,11 @@ pub struct Scope {
 }
 
 /// A hint for how to present this scope in the UI. If this attribute is missing, the scope is shown with a generic UI.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum ScopePresentationHint {
     /// Scope contains method arguments.
+    #[default]
     #[serde(rename = "arguments")]
     Arguments,
     /// Scope contains local variables.
@@ -2111,7 +2129,7 @@ pub enum ScopePresentationHint {
 /// If the value is structured (has children), a handle is provided to retrieve the children with the `variables` request.
 /// If the number of named or indexed children is large, the numbers should be returned via the `namedVariables` and `indexedVariables` attributes.
 /// The client can use this information to present the children in a paged UI and fetch them in chunks.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Variable {
     /// The variable's name.
     #[serde(rename = "name")]
@@ -2170,7 +2188,7 @@ pub struct Variable {
 }
 
 /// Properties of a variable that can be used to determine how to render the variable in the UI.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct VariablePresentationHint {
     /// The kind of variable. Before introducing additional values, try to use the listed values.
     #[serde(rename = "kind")]
@@ -2193,10 +2211,11 @@ pub struct VariablePresentationHint {
 }
 
 /// The kind of variable. Before introducing additional values, try to use the listed values.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum VariablePresentationHintKind {
     /// Indicates that the object is a property.
+    #[default]
     #[serde(rename = "property")]
     Property,
     /// Indicates that the object is a method.
@@ -2233,10 +2252,11 @@ pub enum VariablePresentationHintKind {
     Unknown,
 }
 
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum VariablePresentationHintAttributes {
     /// Indicates that the object is static.
+    #[default]
     #[serde(rename = "static")]
     Static,
     /// Indicates that the object is a constant.
@@ -2265,9 +2285,10 @@ pub enum VariablePresentationHintAttributes {
 }
 
 /// Visibility of variable. Before introducing additional values, try to use the listed values.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum VariablePresentationHintVisibility {
+    #[default]
     #[serde(rename = "public")]
     Public,
     #[serde(rename = "private")]
@@ -2283,7 +2304,7 @@ pub enum VariablePresentationHintVisibility {
 }
 
 /// Properties of a breakpoint location returned from the `breakpointLocations` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct BreakpointLocation {
     /// Start line of breakpoint location.
     #[serde(rename = "line")]
@@ -2303,7 +2324,7 @@ pub struct BreakpointLocation {
 }
 
 /// Properties of a breakpoint or logpoint passed to the `setBreakpoints` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SourceBreakpoint {
     /// The source line of the breakpoint or logpoint.
     #[serde(rename = "line")]
@@ -2338,7 +2359,7 @@ pub struct SourceBreakpoint {
 }
 
 /// Properties of a breakpoint passed to the `setFunctionBreakpoints` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct FunctionBreakpoint {
     /// The name of the function.
     #[serde(rename = "name")]
@@ -2357,8 +2378,9 @@ pub struct FunctionBreakpoint {
 }
 
 /// This enumeration defines all possible access types for data breakpoints.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum DataBreakpointAccessType {
+    #[default]
     #[serde(rename = "read")]
     Read,
     #[serde(rename = "write")]
@@ -2368,7 +2390,7 @@ pub enum DataBreakpointAccessType {
 }
 
 /// Properties of a data breakpoint passed to the `setDataBreakpoints` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct DataBreakpoint {
     /// An id representing the data. This id is returned from the `dataBreakpointInfo` request.
     #[serde(rename = "dataId")]
@@ -2389,7 +2411,7 @@ pub struct DataBreakpoint {
 }
 
 /// Properties of a breakpoint passed to the `setInstructionBreakpoints` request
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct InstructionBreakpoint {
     /// The instruction reference of the breakpoint.
     /// This should be a memory or instruction pointer reference from an `EvaluateResponse`, `Variable`, `StackFrame`, `GotoTarget`, or `Breakpoint`.
@@ -2418,7 +2440,7 @@ pub struct InstructionBreakpoint {
 }
 
 /// Information about a breakpoint created in `setBreakpoints`, `setFunctionBreakpoints`, `setInstructionBreakpoints`, or `setDataBreakpoints` requests.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Breakpoint {
     /// The identifier for the breakpoint. It is needed if breakpoint events are used to update or remove breakpoints.
     #[serde(rename = "id")]
@@ -2475,8 +2497,9 @@ pub struct Breakpoint {
 ///
 /// - `pending`: Indicates a breakpoint might be verified in the future, but the adapter cannot verify it in the current state.
 ///  - `failed`: Indicates a breakpoint was not able to be verified, and the adapter does not believe it can be verified without intervention.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum BreakpointReason {
+    #[default]
     #[serde(rename = "pending")]
     Pending,
     #[serde(rename = "failed")]
@@ -2484,11 +2507,12 @@ pub enum BreakpointReason {
 }
 
 /// The granularity of one 'step' in the stepping requests `next`, `stepIn`, `stepOut`, and `stepBack`.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum SteppingGranularity {
     /// The step should allow the program to run until the current statement has finished executing.
     /// The meaning of a statement is determined by the adapter and it may be considered equivalent to a line.
     /// For example 'for(int i = 0; i < 10; i++)' could be considered to have 3 statements 'int i = 0', 'i < 10', and 'i++'.
+    #[default]
     #[serde(rename = "statement")]
     Statement,
     /// The step should allow the program to run until the current source line has executed.
@@ -2500,7 +2524,7 @@ pub enum SteppingGranularity {
 }
 
 /// A `StepInTarget` can be used in the `stepIn` request and determines into which single target the `stepIn` request should step.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StepInTarget {
     /// Unique identifier for a step-in target.
     #[serde(rename = "id")]
@@ -2528,7 +2552,7 @@ pub struct StepInTarget {
 
 /// A `GotoTarget` describes a code location that can be used as a target in the `goto` request.
 /// The possible goto targets can be determined via the `gotoTargets` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct GotoTarget {
     /// Unique identifier for a goto target. This is used in the `goto` request.
     #[serde(rename = "id")]
@@ -2558,7 +2582,7 @@ pub struct GotoTarget {
 }
 
 /// `CompletionItems` are the suggestions returned from the `completions` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct CompletionItem {
     /// The label of this completion item. By default this is also the text that is inserted when selecting this completion.
     #[serde(rename = "label")]
@@ -2598,8 +2622,9 @@ pub struct CompletionItem {
 }
 
 /// Some predefined types for the CompletionItem. Please note that not all clients have specific icons for all of them.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum CompletionItemType {
+    #[default]
     #[serde(rename = "method")]
     Method,
     #[serde(rename = "function")]
@@ -2641,8 +2666,9 @@ pub enum CompletionItemType {
 }
 
 /// Names of checksum algorithms that may be supported by a debug adapter.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum ChecksumAlgorithm {
+    #[default]
     #[serde(rename = "MD5")]
     Md5,
     #[serde(rename = "SHA1")]
@@ -2654,7 +2680,7 @@ pub enum ChecksumAlgorithm {
 }
 
 /// The checksum of an item calculated by the specified algorithm.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Checksum {
     /// The algorithm used to calculate this checksum.
     #[serde(rename = "algorithm")]
@@ -2665,7 +2691,7 @@ pub struct Checksum {
 }
 
 /// Provides formatting information for a value.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ValueFormat {
     /// Display the value in hex.
     #[serde(rename = "hex")]
@@ -2674,7 +2700,7 @@ pub struct ValueFormat {
 }
 
 /// Provides formatting information for a stack frame.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct StackFrameFormat {
     /// Display the value in hex.
     #[serde(rename = "hex")]
@@ -2711,7 +2737,7 @@ pub struct StackFrameFormat {
 }
 
 /// An `ExceptionFilterOptions` is used to specify an exception filter together with a condition for the `setExceptionBreakpoints` request.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ExceptionFilterOptions {
     /// ID of an exception filter returned by the `exceptionBreakpointFilters` capability.
     #[serde(rename = "filterId")]
@@ -2728,7 +2754,7 @@ pub struct ExceptionFilterOptions {
 }
 
 /// An `ExceptionOptions` assigns configuration options to a set of exceptions.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ExceptionOptions {
     /// A path that selects a single or multiple exceptions in a tree. If `path` is missing, the whole tree is selected.
     /// By convention the first segment of the path is a category that is used to group exceptions in the UI.
@@ -2745,8 +2771,9 @@ pub struct ExceptionOptions {
 /// always: always breaks,
 /// unhandled: breaks when exception unhandled,
 /// userUnhandled: breaks if the exception is not handled by user code.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum ExceptionBreakMode {
+    #[default]
     #[serde(rename = "never")]
     Never,
     #[serde(rename = "always")]
@@ -2759,7 +2786,7 @@ pub enum ExceptionBreakMode {
 
 /// An `ExceptionPathSegment` represents a segment in a path that is used to match leafs or nodes in a tree of exceptions.
 /// If a segment consists of more than one name, it matches the names provided if `negate` is false or missing, or it matches anything except the names provided if `negate` is true.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ExceptionPathSegment {
     /// If false or missing this segment matches the names provided, otherwise it matches anything except the names provided.
     #[serde(rename = "negate")]
@@ -2771,7 +2798,7 @@ pub struct ExceptionPathSegment {
 }
 
 /// Detailed information about an exception that has occurred.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct ExceptionDetails {
     /// Message contained in the exception.
     #[serde(rename = "message")]
@@ -2800,7 +2827,7 @@ pub struct ExceptionDetails {
 }
 
 /// Represents a single disassembled instruction.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct DisassembledInstruction {
     /// The address of the instruction. Treated as a hex value if prefixed with `0x`, or as a decimal value otherwise.
     #[serde(rename = "address")]
@@ -2849,8 +2876,9 @@ pub struct DisassembledInstruction {
 /// A hint for how to present the instruction in the UI.
 ///
 /// A value of `invalid` may be used to indicate this instruction is 'filler' and cannot be reached by the program. For example, unreadable memory addresses may be presented is 'invalid.'
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Copy, Deserialize, Serialize, Default)]
 pub enum DisassembledInstructionPresentationHint {
+    #[default]
     #[serde(rename = "normal")]
     Normal,
     #[serde(rename = "invalid")]
@@ -2858,10 +2886,11 @@ pub enum DisassembledInstructionPresentationHint {
 }
 
 /// Logical areas that can be invalidated by the `invalidated` event.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum InvalidatedAreas {
     /// All previously fetched data has become invalid and needs to be refetched.
+    #[default]
     #[serde(rename = "all")]
     All,
     /// Previously fetched stack related data has become invalid and needs to be refetched.
@@ -2878,7 +2907,7 @@ pub enum InvalidatedAreas {
 }
 
 /// A `BreakpointMode` is provided as a option when setting breakpoints on sources or instructions.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct BreakpointMode {
     /// The internal ID of the mode. This value is passed to the `setBreakpoints` request.
     #[serde(rename = "mode")]
@@ -2896,10 +2925,11 @@ pub struct BreakpointMode {
 }
 
 /// Describes one or more type of breakpoint a `BreakpointMode` applies to. This is a non-exhaustive enumeration and may expand as future breakpoint types are added.
-#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Clone, Deserialize, Serialize, Default)]
 #[non_exhaustive]
 pub enum BreakpointModeApplicability {
     /// In `SourceBreakpoint`s
+    #[default]
     #[serde(rename = "source")]
     Source,
     /// In exception breakpoints applied in the `ExceptionFilterOptions`
@@ -2922,19 +2952,25 @@ pub enum ModuleId {
     String(String),
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+impl Default for ModuleId {
+    fn default() -> Self {
+        ModuleId::Number(0)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 #[serde(transparent)]
 pub struct AttachRequestArguments {
     pub raw: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 #[serde(transparent)]
 pub struct LaunchRequestArguments {
     pub raw: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 #[serde(transparent)]
 pub struct RestartArguments {
     pub raw: serde_json::Value,
