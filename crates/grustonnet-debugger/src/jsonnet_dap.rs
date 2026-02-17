@@ -1,8 +1,10 @@
 use std::{
     collections::HashMap,
     fs,
-    process::exit,
-    sync::{Arc, RwLock},
+    sync::{
+        Arc, RwLock,
+        atomic::{AtomicBool, Ordering},
+    },
 };
 
 use anyhow::{Result, anyhow};
@@ -86,8 +88,8 @@ pub struct JsonnetDAPServer {
 }
 
 impl JsonnetDAPServer {
-    pub fn new(connection: DAPConnection) -> Self {
-        spawn_debugger_thread(connection.sender.clone());
+    pub fn new(connection: DAPConnection, running: Arc<AtomicBool>) -> Self {
+        spawn_debugger_thread(connection.sender.clone(), running.clone());
         JsonnetDAPServer {
             connection,
             launch_config: Arc::default(),
@@ -96,10 +98,9 @@ impl JsonnetDAPServer {
     }
 }
 
-fn spawn_debugger_thread(server_tx: Sender<MessageType>) {
+fn spawn_debugger_thread(server_tx: Sender<MessageType>, running: Arc<AtomicBool>) {
     rayon::spawn(move || {
-        let mut running = true;
-        while running {
+        while running.load(Ordering::Relaxed) {
             let _ = (|| -> Result<()> {
                 log::debug!("Waiting for Jsonnet Debugger Event");
                 let res = DebuggerBridgeImpl::wait_for_event();
@@ -130,7 +131,7 @@ fn spawn_debugger_thread(server_tx: Sender<MessageType>) {
                         }
                     }
                     DebugEvent::Exit(_exit_event) => {
-                        running = false;
+                        running.store(false, Ordering::Relaxed);
                         EventMessage {
                             event: events::Terminated::EVENT.into(),
                             body: None,
@@ -141,8 +142,6 @@ fn spawn_debugger_thread(server_tx: Sender<MessageType>) {
                 Ok(())
             })();
         }
-        // Just exit as an easy solution :D
-        exit(0);
     });
 }
 

@@ -96,7 +96,7 @@ fn network(
                 // TODO: msg is dropped in this thread. Add a dropper channel like in lsp to reduce
                 // latency. Should not be needed but is a cool concept :)
             });
-            log::warn!("Ending socket");
+            log::info!("Ending write socket");
         })
         .expect("Could not start DapWriter thread");
 
@@ -106,6 +106,7 @@ fn network(
             while let Some(msg) = MessageBase::read(&mut stream_read).expect("Reading message") {
                 reader_tx.send(msg).expect("Sending read data to channel");
             }
+            log::info!("Ending read socket");
         })
         .expect("Could not start DapReader thread");
 
