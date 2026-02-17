@@ -34,7 +34,6 @@ func (GoDebugger) evaluate(snippet *string) (info StringInfo) {
 	filename := ""
 	if last_node != nil {
 		filename = last_node.Loc().FileName
-		filename = "MYFILE"
 	}
 
 	ast, err := jsonnet.SnippetToASTNoAnalyze(filename, copy_string(snippet))
