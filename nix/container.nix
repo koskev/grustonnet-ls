@@ -10,23 +10,36 @@ _: {
       nix2containerPkgs = inputs'.nix2container.packages;
     in
     {
-      packages = {
-        dockerImage =
-          let
-            binaries =
-              pkgs.runCommand "bins"
-                {
-                  nativeBuildInputs = [ pkgs.removeReferencesTo ];
-                }
-                ''
-                  mkdir -p $out/bin
-                  cp ${self'.packages.grustonnet}/bin/grustonnet-* $out/bin/
-                  # Remove all go references to avoid bloating the image
-                  remove-references-to -t ${pkgs.go} $out/bin/*
-                '';
-          in
-          # pkgs.dockerTools.buildImage {
-          nix2containerPkgs.nix2container.buildImage {
+      packages =
+        let
+          binaries =
+            pkgs.runCommand "bins"
+              {
+                nativeBuildInputs = [ pkgs.removeReferencesTo ];
+              }
+              ''
+                          mkdir -p $out/bin
+                          cp ${self'.packages.grustonnet}/bin/grustonnet-* $out/bin/
+                # Remove all go references to avoid bloating the image
+                          remove-references-to -t ${pkgs.go} $out/bin/*
+              '';
+          createContainer =
+            {
+              name,
+            }:
+            nix2containerPkgs.nix2container.buildImage {
+              name = "grustonnet-${name}";
+              tag = "latest";
+              config = {
+                Cmd = [ "${binaries}/bin/grustonnet-${name}" ];
+              };
+            };
+        in
+        {
+          dockerLinter = createContainer "lint";
+          dockerDebugger = createContainer "debugger";
+          dockerLS = createContainer "ls";
+          dockerImageFull = nix2containerPkgs.nix2container.buildImage {
             name = "grustonnet";
             tag = "latest";
 
@@ -44,6 +57,6 @@ _: {
             };
           };
 
-      };
+        };
     };
 }
