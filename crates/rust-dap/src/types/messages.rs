@@ -3,7 +3,7 @@ use std::io::{self, BufRead};
 use lsp_server::ExtractError;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
-use crate::types::types::Capabilities;
+use crate::types::types::{Capabilities, Message};
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -132,6 +132,11 @@ pub struct ResponseMessage {
     pub command: String,
     pub message: Option<String>,
     pub body: Option<serde_json::Value>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ErrorResponse {
+    pub error: Option<Message>,
 }
 
 #[allow(clippy::derivable_impls)]

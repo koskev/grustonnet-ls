@@ -398,7 +398,7 @@ impl DAPServer for JsonnetDAPServer {
     }
 
     fn evaluate(&self, args: <Evaluate as Request>::Arguments) -> Result<DAPResponse, DAPError> {
-        let info = DebuggerBridgeImpl::evaluate(args.expression);
+        let info = DebuggerBridgeImpl::evaluate(args.expression).get_string()?;
 
         let resp = EvaluateResponse {
             presentation_hint: None,
@@ -407,7 +407,7 @@ impl DAPServer for JsonnetDAPServer {
             indexed_variables: None,
             memory_reference: None,
             value_location_reference: None,
-            result: info.data.clone(),
+            result: info.clone(),
             type_: None,
         };
 

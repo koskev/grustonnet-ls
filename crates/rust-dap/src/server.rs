@@ -22,11 +22,14 @@ use crate::{
     network, stdio,
     types::{
         events::{self, Event},
-        messages::{EventMessage, MessageBase, MessageType, RequestMessage, ResponseMessage},
+        messages::{
+            ErrorResponse, EventMessage, MessageBase, MessageType, RequestMessage, ResponseMessage,
+        },
         requests::{
             self, ConfigurationDone, Continue, Evaluate, Initialize, Launch, Next, Request, Scopes,
             SetBreakpoints, StackTrace, StepIn, Threads, Variables,
         },
+        types::Message,
     },
 };
 
@@ -143,6 +146,39 @@ where
     pub server: S,
 }
 
+fn error_message(seq: u64, cmd: &str, err: DAPError) -> ResponseMessage {
+    ResponseMessage {
+        message: None,
+        request_seq: seq,
+        success: false,
+        command: cmd.to_string(),
+        body: Some(
+            DAPResponse::from(ErrorResponse {
+                error: Some(Message {
+                    id: 1234,
+                    variables: None,
+                    format: err.to_string(),
+                    send_telemetry: None,
+                    show_user: None,
+                    url: None,
+                    url_label: None,
+                }),
+            })
+            .0,
+        ),
+    }
+}
+
+fn response_message(seq: u64, cmd: &str, resp: DAPResponse) -> ResponseMessage {
+    ResponseMessage {
+        request_seq: seq,
+        success: true,
+        command: cmd.to_string(),
+        message: None,
+        body: Some(resp.into()),
+    }
+}
+
 impl<S> DAPServerManager<S>
 where
     S: DAPServer,
@@ -155,23 +191,14 @@ where
                     log::debug!("Handling request {:?}", req.command);
                     let cmd = req.command.clone();
                     let resp = self.handle_request(req);
-                    let ok = resp.is_ok();
-                    let result: Result<serde_json::Value, ResponseError> = match resp {
-                        Ok(val) => Ok(val.into()),
-                        Err(e) => Err(e.into()),
+                    let result = match resp {
+                        Ok(val) => response_message(msg.seq, &cmd, val),
+                        Err(e) => error_message(msg.seq, &cmd, e),
                     };
                     log::debug!("Sending response with seq {} to {}", msg.seq, cmd);
                     self.server
                         .connection()
-                        .send(MessageType::Response(ResponseMessage {
-                            request_seq: msg.seq,
-                            success: ok,
-                            command: cmd.clone(),
-                            message: None,
-                            body: result.ok(),
-                            //result: result.clone().ok(),
-                            //error: result.err(),
-                        }))?;
+                        .send(MessageType::Response(result))?;
                     if cmd == requests::Initialize::COMMAND {
                         log::info!("Init done!");
                         self.server
