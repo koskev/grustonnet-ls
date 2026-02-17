@@ -3,7 +3,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     recordings.url = "git+https://codeberg.org/kokev/lsp-recorder.git";
-    grustonnet.url = "..";
+    grustonnet.url = "path:../";
   };
 
   outputs =
@@ -51,7 +51,7 @@
           with pkgs;
           [
             baseNeovim
-            grustonnet.defaultPackage.${system}
+            grustonnet.packages.${system}.default
 
             gnumake
             mdbook
