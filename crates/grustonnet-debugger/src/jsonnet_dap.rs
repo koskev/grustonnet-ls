@@ -194,15 +194,7 @@ impl DAPServer for JsonnetDAPServer {
                     Some(Breakpoint {
                         line: Some(breakpoint.line),
                         verified: true,
-                        message: None,
-                        id: None,
-                        source: None,
-                        column: None,
-                        end_line: None,
-                        end_column: None,
-                        instruction_reference: None,
-                        offset: None,
-                        reason: None,
+                        ..Default::default()
                     })
                 }
             })
@@ -288,15 +280,7 @@ impl DAPServer for JsonnetDAPServer {
                 let mut debug_frame = StackFrame {
                     id: i as u64,
                     name: frame.name.clone(),
-                    line: 0,
-                    column: 0,
-                    end_line: None,
-                    end_column: None,
-                    source: None,
-                    can_restart: None,
-                    instruction_pointer_reference: None,
-                    module_id: None,
-                    presentation_hint: None,
+                    ..Default::default()
                 };
 
                 if path.is_some() {
@@ -307,12 +291,7 @@ impl DAPServer for JsonnetDAPServer {
                     debug_frame.source = Some(Source {
                         name: Some(filename.clone()),
                         path,
-                        presentation_hint: None,
-                        source_reference: None,
-                        origin: None,
-                        sources: None,
-                        adapter_data: None,
-                        checksums: None,
+                        ..Default::default()
                     });
                 }
                 debug_frame
@@ -346,15 +325,7 @@ impl DAPServer for JsonnetDAPServer {
             scopes: vec![Scope {
                 name: "Local".into(),
                 variables_reference: 1,
-                presentation_hint: None,
-                named_variables: None,
-                indexed_variables: None,
-                source: None,
-                line: None,
-                column: None,
-                end_line: None,
-                end_column: None,
-                expensive: false,
+                ..Default::default()
             }],
         }
         .into())
@@ -378,15 +349,7 @@ impl DAPServer for JsonnetDAPServer {
                 Some(Variable {
                     name: identifier.0.clone(),
                     value,
-                    presentation_hint: None,
-                    type_: None,
-                    evaluate_name: None,
-                    variables_reference: 0,
-                    named_variables: None,
-                    indexed_variables: None,
-                    memory_reference: None,
-                    declaration_location_reference: None,
-                    value_location_reference: None,
+                    ..Default::default()
                 })
             })
             .collect();
@@ -401,14 +364,8 @@ impl DAPServer for JsonnetDAPServer {
         let info = DebuggerBridgeImpl::evaluate(args.expression).get_string()?;
 
         let resp = EvaluateResponse {
-            presentation_hint: None,
-            variables_reference: 0,
-            named_variables: None,
-            indexed_variables: None,
-            memory_reference: None,
-            value_location_reference: None,
             result: info.clone(),
-            type_: None,
+            ..Default::default()
         };
 
         Ok(resp.into())
