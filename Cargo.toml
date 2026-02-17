@@ -31,3 +31,4 @@ resolver = "3"
 
 [workspace.dependencies]
 anyhow = "1.0.98"
+crossbeam = "0.8.4"

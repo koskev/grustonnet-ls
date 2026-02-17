@@ -873,6 +873,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "clap",
+ "crossbeam",
  "env_logger",
  "exec",
  "grustonnet-config",
