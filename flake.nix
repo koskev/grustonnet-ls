@@ -7,6 +7,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix2container.url = "github:nlewo/nix2container";
+    recordings.url = "git+https://codeberg.org/kokev/lsp-recorder.git";
   };
 
   outputs =
@@ -22,6 +23,7 @@
         ./nix/grustonnet.nix
         ./nix/shells.nix
         ./nix/container.nix
+        ./nix/docs.nix
       ];
       flake = {
         # Put your original flake attributes here.

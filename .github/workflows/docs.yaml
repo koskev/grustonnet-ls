@@ -12,7 +12,7 @@ jobs:
     - uses: cachix/install-nix-action@v31
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
-    - run: cd docs && nix develop --command make build && cd ..
+    - run: cd docs && nix develop ..#docs --command make build && cd ..
     - name: Upload artifacts for pages
       uses: actions/upload-pages-artifact@v4
       with:
