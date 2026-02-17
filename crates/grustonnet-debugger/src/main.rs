@@ -227,6 +227,7 @@ impl DAPServer for JsonnetDAPServer {
         let frames: Vec<_> = data
             .0
             .iter()
+            .rev()
             .enumerate()
             .map(|(i, frame)| {
                 let filename = frame
