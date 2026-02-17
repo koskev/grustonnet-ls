@@ -5,7 +5,10 @@
 
 use std::{
     collections::HashMap,
-    sync::{Arc, Condvar, Mutex, RwLock},
+    sync::{
+        Arc, Condvar, Mutex, RwLock,
+        atomic::{AtomicBool, Ordering},
+    },
     time::Duration,
 };
 
@@ -75,7 +78,7 @@ where
     cv: Arc<Condvar>,
     /// Contains the current active diagnostics indexed by the identifier of the lint
     pub current_diagnostics: Arc<RwLock<CurrentDiagnostics>>,
-    running: Arc<RwLock<bool>>,
+    running: Arc<AtomicBool>,
     sender: Sender<lsp_server::Message>,
     filter: F,
 }
@@ -88,7 +91,7 @@ where
         Self {
             queue: Arc::new(Mutex::new(HashQueue::new())),
             cv: Arc::new(Condvar::new()),
-            running: Arc::new(RwLock::new(false)),
+            running: Arc::new(AtomicBool::new(true)),
             sender,
             current_diagnostics: Arc::new(RwLock::new(HashMap::new())),
             filter,
@@ -138,14 +141,13 @@ where
     }
 
     pub fn stop(&self) {
-        *self.running.write_or_panic() = false;
+        self.running.store(false, Ordering::Relaxed);
     }
 
     pub fn run(&self) {
-        *self.running.write_or_panic() = true;
         // TODO: Fix this mess
         let mut lock = self.queue.lock_or_panic();
-        while *self.running.read_or_panic() {
+        while self.running.load(Ordering::Relaxed) {
             let mut work_data = vec![];
             while let Some((uri, list)) = lock.pop() {
                 work_data.push((uri, list));
