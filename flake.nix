@@ -43,10 +43,9 @@
         };
 
         naersk' = pkgs.callPackage naersk { };
-        modRoot = "./crates/jsonnet-bridge/go";
         goModules = pkgs.stdenv.mkDerivation {
           name = "rust2go-vendor";
-          src = ./crates/jsonnet-bridge/go;
+          src = "${self}/crates/jsonnet-bridge/go";
           dontUnpack = true;
 
           nativeBuildInputs = [ pkgs.go ];
@@ -91,14 +90,15 @@
         ];
         grustonnet = naersk'.buildPackage {
           name = "grustonnet-ls";
-          src = ./.;
+          src = self;
 
           # Make sure go can write to the home dir
           preBuild = ''
             export HOME=$TMPDIR
             export GOFLAGS="-mod=vendor"
-            mkdir -p ${modRoot}
-            ln -s ${goModules}/vendor "${modRoot}/vendor"
+            MODROOT="./crates/jsonnet-bridge/go"
+            mkdir -p $MODROOT
+            ln -s ${goModules}/vendor "$MODROOT/vendor"
 
             # Download stdlib packages as they are otherwise downloaded by `build.rs`
             mkdir -p ./crates/grustonnet-ls-lib/gen
