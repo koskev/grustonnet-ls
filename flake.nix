@@ -11,6 +11,7 @@
       url = "github:nix-community/naersk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix2container.url = "github:nlewo/nix2container";
   };
 
   outputs =
@@ -19,6 +20,7 @@
       flake-utils,
       naersk,
       nixpkgs,
+      nix2container,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -26,6 +28,7 @@
         pkgs = (import nixpkgs) {
           inherit system;
         };
+        nix2containerPkgs = nix2container.packages.${system};
 
         jsonnetVersion = "v0.21.0";
 
@@ -86,11 +89,7 @@
 
           clang
         ];
-
-      in
-      {
-        # For `nix build` & `nix run`:
-        defaultPackage = naersk'.buildPackage {
+        grustonnet = naersk'.buildPackage {
           name = "grustonnet-ls";
           src = ./.;
 
@@ -111,6 +110,44 @@
           inherit buildInputs;
           LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
           GODEBUG = "invalidptr=0,cgocheck=0";
+        };
+
+      in
+      {
+        # For `nix build` & `nix run`:
+        packages = {
+          default = grustonnet;
+
+          dockerImage =
+            let
+              binaries =
+                pkgs.runCommand "bins"
+                  {
+                    nativeBuildInputs = [ pkgs.removeReferencesTo ];
+                  }
+                  ''
+                    mkdir -p $out/bin
+                    cp ${grustonnet}/bin/grustonnet-* $out/bin/
+                    # Remove all go references to avoid bloating the image
+                    remove-references-to -t ${pkgs.go} $out/bin/*
+                  '';
+            in
+            # pkgs.dockerTools.buildImage {
+            nix2containerPkgs.nix2container.buildImage {
+              name = "grustonnet";
+              tag = "latest";
+
+              contents = [
+                binaries
+              ];
+
+              config = {
+                Cmd = [ "${binaries}/bin/grustonnet-lint" ];
+                Env = [
+                  "PATH=${binaries}/bin"
+                ];
+              };
+            };
         };
 
         devShells = {
