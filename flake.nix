@@ -191,6 +191,7 @@
                 conform
                 prek
                 gnumake
+                git-cliff
 
                 rust2gocli
               ];
