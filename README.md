@@ -3,6 +3,15 @@ This is a jsonnet language server using the `go-jsonnet` implementation to gener
 
 For a small list of example videos head to the [Showcase page](https://koskev.github.io/grustonnet-ls/showcase.html).
 
+This repository contains 3 components:
+
+| Component | Description |
+|---|---|
+| grustonnet-ls | The language server |
+| grustonnet-lint | Runs the diagnostics on the given files |
+| grustonnet-debugger | A jsonnet debugger using DAP |
+
+
 ## Roadmap
 
 * [-] Completion
@@ -16,7 +25,7 @@ For a small list of example videos head to the [Showcase page](https://koskev.gi
     * [-] Advanced Stdlib completion
         * [x] extVar completion
         * [ ] Return values
-        * [ ] Function parameters e.g. std.map
+        * [x] Function parameters from std.map
     * [ ] Complete Loops
         * [ ] Use `std.map` for loops
     * [x] All jsonnet imports
@@ -33,7 +42,7 @@ For a small list of example videos head to the [Showcase page](https://koskev.gi
     * [x] Builder pattern
         * [ ] Check extremely complex patterns
     * [x] Array access
-    * [ ] Unused function arguments
+    * [x] Unused function arguments
 * [x] Semantic tokens
 * [-] Inlay Hints
     * [x] Function parameters
@@ -44,7 +53,7 @@ For a small list of example videos head to the [Showcase page](https://koskev.gi
     * [x] Goto file from import string
     * Can goto everything we can complete
 * [x] Find reference
-    * [ ] Import strings
+    * [x] Import strings
     * Can find references for all identifiers we can goto
 * [x] Rename
     * [ ] Rename imports if file is renamed
@@ -82,6 +91,7 @@ For a small list of example videos head to the [Showcase page](https://koskev.gi
     * If you import `foo.libsonnet` and there is also a `foo.libsonnet` in the current working directory, evaluating the snippet will result in a diagnostic error
         * To reproduce `cat mydir/bar.jsonnet | jsonnet --jpath mydir -`
     * If there is a circular dependency go-jsonnet emits a strange error
+* Eval diagnostics are always use the state from disk and not from memory
 
 ## Jsonnet Quirks
 * `tailstrict`
