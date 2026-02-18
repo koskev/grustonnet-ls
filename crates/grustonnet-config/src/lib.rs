@@ -139,8 +139,9 @@ pub struct DiagnosticConfig {
     /// Warns if a number will be rounded due to being out of bounds
     pub number_rounding: bool,
 
-    #[default = true]
+    #[default = false]
     /// Warns if a variable could not be found
+    /// Still has problems if an object has multiple asserts or inside for loops
     pub unknown_variable: bool,
 }
 
