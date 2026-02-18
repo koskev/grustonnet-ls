@@ -47,7 +47,7 @@ jobs:
       with:
         go-version: '1.25'
     - name: Install nightly rust
-      run: rustup toolchain install nightly && rustup default nightly
+      run: rustup toolchain install nightly-2026-02-16 && rustup default nightly
     - name: Install Rust test dependencies
       run: cargo install cargo2junit cargo-tarpaulin
     - name: Run tests
