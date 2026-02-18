@@ -139,6 +139,7 @@ impl<G: ASTGenerator> Cache<G> {
         doc.content = text.into();
 
         doc.update_ast();
+        doc.manually_loaded_at = None; // Is is now loaded by the lsp
     }
 
     /// Loads the document with additional options
