@@ -109,8 +109,9 @@ pub struct DiagnosticConfig {
     /// Checks the default arguments of functions for recursions
     pub recursive_arguments: bool,
 
-    #[default = true]
+    #[default = false]
     /// Warns if a variable gets shadowed by another variable
+    /// Still has some issues
     pub shadow_variable: bool,
 
     #[default = true]
