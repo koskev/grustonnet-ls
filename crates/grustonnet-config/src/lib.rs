@@ -138,6 +138,10 @@ pub struct DiagnosticConfig {
     #[default = true]
     /// Warns if a number will be rounded due to being out of bounds
     pub number_rounding: bool,
+
+    #[default = true]
+    /// Warns if a variable could not be found
+    pub unknown_variable: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]

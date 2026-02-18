@@ -32,6 +32,7 @@ pub mod shadow;
 pub mod snake;
 pub mod r#static;
 pub mod top_level_function;
+pub mod unknown_variable;
 pub mod unused;
 
 #[derive(Default)]
@@ -69,6 +70,7 @@ fn disabled_diagnostics_config() -> DiagnosticConfig {
         object_function: false,
         unused_file: false,
         number_rounding: false,
+        unknown_variable: false,
     }
 }
 
