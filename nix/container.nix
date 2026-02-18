@@ -24,9 +24,7 @@ _: {
                           remove-references-to -t ${pkgs.go} $out/bin/*
               '';
           createContainer =
-            {
-              name,
-            }:
+            name:
             nix2containerPkgs.nix2container.buildImage {
               name = "grustonnet-${name}";
               tag = "latest";
@@ -38,7 +36,7 @@ _: {
         {
           dockerLinter = createContainer "lint";
           dockerDebugger = createContainer "debugger";
-          dockerLS = createContainer "ls";
+          dockerLs = createContainer "ls";
           dockerImageFull = nix2containerPkgs.nix2container.buildImage {
             name = "grustonnet";
             tag = "latest";
