@@ -34,7 +34,7 @@ log = "0.4.27"
 schemars = "1.0.1"
 jsonnet-std-docs = { path = "../jsonnet-std-docs"}
 test-macros = { path = "../test-macros"}
-strum = { version = "0.27.1", features = ["derive", "strum_macros"] }
+strum = { version = "0.28.0", features = ["derive", "strum_macros"] }
 walkdir = "2.5.0"
 itertools = "0.14.0"
 rayon = "1.10.0"
