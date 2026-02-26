@@ -11,20 +11,10 @@
   };
 
   outputs =
-    inputs@{
-      flake-parts,
-      ...
-    }:
+    inputs@{ flake-parts, ... }:
     # https://flake.parts/module-arguments.html
     flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [
-        ./nix/common.nix
-        ./nix/go-jsonnet.nix
-        ./nix/grustonnet.nix
-        ./nix/shells.nix
-        ./nix/container.nix
-        ./nix/docs.nix
-      ];
+      imports = map (name: ./nix/${name}) (builtins.attrNames (builtins.readDir ./nix));
       flake = {
         # Put your original flake attributes here.
       };
@@ -36,5 +26,4 @@
         "x86_64-darwin"
       ];
     };
-
 }
