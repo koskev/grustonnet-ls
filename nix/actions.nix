@@ -47,6 +47,17 @@ in
       };
     };
     workflows = {
+      ".github/workflows/linting.yaml" = {
+        on = {
+          push = { };
+          pull_request = { };
+        };
+        jobs.clippy.steps = commonSteps ++ [
+          {
+            run = "nix develop .#clippy --command make clippy";
+          }
+        ];
+      };
       ".github/workflows/docs.yaml" = {
         on = {
           push.branches = [ "main" ];
