@@ -7,6 +7,7 @@ let
     cachix = "cachix/cachix-action@v15";
     deploy-pages = "actions/deploy-pages@v4";
     upload-pages-artifacts = "actions/upload-pages-artifact@v4";
+    setup-go = "actions/setup-go@v6";
   };
   commonSteps = [
     {
@@ -47,6 +48,32 @@ in
       };
     };
     workflows = {
+      ".github/workflows/mr.yaml" = {
+        on = {
+          pull_request = { };
+        };
+        jobs.conform.steps = [
+          {
+            uses = actions.checkout;
+            "with" = {
+              fetch-depth = 0;
+              ref = "\${{ github.event.pull_request.head.sha }}";
+            };
+          }
+          {
+            uses = actions.setup-go;
+            "with".go-version = "1.25";
+          }
+          {
+            name = "Install conform";
+            run = "go install github.com/siderolabs/conform/cmd/conform@v0.1.0-alpha.30";
+          }
+          {
+            name = "Run conform";
+            run = "conform enforce --base-branch remotes/origin/main";
+          }
+        ];
+      };
       ".github/workflows/linting.yaml" = {
         on = {
           push = { };
