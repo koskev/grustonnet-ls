@@ -8,6 +8,13 @@
     };
     nix2container.url = "github:nlewo/nix2container";
     recordings.url = "git+https://codeberg.org/kokev/lsp-recorder.git";
+    actions-nix = {
+      url = "github:nialov/actions.nix";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
   };
 
   outputs =
