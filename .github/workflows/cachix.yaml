@@ -8,6 +8,8 @@ jobs:
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
     - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
     - name: Most important Action!
       uses: wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7
       with:

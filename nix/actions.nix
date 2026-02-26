@@ -5,10 +5,13 @@ let
     nothing-but-nix = "wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7";
     cachix-installer = "cachix/install-nix-action@v31";
     cachix = "cachix/cachix-action@v15";
+    deploy-pages = "actions/deploy-pages@v4";
+    upload-pages-artifacts = "actions/upload-pages-artifact@v4";
   };
   commonSteps = [
     {
       uses = actions.checkout;
+      "with".fetch-depth = 0;
     }
     {
       name = "Most important Action!";
@@ -44,6 +47,41 @@ in
       };
     };
     workflows = {
+      ".github/workflows/docs.yaml" = {
+        on = {
+          push.branches = [ "main" ];
+        };
+        jobs = {
+          docs.steps = commonSteps ++ [
+            {
+              run = "cd docs && nix develop ..#docs --command make build && cd ..";
+            }
+            {
+              name = "Upload artifacts for pages";
+              uses = actions.upload-pages-artifacts;
+              "with".path = "docs/book";
+            }
+          ];
+          pages = {
+            permissions = {
+              id-token = "write";
+              pages = "write";
+            };
+            environment = {
+              name = "github-pages";
+              url = "\${{steps.deployment.outputs.page_url}}";
+            };
+            needs = [ "docs" ];
+            steps = [
+              {
+                name = "Deploy to GitHub Pages";
+                id = "deployment";
+                uses = actions.deploy-pages;
+              }
+            ];
+          };
+        };
+      };
       ".github/workflows/cachix.yaml" = {
         name = "Build Nix Configurations";
         on = {
