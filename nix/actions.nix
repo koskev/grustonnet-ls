@@ -8,9 +8,14 @@ let
     deploy-pages = "actions/deploy-pages@v4";
     upload-pages-artifacts = "actions/upload-pages-artifact@v4";
     setup-go = "actions/setup-go@v6";
+    wine-test = "Reloaded-Project/devops-rust-test-in-latest-wine@v1";
   };
 
   steps = {
+    checkout = {
+      name = "checkout";
+      uses = actions.checkout;
+    };
     installNix = {
       name = "Install nix";
       uses = actions.cachix-installer;
@@ -24,6 +29,10 @@ let
         username = "\${{ github.repository_owner }}";
         password = "\${{ secrets.GITHUB_TOKEN }}";
       };
+    };
+    setupGo = {
+      uses = actions.setup-go;
+      "with".go-version = "1.25";
     };
   };
   commonSteps = [
@@ -53,6 +62,11 @@ let
       os-name = "macOS-aarch64";
       runs-on = "macos-latest";
       target = "aarch64-apple-darwin";
+    };
+    windows-cross = {
+      os-name = "Windows-x86_64";
+      runs-on = "ubuntu-24.04";
+      target = "x86_64-pc-windows-gnu";
     };
   };
 in
@@ -130,10 +144,7 @@ in
               ref = "\${{ github.event.pull_request.head.sha }}";
             };
           }
-          {
-            uses = actions.setup-go;
-            "with".go-version = "1.25";
-          }
+          steps.setupGo
           {
             name = "Install conform";
             run = "go install github.com/siderolabs/conform/cmd/conform@v0.1.0-alpha.30";
@@ -218,6 +229,77 @@ in
               {
                 name = "Push to cachix";
                 run = "nix path-info . | cachix push koskev";
+              }
+            ];
+          };
+        };
+      };
+      ".github/workflows/test.yaml" = {
+        on = {
+          push = { };
+          pull_request = { };
+        };
+        env = {
+          CARGO_TERM_COLOR = "always";
+        };
+        jobs = {
+          generated-files.steps = [
+            {
+              uses = actions.checkout;
+            }
+            {
+              run = "cargo install rust2go-cli";
+            }
+            {
+              run = "make rust2go";
+            }
+            {
+              run = ''
+                if [ -n "$(git status --porcelain)" ]; then
+                  echo "rust2go-cli found a diff. Make sure to run 'make rust2go' if you change any of the bridge code"
+                  git -c color.ui=always diff
+                  exit 1
+                fi
+              '';
+            }
+          ];
+          nix-test = {
+            strategy.matrix.platform = [
+              platforms.linux
+              platforms.linux_aarch64
+              platforms.mac
+            ];
+            runs-on = "\${{ matrix.platform.runs-on }}";
+            steps = [
+              steps.checkout
+              steps.installNix
+              {
+                name = "Run tests";
+                run = "nix build .#grustonnet-test";
+              }
+            ];
+          };
+          windows-test = {
+            inherit (platforms.windows-cross) runs-on;
+            steps = [
+              {
+                uses = actions.checkout;
+              }
+              steps.setupGo
+              {
+                name = "Install Rust test dependencies";
+                run = "cargo install cargo2junit@0.1.15 cargo-tarpaulin@0.35.1 --locked";
+              }
+              {
+                name = "Test Windows x86_64 GNU";
+                uses = actions.wine-test;
+                env = {
+                  RUSTFLAGS = "";
+                };
+                "with" = {
+                  rust-project-path = ".";
+                  inherit (platforms.windows-cross) target;
+                };
               }
             ];
           };

@@ -32,8 +32,13 @@ impl DefinitionTestCase {
     pub(crate) fn check(&self) {
         let server = self.create_server();
         let file_content = read_to_string(&self.filename).unwrap();
-        let file_uri =
-            Uri::from_path(utils::canonicalize(&self.filename).unwrap().to_str().unwrap()).unwrap();
+        let file_uri = Uri::from_path(
+            utils::canonicalize(&self.filename)
+                .unwrap()
+                .to_str()
+                .unwrap(),
+        )
+        .unwrap();
         println!("URI: {:?}", file_uri);
 
         server
@@ -68,7 +73,8 @@ impl DefinitionTestCase {
             GotoDefinitionResponse::Scalar(loc) => {
                 assert_eq!(
                     loc.uri,
-                    Uri::from_path(self.target_file.clone().unwrap_or(self.filename.clone())).unwrap(),
+                    Uri::from_path(self.target_file.clone().unwrap_or(self.filename.clone()))
+                        .unwrap(),
                 );
                 assert_eq!(loc.range.start, self.target);
             }

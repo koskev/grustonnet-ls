@@ -8,6 +8,22 @@ _: {
     }:
     {
       devShells = {
+        test = pkgs.mkShell {
+          nativeBuildInputs =
+            with pkgs;
+            sharedNativeBuildInputs
+            ++ [
+              cargo
+            ];
+          buildInputs =
+            with pkgs;
+            sharedBuildInputs
+            ++ [
+              rustc
+            ];
+          RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+          LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
+        };
         clippy = pkgs.mkShell {
           nativeBuildInputs =
             with pkgs;
@@ -50,6 +66,7 @@ _: {
               cargo-tarpaulin
               clippy
               rustfmt
+              cargo2junit
 
               go-jsonnet
               rust-analyzer
