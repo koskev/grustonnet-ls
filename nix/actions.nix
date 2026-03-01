@@ -9,9 +9,16 @@ let
     upload-pages-artifacts = "actions/upload-pages-artifact@v4";
     setup-go = "actions/setup-go@v6";
     wine-test = "Reloaded-Project/devops-rust-test-in-latest-wine@v1";
+    download-artifact = "actions/download-artifact@v4";
+    gh-release = "softprops/action-gh-release@v2";
   };
 
   steps = {
+    checkout-full = {
+      name = "checkout full";
+      uses = actions.checkout;
+      "with".fetch-depth = 0;
+    };
     checkout = {
       name = "checkout";
       uses = actions.checkout;
@@ -36,10 +43,7 @@ let
     };
   };
   commonSteps = [
-    {
-      uses = actions.checkout;
-      "with".fetch-depth = 0;
-    }
+    steps.checkout-full
     {
       name = "Most important Action!";
       uses = actions.nothing-but-nix;
@@ -94,10 +98,7 @@ in
             ];
             runs-on = "\${{ matrix.platform.runs-on }}";
             steps = [
-              {
-                uses = actions.checkout;
-                "with".fetch-depth = 0;
-              }
+              steps.checkout-full
               steps.installNix
               steps.dockerLogin
               {
@@ -299,6 +300,121 @@ in
                 "with" = {
                   rust-project-path = ".";
                   inherit (platforms.windows-cross) target;
+                };
+              }
+            ];
+          };
+        };
+      };
+      ".github/workflows/release.yaml" = {
+        on = {
+          push.tags = [ "v*" ];
+          workflow_dispatch = { };
+        };
+        jobs = {
+          changelog.steps = [
+            steps.checkout-full
+            {
+              name = "Generate a changelog";
+              uses = "orhun/git-cliff-action@v4";
+              "with" = {
+                config = "cliff.toml";
+                args = "--verbose --current";
+              };
+              env = {
+                OUTPUT = "CHANGELOG.md";
+              };
+            }
+            {
+              name = "Upload changelog";
+              uses = "actions/upload-artifact@v4";
+              "with" = {
+                name = "changelog";
+                path = "CHANGELOG.md";
+                retention-days = 1;
+              };
+            }
+          ];
+          release = {
+            strategy.matrix.platform = [
+              platforms.linux
+              platforms.linux_aarch64
+              platforms.mac
+              platforms.windows-cross
+            ];
+            runs-on = "\${{ matrix.platform.runs-on }}";
+            needs = [ "changelog" ];
+            steps = [
+              steps.checkout
+              {
+                name = "Generate Version";
+                run = ''
+                  GITHUB_TAG_NAME=''${{ github.ref_name }}
+                  TAG_NAME=''${GITHUB_TAG_NAME:-v0.0.0}
+                  TAG_VERSION=''${TAG_NAME: 1}
+                  echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+                '';
+              }
+              {
+                name = "Generate output name";
+                run = ''
+                  RELEASE_TAR=$(echo "grustonnet_''${{ matrix.platform.os-name }}.tar.gz" | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+                  echo ''${RELEASE_TAR}
+                  echo "RELEASE_TAR=''${RELEASE_TAR}" >> $GITHUB_ENV
+                '';
+              }
+              {
+                name = "Set Cargo Version";
+                run = ''
+                  # TODO: Suffix handling (e.g. -RC1)
+                  cargo install cargo-set-version
+                  echo "Setting program version to ''${TAG_VERSION}"
+                  cargo set-version ''${TAG_VERSION}
+                '';
+              }
+              {
+                name = "Get changelog";
+                uses = actions.download-artifact;
+                "with" = {
+                  name = "changelog";
+                  path = "changelog";
+                };
+              }
+              steps.setupGo
+              {
+                name = "Install cross compile tools";
+                "if" =
+                  "\${{ contains(matrix.platform.target, 'windows') && contains(matrix.platform.runs-on, 'ubuntu') }}";
+                run = "sudo apt update && sudo apt install gcc-mingw-w64 && rustup target add x86_64-pc-windows-gnu";
+              }
+              {
+                name = "Build binary";
+                run = "make build-\${{ matrix.platform.target }}";
+                env = {
+                  RUST_BACKTRACE = 1;
+                  GODEBUG = "invalidptr=0,cgocheck=0";
+                };
+              }
+              {
+                name = "Compress binary";
+                run = ''
+                  tmpdir=$(mktemp -d)
+                  # Mac is stupid so we can't use transform in tar nor -executable in find
+                  find ./ -type f -perm -111 -iname "grustonnet-*" -exec cp {} "$tmpdir/" \;
+                  # Stupid but makes sure it works everywhere
+                  pushd "$tmpdir"
+                  tar -czf "$RELEASE_TAR" *
+                  popd
+                  mv "$tmpdir"/"$RELEASE_TAR" ./
+                  rm -rf "$tmpdir"
+                '';
+              }
+              {
+                name = "Publish artifacts and release";
+                uses = actions.gh-release;
+                "with" = {
+                  files = "\${{ env.RELEASE_TAR }}";
+                  body_path = "changelog/CHANGELOG.md";
                 };
               }
             ];
