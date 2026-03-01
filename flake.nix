@@ -15,13 +15,14 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    import-tree.url = "github:vic/import-tree";
   };
 
   outputs =
     inputs@{ flake-parts, ... }:
     # https://flake.parts/module-arguments.html
     flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = map (name: ./nix/${name}) (builtins.attrNames (builtins.readDir ./nix));
+      imports = [ (inputs.import-tree ./nix) ];
       flake = {
         # Put your original flake attributes here.
       };

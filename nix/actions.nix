@@ -10,7 +10,10 @@ let
     setup-go = "actions/setup-go@v6";
     wine-test = "Reloaded-Project/devops-rust-test-in-latest-wine@v1";
     download-artifact = "actions/download-artifact@v4";
+    upload-artifact = "actions/upload-artifact@v4";
     gh-release = "softprops/action-gh-release@v2";
+    docker-login = "docker/login-action@v3";
+    git-cliff = "orhun/git-cliff-action@v4";
   };
 
   steps = {
@@ -30,7 +33,7 @@ let
     };
     dockerLogin = {
       name = "Login to GHCR";
-      uses = "docker/login-action@v3";
+      uses = actions.docker-login;
       "with" = {
         registry = "ghcr.io";
         username = "\${{ github.repository_owner }}";
@@ -316,7 +319,7 @@ in
             steps.checkout-full
             {
               name = "Generate a changelog";
-              uses = "orhun/git-cliff-action@v4";
+              uses = actions.git-cliff;
               "with" = {
                 config = "cliff.toml";
                 args = "--verbose --current";
@@ -327,7 +330,7 @@ in
             }
             {
               name = "Upload changelog";
-              uses = "actions/upload-artifact@v4";
+              uses = actions.upload-artifact;
               "with" = {
                 name = "changelog";
                 path = "CHANGELOG.md";
@@ -397,17 +400,7 @@ in
               }
               {
                 name = "Compress binary";
-                run = ''
-                  tmpdir=$(mktemp -d)
-                  # Mac is stupid so we can't use transform in tar nor -executable in find
-                  find ./ -type f -perm -111 -iname "grustonnet-*" -exec cp {} "$tmpdir/" \;
-                  # Stupid but makes sure it works everywhere
-                  pushd "$tmpdir"
-                  tar -czf "$RELEASE_TAR" *
-                  popd
-                  mv "$tmpdir"/"$RELEASE_TAR" ./
-                  rm -rf "$tmpdir"
-                '';
+                run = builtins.readFile ./scripts/compress-release.sh;
               }
               {
                 name = "Publish artifacts and release";
