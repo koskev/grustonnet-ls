@@ -527,3 +527,39 @@ fn for_loop_var_in_if() {
     }
     .check();
 }
+
+#[test]
+#[ignore = "unsupported"]
+fn double_assert_other() {
+    DefinitionTestCase {
+        filename: "testdata/definition/double_assert.jsonnet".into(),
+        source: Position {
+            line: 1,
+            character: 5,
+        },
+        target: Position {
+            line: 1,
+            character: 2,
+        },
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "unsupported"]
+fn double_assert_after() {
+    DefinitionTestCase {
+        filename: "testdata/definition/double_assert.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 15,
+        },
+        target: Position {
+            line: 2,
+            character: 2,
+        },
+        ..Default::default()
+    }
+    .check();
+}
