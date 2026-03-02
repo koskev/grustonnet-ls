@@ -1,19 +1,19 @@
 { inputs, lib, ... }:
 let
   actions = {
-    checkout = "actions/checkout@v5";
+    checkout = "actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd"; # v5
+    deploy-pages = "actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e"; # v4
+    upload-pages-artifacts = "actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b"; # v4
+    download-artifact = "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093"; # v4
+    upload-artifact = "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"; # v4
+    setup-go = "actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417"; # v6
     nothing-but-nix = "wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7";
-    cachix-installer = "cachix/install-nix-action@v31";
-    cachix = "cachix/cachix-action@v15";
-    deploy-pages = "actions/deploy-pages@v4";
-    upload-pages-artifacts = "actions/upload-pages-artifact@v4";
-    setup-go = "actions/setup-go@v6";
-    wine-test = "Reloaded-Project/devops-rust-test-in-latest-wine@v1";
-    download-artifact = "actions/download-artifact@v4";
-    upload-artifact = "actions/upload-artifact@v4";
-    gh-release = "softprops/action-gh-release@v2";
-    docker-login = "docker/login-action@v3";
-    git-cliff = "orhun/git-cliff-action@v4";
+    cachix-installer = "cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15"; # v31
+    cachix = "cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc"; # v15
+    wine-test = "Reloaded-Project/devops-rust-test-in-latest-wine@b707ebd77c7b98be7666c672d7c947aefeb1ac45"; # v1
+    gh-release = "softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b"; # v2
+    docker-login = "docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9"; # v3
+    git-cliff = "orhun/git-cliff-action@c93ef52f3d0ddcdcc9bd5447d98d458a11cd4f72"; # v4
   };
   packages = {
     go = {

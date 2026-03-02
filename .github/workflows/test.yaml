@@ -9,7 +9,7 @@ jobs:
   generated-files:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
     - run: cargo install rust2go-cli
     - run: make rust2go
     - run: |-
@@ -22,9 +22,9 @@ jobs:
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
     - name: checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
     - name: Install nix
-      uses: cachix/install-nix-action@v31
+      uses: cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Run tests
@@ -44,8 +44,8 @@ jobs:
   windows-test:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
-    - uses: actions/setup-go@v6
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+    - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417
       with:
         go-version: '1.25'
     - name: Install Rust test dependencies
@@ -53,7 +53,7 @@ jobs:
     - env:
         RUSTFLAGS: ''
       name: Test Windows x86_64 GNU
-      uses: Reloaded-Project/devops-rust-test-in-latest-wine@v1
+      uses: Reloaded-Project/devops-rust-test-in-latest-wine@b707ebd77c7b98be7666c672d7c947aefeb1ac45
       with:
         rust-project-path: .
         target: x86_64-pc-windows-gnu
