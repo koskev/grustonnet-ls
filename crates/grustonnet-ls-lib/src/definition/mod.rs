@@ -46,53 +46,52 @@ impl<'a> DefinitionProvider<'a> {
 
         let mut document_stack = doc.get_ast()?.get_stack_by_position(&(pos.clone()));
 
-        let top_node = document_stack
-            .peek()
-            .ok_or(anyhow!("Empty document stack"))?;
-        match top_node.node_kind.as_ref() {
-            // Special case: If we goto the name of a local function
-            // TODO: what about a function definition itself?
-            NodeKind::Function(_) | NodeKind::Conditional(_) => {
-                // If we have a local with a function and want issue a definition on the local
-                // identifier we have to ignore the function node as it would
-                // resolve to the body content and location
-                // e.g. local goto_test(arg) = {};
-                //              ^
-                //             <goto>
+        while let Some(top_node) = document_stack.peek() {
+            match top_node.node_kind.as_ref() {
+                // Special case: If we goto the name of a local function
+                // TODO: what about a function definition itself?
+                NodeKind::Function(_) | NodeKind::Conditional(_) | NodeKind::Array(_) => {
+                    // TODO: If we have a "for" with a trailing "if" we'll get the array on the top of the stack.
+                    // No idea why
 
-                // If we don't remove the binary we won't get the correct position
-                let _ = document_stack.stack.pop();
+                    // If we have a local with a function and want issue a definition on the local
+                    // identifier we have to ignore the function node as it would
+                    // resolve to the body content and location
+                    // e.g. local goto_test(arg) = {};
+                    //              ^
+                    //             <goto>
+
+                    // If we don't remove the binary we won't get the correct position
+                    let _ = document_stack.stack.pop();
+                }
+                _ => break,
             }
-            NodeKind::LiteralString(import_str) => {
-                // If we have a literal string and the parent is an import, we find the file and go
-                // to it
-                // TODO: check parent
+        }
+        if let Some(top_node) = document_stack.peek()
+            && let NodeKind::LiteralString(import_str) = top_node.node_kind.as_ref()
+        {
+            // If we have a literal string and the parent is an import, we find the file and go
+            // to it
+            // TODO: check parent
 
-                let jpaths = self
-                    .cache
-                    .ast_generator
-                    .jsonnet
-                    .get_evaluate_params(&top_node.node_base.loc_range.file_name)
-                    .jpaths;
-                for jpath in &jpaths {
-                    let p = Path::new(jpath).join(Path::new(&import_str.value));
-                    if p.exists() {
-                        return Ok(DefinitionInfo {
-                            name: "".into(),
-                            location: lsp_types::Location {
-                                uri: Uri::from_path(p)?,
-                                range: Range::default(),
-                            },
-                        });
-                    }
+            let jpaths = self
+                .cache
+                .ast_generator
+                .jsonnet
+                .get_evaluate_params(&top_node.node_base.loc_range.file_name)
+                .jpaths;
+            for jpath in &jpaths {
+                let p = Path::new(jpath).join(Path::new(&import_str.value));
+                if p.exists() {
+                    return Ok(DefinitionInfo {
+                        name: "".into(),
+                        location: lsp_types::Location {
+                            uri: Uri::from_path(p)?,
+                            range: Range::default(),
+                        },
+                    });
                 }
             }
-            NodeKind::Array(_) => {
-                // TODO: If we have a "for" with a trailing "if" we'll get the array on the top of the stack.
-                // No idea why
-                document_stack.stack.pop();
-            }
-            _ => (),
         }
 
         // builds my.call.chain.<last_node>. Then uses "last_node" do determine the position

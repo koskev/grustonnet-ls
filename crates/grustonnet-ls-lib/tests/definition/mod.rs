@@ -529,7 +529,6 @@ fn for_loop_var_in_if() {
 }
 
 #[test]
-#[ignore = "unsupported"]
 fn double_assert_other() {
     DefinitionTestCase {
         filename: "testdata/definition/double_assert.jsonnet".into(),
@@ -547,7 +546,6 @@ fn double_assert_other() {
 }
 
 #[test]
-#[ignore = "unsupported"]
 fn double_assert_after() {
     DefinitionTestCase {
         filename: "testdata/definition/double_assert.jsonnet".into(),

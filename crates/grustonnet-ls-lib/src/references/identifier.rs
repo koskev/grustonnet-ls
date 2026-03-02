@@ -88,13 +88,15 @@ impl IdentifierReferences {
     fn get_identifier(&self, pos: Location, uri: &Uri) -> Option<(String, bool)> {
         let doc = self.cache.get_document(uri).ok()?;
         let mut stack = doc.get_ast().ok()?.get_stack_by_position(&pos.clone());
-        match stack.peek()?.node_kind.as_ref() {
-            NodeKind::Function(_) | NodeKind::Conditional(_) => {
-                // TODO: Same as in goto definition
-                let _ = stack.stack.pop();
-            }
-            _ => (),
-        };
+        while let Some(top_node) = stack.peek() {
+            match top_node.node_kind.as_ref() {
+                NodeKind::Function(_) | NodeKind::Conditional(_) => {
+                    // TODO: Same as in goto definition
+                    let _ = stack.stack.pop();
+                }
+                _ => break,
+            };
+        }
         let top_node = stack.peek()?;
 
         Some(match top_node.node_kind.as_ref() {
