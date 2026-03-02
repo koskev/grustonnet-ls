@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
 let
   actions = {
     checkout = "actions/checkout@v5";
@@ -15,7 +15,30 @@ let
     docker-login = "docker/login-action@v3";
     git-cliff = "orhun/git-cliff-action@v4";
   };
+  packages = {
+    go = {
+      conform = "github.com/siderolabs/conform/cmd/conform@v0.1.0-alpha.30";
+    };
+    rust = {
+      cargo2junit = "cargo2junit@0.1.15";
+      tarpaulin = "cargo-tarpaulin@0.35.1";
+      cargo-set-version = "cargo-set-version";
+      rust2go-cli = "rust2go-cli";
+    };
+  };
 
+  mkStep =
+    {
+      step,
+      branches ? null,
+    }:
+    step // lib.optional branches != null {
+      "if" =
+        let
+          branch_array = map (branch: "github.ref == 'refs/heads/${branch}'") branches;
+        in
+        builtins.concatStringsSep " || " branch_array;
+    };
   steps = {
     checkout-full = {
       name = "checkout full";
@@ -151,7 +174,7 @@ in
           steps.setupGo
           {
             name = "Install conform";
-            run = "go install github.com/siderolabs/conform/cmd/conform@v0.1.0-alpha.30";
+            run = "go install ${packages.go.conform}";
           }
           {
             name = "Run conform";
@@ -252,7 +275,7 @@ in
               uses = actions.checkout;
             }
             {
-              run = "cargo install rust2go-cli";
+              run = "cargo install ${packages.rust.rust2go-cli}";
             }
             {
               run = "make rust2go";
@@ -292,7 +315,7 @@ in
               steps.setupGo
               {
                 name = "Install Rust test dependencies";
-                run = "cargo install cargo2junit@0.1.15 cargo-tarpaulin@0.35.1 --locked";
+                run = "cargo install ${packages.rust.cargo2junit} ${packages.rust.tarpaulin} --locked";
               }
               {
                 name = "Test Windows x86_64 GNU";
@@ -370,7 +393,7 @@ in
                 name = "Set Cargo Version";
                 run = ''
                   # TODO: Suffix handling (e.g. -RC1)
-                  cargo install cargo-set-version
+                  cargo install ${packages.rust.cargo-set-version}
                   echo "Setting program version to ''${TAG_VERSION}"
                   cargo set-version ''${TAG_VERSION}
                 '';
