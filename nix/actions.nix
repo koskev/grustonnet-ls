@@ -116,47 +116,49 @@ in
         env = {
           IMAGE = "ghcr.io/\${{ github.repository }}";
         };
-        jobs = rec {
-          build = {
-            strategy.matrix.platform = [
-              platforms.linux
-              platforms.linux_aarch64
-            ];
-            runs-on = "\${{ matrix.platform.runs-on }}";
-            steps = [
-              steps.checkout-full
-              steps.installNix
-              steps.dockerLogin
-              {
-                name = "Build and push image";
-                run = ''
-                  TAG="''${GITHUB_REF_NAME//\//-}"
-                  nix run ".#dockerImageFull.copyTo" -- "docker://''${{ env.IMAGE }}:''$TAG-''${{ matrix.platform.target }}"
-                '';
-              }
-            ];
-          };
-          manifest = {
-            needs = [ "build" ];
-            steps = [
-              steps.dockerLogin
-              {
-                name = "Make manifest";
-                run =
-                  let
-                    images = builtins.concatStringsSep " " (
-                      map (platform: "\${{ env.IMAGE }}:\$TAG-${platform.target}") build.strategy.matrix.platform
-                    );
-                  in
-                  ''
-                    TAG="''${GITHUB_REF_NAME//\//-}"
-                    docker manifest create "''${{ env.IMAGE }}:''${TAG}" ${images}
-                    docker manifest push "''${{ env.IMAGE }}:''${TAG}"
+        jobs =
+          let
+            TAG = "\${GITHUB_REF_NAME//\\//-}";
+          in
+          rec {
+            build = {
+              strategy.matrix.platform = [
+                platforms.linux
+                platforms.linux_aarch64
+              ];
+              runs-on = "\${{ matrix.platform.runs-on }}";
+              steps = [
+                steps.checkout-full
+                steps.installNix
+                steps.dockerLogin
+                {
+                  name = "Build and push image";
+                  run = ''
+                    nix run ".#dockerImageFull.copyTo" -- "docker://''${{ env.IMAGE }}:${TAG}-''${{ matrix.platform.target }}"
                   '';
-              }
-            ];
+                }
+              ];
+            };
+            manifest = {
+              needs = [ "build" ];
+              steps = [
+                steps.dockerLogin
+                {
+                  name = "Make manifest";
+                  run =
+                    let
+                      images = builtins.concatStringsSep " " (
+                        map (platform: "\${{ env.IMAGE }}:\$TAG-${platform.target}") build.strategy.matrix.platform
+                      );
+                    in
+                    ''
+                      docker manifest create "''${{ env.IMAGE }}:${TAG}" ${images}
+                      docker manifest push "''${{ env.IMAGE }}:${TAG}"
+                    '';
+                }
+              ];
+            };
           };
-        };
 
       };
       ".github/workflows/mr.yaml" = {
