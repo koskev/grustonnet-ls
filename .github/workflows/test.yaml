@@ -29,6 +29,18 @@ jobs:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Run tests
       run: nix build .#grustonnet-test
+    - if: github.ref == 'refs/heads/main'
+      uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc
+      with:
+        authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        name: koskev
+        signingKey: ${{ secrets.CACHIX_SIGNING_KEY }}
+        skipPush: true
+    - if: github.ref == 'refs/heads/main'
+      run: nix build .
+    - if: github.ref == 'refs/heads/main'
+      name: Push to cachix
+      run: nix path-info . | cachix push koskev
     strategy:
       matrix:
         platform:

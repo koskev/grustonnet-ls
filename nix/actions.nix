@@ -27,18 +27,22 @@ let
     };
   };
 
-  mkStep =
+  mkSteps =
     {
-      step,
+      steps ? [ ],
       branches ? null,
     }:
-    step // lib.optional branches != null {
-      "if" =
-        let
-          branch_array = map (branch: "github.ref == 'refs/heads/${branch}'") branches;
-        in
-        builtins.concatStringsSep " || " branch_array;
-    };
+    map (
+      step:
+      step
+      // lib.optionalAttrs (branches != null) {
+        "if" =
+          let
+            branch_array = map (branch: "github.ref == 'refs/heads/${branch}'") branches;
+          in
+          builtins.concatStringsSep " || " branch_array;
+      }
+    ) steps;
   steps = {
     checkout-full = {
       name = "checkout full";
@@ -230,39 +234,6 @@ in
           };
         };
       };
-      ".github/workflows/cachix.yaml" = {
-        name = "Build Nix Configurations";
-        on = {
-          push.branches = [ "main" ];
-        };
-        jobs = {
-          build = {
-            strategy.matrix.platform = [
-              platforms.linux
-              platforms.mac
-            ];
-            runs-on = "\${{ matrix.platform.runs-on }}";
-            steps = commonSteps ++ [
-              {
-                uses = actions.cachix;
-                "with" = {
-                  name = "koskev";
-                  authToken = "\${{ secrets.CACHIX_AUTH_TOKEN }}";
-                  signingKey = "\${{ secrets.CACHIX_SIGNING_KEY }}";
-                  skipPush = true;
-                };
-              }
-              {
-                run = "nix build .";
-              }
-              {
-                name = "Push to cachix";
-                run = "nix path-info . | cachix push koskev";
-              }
-            ];
-          };
-        };
-      };
       ".github/workflows/test.yaml" = {
         on = {
           push = { };
@@ -306,7 +277,30 @@ in
                 name = "Run tests";
                 run = "nix build .#grustonnet-test";
               }
-            ];
+            ]
+            ++ mkSteps {
+              steps = [
+                {
+                  uses = actions.cachix;
+                  "with" = {
+                    name = "koskev";
+                    authToken = "\${{ secrets.CACHIX_AUTH_TOKEN }}";
+                    signingKey = "\${{ secrets.CACHIX_SIGNING_KEY }}";
+                    skipPush = true;
+                  };
+                }
+                {
+                  run = "nix build .";
+                }
+                {
+                  name = "Push to cachix";
+                  run = "nix path-info . | cachix push koskev";
+                }
+              ];
+              branches = [
+                "main"
+              ];
+            };
           };
           windows-test = {
             inherit (platforms.windows-cross) runs-on;
