@@ -152,7 +152,7 @@ in
                   run =
                     let
                       images = builtins.concatStringsSep " " (
-                        map (platform: "\${{ env.IMAGE }}:\$TAG-${platform.target}") build.strategy.matrix.platform
+                        map (platform: "\${{ env.IMAGE }}:${TAG}-${platform.target}") build.strategy.matrix.platform
                       );
                     in
                     ''

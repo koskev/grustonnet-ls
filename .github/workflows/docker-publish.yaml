@@ -48,7 +48,7 @@ jobs:
         username: ${{ github.repository_owner }}
     - name: Make manifest
       run: |-
-        docker manifest create "${{ env.IMAGE }}:${GITHUB_REF_NAME//\//-}" ${{ env.IMAGE }}:$TAG-x86_64-unknown-linux-gnu ${{ env.IMAGE }}:$TAG-aarch64-unknown-linux-gnu
+        docker manifest create "${{ env.IMAGE }}:${GITHUB_REF_NAME//\//-}" ${{ env.IMAGE }}:${GITHUB_REF_NAME//\//-}-x86_64-unknown-linux-gnu ${{ env.IMAGE }}:${GITHUB_REF_NAME//\//-}-aarch64-unknown-linux-gnu
         docker manifest push "${{ env.IMAGE }}:${GITHUB_REF_NAME//\//-}"
 name: Publish docker image
 'on':
