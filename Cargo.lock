@@ -858,7 +858,6 @@ name = "grustonnet-config"
 version = "0.1.0"
 dependencies = [
  "lsp-types",
- "rust2go",
  "schemars 1.2.1",
  "serde",
  "serde_json",

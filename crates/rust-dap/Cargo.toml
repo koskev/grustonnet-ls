@@ -12,7 +12,4 @@ serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 lsp-server = "0.7.8"
 anyhow.workspace = true
-utils = { path = "../utils"}
 log = "0.4.27"
-
-
