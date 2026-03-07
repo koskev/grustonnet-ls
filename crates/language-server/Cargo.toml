@@ -7,17 +7,18 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-anyhow = "1.0.98"
-lsp-server = "0.7.8"
-lsp-types = { version = "0.97.0", features = ["proposed"] }
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
-pretty_assertions = "1.4.1"
-log = "0.4.27"
-ropey = "1.6.1"
+anyhow = { workspace = true }
+lsp-server = { workspace = true }
+lsp-types = { workspace = true, features = ["proposed"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+pretty_assertions = { workspace = true }
+log = { workspace = true }
+ropey = { workspace = true }
 similar = "2.7.0"
+# For better external library support
 tree-sitter = ">=0.22.6"
-crossbeam = "0.8.4"
+crossbeam = { workspace = true }
 rand = "0.10.0"
 mockall = "0.14.0"
 utils = { path = "../utils"}

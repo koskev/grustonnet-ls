@@ -16,16 +16,16 @@ workspace = true
 tracing = ["tracy-client", "grustonnet-ls-lib/tracing"]
 
 [dependencies]
-tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread", "net"] }
-env_logger = "0.11.8"
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net"] }
+env_logger = { workspace = true }
 grustonnet-ls-lib = { path = "../grustonnet-ls-lib"}
 grustonnet-config = { path = "../grustonnet-config"}
 language-server = { path = "../language-server"}
 rust2go-env = { path = "../rust2go-env"}
-schemars = "1.0.1"
-clap = { version = "4.5.40", features = ["derive"] }
-serde_json = "1.0.140"
-tracy-client = { version = "0.18.2", optional = true }
+schemars = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tracy-client = { workspace = true, optional = true }
 [target.'cfg(unix)'.dependencies]
 exec = { version = "0.3.1" }
 

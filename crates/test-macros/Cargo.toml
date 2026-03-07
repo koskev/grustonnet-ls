@@ -10,7 +10,7 @@ workspace = true
 proc-macro = true
 
 [dependencies]
-quote = "1.0"
-syn = "2.0"
-walkdir = "2.4"
+quote = { workspace = true }
+syn = { workspace = true }
+walkdir = { workspace = true }
 utils = { path = "../utils" }

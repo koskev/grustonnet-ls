@@ -10,12 +10,12 @@ workspace = true
 tracing = ["tracy-client"]
 
 [dependencies]
-anyhow = "1.0.98"
+anyhow = { workspace = true }
 lazy_static = "1.5.0"
-lsp-server = "0.7.8"
-lsp-types = { version = "0.97.0", features = ["proposed"] }
-serde = { version = "1.0.219", features = ["derive", "rc"] }
-serde_json = "1.0.140"
+lsp-server = { workspace = true }
+lsp-types = { workspace = true, features = ["proposed"] }
+serde = { workspace = true, features = ["derive", "rc"] }
+serde_json = { workspace = true }
 name-variant = { path = "../name-variant"}
 jsonnet-bridge = { path = "../jsonnet-bridge"}
 jsonnet-location = { path = "../jsonnet-location"}
@@ -25,23 +25,23 @@ grustonnet-config = { path = "../grustonnet-config"}
 language-server = { path = "../language-server"}
 utils = { path = "../utils"}
 paste = "1.0.15"
-ropey = "1.6.1"
-regex = "1.11.1"
-tree-sitter = "0.26.0"
-pretty_assertions = "1.4.1"
-env_logger = "0.11.8"
-log = "0.4.27"
-schemars = "1.0.1"
+ropey = { workspace = true }
+regex = { workspace = true }
+tree-sitter = { workspace = true }
+pretty_assertions = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }
+schemars = { workspace = true }
 jsonnet-std-docs = { path = "../jsonnet-std-docs"}
 test-macros = { path = "../test-macros"}
 strum = { version = "0.28.0", features = ["derive", "strum_macros"] }
-walkdir = "2.5.0"
-itertools = "0.14.0"
-rayon = "1.10.0"
-tracy-client = { version= "0.18.2", optional = true }
+walkdir = { workspace = true }
+itertools = { workspace = true }
+rayon = { workspace = true }
+tracy-client = { workspace = true, optional = true }
 thiserror = "2.0.12"
 rmp-serde = "1.3.0"
-bincode = "2.0.1"
+bincode = { workspace = true }
 assert_unordered = "0.3.5"
 semver = "1.0.27"
 fallible-iterator = "0.3.0"
@@ -51,7 +51,7 @@ stacker = "0.1.23"
 reqwest = { version = "0.13.0", features = ["blocking", "rustls"], default-features = false }
 jsonnet-bridge = { path = "../jsonnet-bridge"}
 jsonnet-std-docs = { path = "../jsonnet-std-docs"}
-htmd = "0.5.0"
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
+htmd = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 rmp-serde = "1.3.0"

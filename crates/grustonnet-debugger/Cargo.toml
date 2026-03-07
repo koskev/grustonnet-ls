@@ -14,20 +14,20 @@ workspace = true
 
 
 [dependencies]
-tokio = { version = "1.45.1", features = ["macros", "rt-multi-thread", "net"] }
-env_logger = "0.11.8"
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net"] }
+env_logger = { workspace = true }
 grustonnet-node = { path = "../grustonnet-node"}
 jsonnet-location = { path = "../jsonnet-location"}
 rust2go-env = { path = "../rust2go-env"}
 rust-dap = { path = "../rust-dap"}
-clap = { version = "4.5.40", features = ["derive"] }
-serde_json = "1.0.140"
+clap = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 jsonnet-bridge = { path = "../jsonnet-bridge"}
-bincode = "2.0.1"
-serde = { version = "1.0.219", features = ["derive", "rc"] }
+bincode = { workspace = true }
+serde = { workspace = true, features = ["derive", "rc"] }
 anyhow.workspace = true
-log = "0.4.27"
-rayon = "1.10.0"
+log = { workspace = true }
+rayon = { workspace = true }
 utils = { path = "../utils"}
 crossbeam.workspace = true
 

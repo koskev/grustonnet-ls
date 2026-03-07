@@ -8,8 +8,8 @@ workspace = true
 
 [dependencies]
 rust2go = { version = "0.4.0" }
-regex = "1.11.1"
-lsp-server = "0.7.8"
+regex = { workspace = true }
+lsp-server = { workspace = true }
 name-variant = { path = "../name-variant"}
 language-server = { path = "../language-server"}
 jsonnet-location = { path = "../jsonnet-location"}

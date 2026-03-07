@@ -7,9 +7,9 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-tree-sitter = "0.26.0"
+tree-sitter = { workspace = true }
 tree-sitter-jsonnet = {git = "https://github.com/koskev/tree-sitter-jsonnet"}
 jsonnet-location = { path = "../jsonnet-location"}
-ropey = "1.6.1"
-log = "0.4.27"
+ropey = { workspace = true }
+log = { workspace = true }
 language-server = { path = "../language-server"}
