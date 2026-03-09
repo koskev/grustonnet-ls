@@ -18,7 +18,7 @@ jobs:
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Login to GHCR
-      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+      uses: docker/login-action@db14339dbc0a1f0b184157be94b23a2138122354
       with:
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: ghcr.io
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Login to GHCR
-      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+      uses: docker/login-action@db14339dbc0a1f0b184157be94b23a2138122354
       with:
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: ghcr.io
