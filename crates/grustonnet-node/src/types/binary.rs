@@ -14,31 +14,31 @@ use crate::types::{fodder::Fodder, node::Node, node_kind::NodeKind};
 #[serde(rename_all = "PascalCase")]
 pub enum BinaryOp {
     #[default]
-    Mult,
-    Div,
-    Percent,
+    Mult = 0,
+    Div = 1,
+    Percent = 2,
 
-    Plus,
-    Minus,
+    Plus = 3,
+    Minus = 4,
 
-    ShiftL,
-    ShiftR,
+    ShiftL = 5,
+    ShiftR = 6,
 
-    Greater,
-    GreaterEq,
-    Less,
-    LessEq,
-    In,
+    Greater = 7,
+    GreaterEq = 8,
+    Less = 9,
+    LessEq = 10,
+    In = 11,
 
-    ManifestEqual,
-    ManifestUnequal,
+    ManifestEqual = 12,
+    ManifestUnequal = 13,
 
-    BitwiseAnd,
-    BitwiseXor,
-    BitwiseOr,
+    BitwiseAnd = 14,
+    BitwiseXor = 15,
+    BitwiseOr = 16,
 
-    And,
-    Or,
+    And = 17,
+    Or = 18,
 }
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T", default)]
@@ -46,7 +46,7 @@ pub struct Binary {
     pub right: Arc<Node>,
     pub left: Arc<Node>,
     pub op_fodder: Fodder,
-    pub op: i32,
+    pub op: BinaryOp,
 }
 
 impl Binary {

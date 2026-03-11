@@ -14,11 +14,11 @@ use crate::types::{node::Node, node_kind::NodeKind};
 #[serde(rename_all = "PascalCase")]
 pub enum LiteralStringKind {
     #[default]
-    StringSingle,
-    StringDouble,
-    StringBlock,
-    VerbatimStringDouble,
-    VerbatimStringSingle,
+    StringSingle = 0,
+    StringDouble = 1,
+    StringBlock = 2,
+    VerbatimStringDouble = 3,
+    VerbatimStringSingle = 4,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
@@ -27,7 +27,7 @@ pub struct LiteralString {
     pub value: String,
     pub block_indent: String,
     pub block_term_indent: String,
-    pub kind: i32,
+    pub kind: LiteralStringKind,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq, Eq, Decode, Encode)]
@@ -43,8 +43,9 @@ pub struct LiteralBoolean {
 }
 
 impl LiteralNumber {
-    pub fn node_from_int<T>(val: T) -> Node 
-        where T: Display
+    pub fn node_from_int<T>(val: T) -> Node
+    where
+        T: Display,
     {
         Node {
             node_kind: Box::new(NodeKind::LiteralNumber(LiteralNumber {
@@ -58,9 +59,7 @@ impl LiteralNumber {
 impl LiteralBoolean {
     pub fn node_from_bool(val: bool) -> Node {
         Node {
-            node_kind: Box::new(NodeKind::LiteralBoolean(LiteralBoolean {
-                value: val,
-            })),
+            node_kind: Box::new(NodeKind::LiteralBoolean(LiteralBoolean { value: val })),
             ..Default::default()
         }
     }

@@ -14,7 +14,7 @@ pub struct Fodder(pub Vec<FodderElement>);
 #[serde(rename_all = "PascalCase")]
 pub struct FodderElement {
     pub comment: Vec<String>,
-    pub kind: i32,
+    pub kind: FodderKind,
     pub blanks: i32,
     pub indent: i32,
 }
@@ -23,7 +23,7 @@ pub struct FodderElement {
 #[serde(rename_all = "PascalCase")]
 pub enum FodderKind {
     #[default]
-    FodderLineEnd,
-    FodderInterstitial,
-    FodderParagraph,
+    FodderLineEnd = 0,
+    FodderInterstitial = 1,
+    FodderParagraph = 2,
 }

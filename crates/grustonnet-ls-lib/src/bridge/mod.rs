@@ -299,7 +299,11 @@ impl GenerateAST for GoJsonnet {
 #[cfg(test)]
 mod test {
 
-    use grustonnet_node::types::{base::NodeBase, fodder::Fodder, node::Node};
+    use grustonnet_node::types::{
+        base::NodeBase,
+        fodder::{Fodder, FodderKind},
+        node::Node,
+    };
     use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl};
     use jsonnet_location::{Location, LocationRange};
 
@@ -335,7 +339,7 @@ mod test {
                         bincode::decode_from_slice(&test_object.data, config).expect("decode");
 
                     assert_eq!(result.0.len(), 1);
-                    assert_eq!(result.0[0].kind, 1);
+                    assert_eq!(result.0[0].kind, FodderKind::FodderInterstitial);
                     assert_eq!(result.0[0].blanks, 2);
                     assert_eq!(result.0[0].indent, 3);
                     assert_eq!(result.0[0].comment.len(), 2);
