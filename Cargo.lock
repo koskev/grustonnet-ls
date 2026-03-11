@@ -875,21 +875,16 @@ dependencies = [
  "crossbeam",
  "env_logger",
  "exec",
- "grustonnet-config",
- "grustonnet-ls-lib",
  "grustonnet-node",
  "jsonnet-bridge",
  "jsonnet-location",
- "language-server",
  "log",
  "rayon",
  "rust-dap",
  "rust2go-env",
- "schemars 1.2.1",
  "serde",
  "serde_json",
  "tokio",
- "tracy-client",
  "utils",
 ]
 
@@ -2323,7 +2318,6 @@ dependencies = [
  "lsp-server",
  "serde",
  "serde_json",
- "utils",
 ]
 
 [[package]]
