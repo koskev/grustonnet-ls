@@ -157,6 +157,20 @@ pub struct InlayConfig {
 
     /// Enable inlay hints at the ends of long objects etc.
     pub name_hints: InlayNameConfig,
+
+    /// Enable inlay hints for the last indices and simple variables
+    pub index_values: InlayIndexConfig,
+}
+
+#[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
+#[serde(default)]
+pub struct InlayIndexConfig {
+    #[default = false]
+    pub enabled: bool,
+
+    #[default = 120]
+    /// Limits the maximum length of the inlay hints
+    pub max_length: usize,
 }
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(default)]

@@ -8,6 +8,7 @@ use lsp_types::{InlayHint, Range, Uri};
 
 pub mod apply;
 pub mod debug;
+pub mod index;
 pub mod name;
 
 pub trait Inlay: Send {

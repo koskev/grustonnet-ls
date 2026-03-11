@@ -70,7 +70,7 @@ use crate::{
             variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
         },
     },
-    inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, name::NameInlay},
+    inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, index::IndexInlay, name::NameInlay},
     node::NodeHelper,
     references::{
         ReferenceHandler, ReferenceProvider, identifier::IdentifierReferences,
@@ -491,6 +491,11 @@ impl LSPServer for JsonnetServer {
             let argument_hints =
                 ApplyInlay::new(&self.cache).inlay(&params.text_document.uri, params.range)?;
             hints.extend(argument_hints);
+        }
+        if config.inlay.index_values.enabled {
+            let index_hints = IndexInlay::new(&self.cache, config.inlay.index_values.max_length)
+                .inlay(&params.text_document.uri, params.range)?;
+            hints.extend(index_hints);
         }
 
         Ok(hints.into())
