@@ -81,7 +81,7 @@ use crate::{
     utils,
 };
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct JsonnetServer {
     pub cache: Cache<JsonnetASTGenerator>,
 

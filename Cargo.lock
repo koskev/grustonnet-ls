@@ -1475,6 +1475,7 @@ dependencies = [
  "mockall",
  "pretty_assertions",
  "rand 0.10.0",
+ "rayon",
  "ropey",
  "serde",
  "serde_json",

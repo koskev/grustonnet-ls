@@ -57,11 +57,21 @@ macro_rules! lsp_function_not {
 macro_rules! lsp_handle_request {
     ($server: expr, $name:ident, $param:ty, $req: expr) => {
         match cast_req::<$param>($req) {
-            Ok((_id, params)) => {
+            Ok((id, params)) => {
                 let start = Instant::now();
                 let resp = $server.$name(params);
                 log::debug!("Request {} took {:?}", stringify!($name), start.elapsed());
-                return resp;
+                let result: Result<serde_json::Value, ResponseError> = match resp {
+                    Ok(val) => Ok(val.into()),
+                    Err(e) => Err(e.into()),
+                };
+
+                $server.connection().send(Message::Response(Response {
+                    id,
+                    result: result.clone().ok(),
+                    error: result.err(),
+                }))?;
+                return Ok(());
             }
             Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
             Err(ExtractError::MethodMismatch(req)) => req,
@@ -202,17 +212,7 @@ where
                     if self.server.connection().connection.handle_shutdown(&req)? {
                         return Ok(());
                     }
-                    let resp = self.handle_request(req.clone());
-                    let result: Result<serde_json::Value, ResponseError> = match resp {
-                        Ok(val) => Ok(val.into()),
-                        Err(e) => Err(e.into()),
-                    };
-
-                    self.server.connection().send(Message::Response(Response {
-                        id: req.id,
-                        result: result.clone().ok(),
-                        error: result.err(),
-                    }))?
+                    self.handle_request(req.clone())?
                 }
                 Message::Response(resp) => {
                     eprintln!("got response: {resp:?}");
@@ -227,7 +227,7 @@ where
         }
         Ok(())
     }
-    fn handle_request(&self, req: Request) -> Result<LSPResponse, LSPError> {
+    fn handle_request(&self, req: Request) -> Result<(), LSPError> {
         // TODO: Add macro magic to prevent having to add this at two locations
         let mut req =
             lsp_handle_request!(self.server, completion, lsp_types::request::Completion, req);
@@ -237,9 +237,32 @@ where
         req = lsp_handle_request!(self.server, references, References, req);
         req = lsp_handle_request!(self.server, rename, Rename, req);
         req = lsp_handle_request!(self.server, semantic_tokens, SemanticTokensFullRequest, req);
-        req = lsp_handle_request!(self.server, execute_command, ExecuteCommand, req);
         req = lsp_handle_request!(self.server, code_action, CodeActionRequest, req);
         req = lsp_handle_request!(self.server, signature_help, SignatureHelpRequest, req);
+
+        // Commands are mostly independent of the rest and might block -> We just start them in a
+        // separate thread
+        req = match cast_req::<ExecuteCommand>(req.clone()) {
+            Ok((id, params)) => {
+                let server = self.server.clone();
+                rayon::spawn(move || {
+                    let resp = server.execute_command(params);
+                    let result: Result<serde_json::Value, ResponseError> = match resp {
+                        Ok(val) => Ok(val.into()),
+                        Err(e) => Err(e.into()),
+                    };
+                    let _ = server.connection().send(Message::Response(Response {
+                        id,
+                        result: result.clone().ok(),
+                        error: result.err(),
+                    }));
+                });
+
+                return Ok(());
+            }
+            Err(err @ ExtractError::JsonError { .. }) => panic!("{err:?}"),
+            Err(ExtractError::MethodMismatch(req)) => req,
+        };
 
         Err(LSPError {
             error_code: ErrorCode::MethodNotFound as i32,
@@ -269,6 +292,18 @@ where
 pub struct LSPConnection {
     pub connection: Connection,
     pub threads: Arc<Mutex<Option<IoThreads>>>,
+}
+
+impl Clone for LSPConnection {
+    fn clone(&self) -> Self {
+        Self {
+            connection: Connection {
+                sender: self.connection.sender.clone(),
+                receiver: self.connection.receiver.clone(),
+            },
+            threads: self.threads.clone(),
+        }
+    }
 }
 
 impl Default for LSPConnection {
@@ -393,7 +428,7 @@ where
 
 // TODO: Use Rust magic to automatically implement handling the requests and notifications
 #[allow(unused_variables)]
-pub trait LSPServer {
+pub trait LSPServer: Clone + Send + 'static {
     type AstGenerator: ASTGenerator;
 
     fn handle_init_parameters(&self, params: InitializeParams) {}
