@@ -5,6 +5,8 @@
 
 use std::{fmt::Display, sync::Arc};
 
+use language_server::cache::ASTNode;
+
 use crate::types::{node::Node, node_kind::NodeKind};
 
 #[derive(Clone, Default)]
@@ -82,33 +84,45 @@ impl NodeStack {
     }
 }
 
-impl Display for NodeStack {
+impl<N> Display for NodeStackG<Arc<N>>
+where
+    N: Display,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let names: String = self
             .stack
             .iter()
-            .map(|node| format!("{}\n", node.node_kind))
+            .map(|node| format!("{}\n", node))
             .collect();
         write!(f, "{}", names)
     }
 }
 
-impl FromIterator<Arc<Node>> for NodeStack {
-    fn from_iter<T: IntoIterator<Item = Arc<Node>>>(iter: T) -> Self {
-        let list: Vec<Arc<Node>> = iter.into_iter().collect();
+impl<N> FromIterator<Arc<N>> for NodeStackG<Arc<N>>
+where
+    N: ASTNode,
+{
+    fn from_iter<T: IntoIterator<Item = Arc<N>>>(iter: T) -> Self {
+        let list: Vec<Arc<N>> = iter.into_iter().collect();
         list.into()
     }
 }
 
-impl FromIterator<NodeStack> for NodeStack {
-    fn from_iter<T: IntoIterator<Item = NodeStack>>(iter: T) -> Self {
-        let flat_vec: Vec<Arc<Node>> = iter.into_iter().flat_map(|stack| stack.stack).collect();
+impl<N> FromIterator<NodeStackG<Arc<N>>> for NodeStackG<Arc<N>>
+where
+    N: ASTNode,
+{
+    fn from_iter<T: IntoIterator<Item = NodeStackG<Arc<N>>>>(iter: T) -> Self {
+        let flat_vec: Vec<Arc<N>> = iter.into_iter().flat_map(|stack| stack.stack).collect();
         flat_vec.into()
     }
 }
 
-impl From<Vec<Arc<Node>>> for NodeStack {
-    fn from(value: Vec<Arc<Node>>) -> Self {
+impl<N> From<Vec<Arc<N>>> for NodeStackG<Arc<N>>
+where
+    N: ASTNode,
+{
+    fn from(value: Vec<Arc<N>>) -> Self {
         Self { stack: value }
     }
 }
