@@ -1,5 +1,5 @@
 [package]
-name = "grustonnet-node"
+name = "node-stack"
 version = "0.1.0"
 edition = "2024"
 
@@ -17,4 +17,3 @@ itertools = { workspace = true }
 name-variant = { path = "../name-variant"}
 jsonnet-bridge = { path = "../jsonnet-bridge"}
 grustonnet-config = { path = "../grustonnet-config"}
-node-stack = { path = "../node-stack"}

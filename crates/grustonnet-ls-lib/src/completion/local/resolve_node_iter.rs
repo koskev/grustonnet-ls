@@ -7,7 +7,7 @@ use std::{cmp::Ordering, sync::Arc, time::Instant};
 
 use fallible_iterator::FallibleIterator;
 use grustonnet_node::{
-    stack::NodeStack,
+    stack::{JsonnetNodeStack, NodeStack},
     types::{binary::BinaryOp, literals::LiteralBoolean, node::Node, node_kind::NodeKind},
 };
 use language_server::{cache::Cache, utils::UriHelper};
