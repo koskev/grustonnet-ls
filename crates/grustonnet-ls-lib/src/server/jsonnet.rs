@@ -24,7 +24,7 @@ use language_server::{
     server::{
         LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
     },
-    utils::{UriHelper, diff},
+    utils::{UriHelper, cst::CstNodeHelper, diff},
 };
 use lsp_types::{
     CodeActionOrCommand, CodeActionProviderCapability, CompletionList, CompletionOptions,

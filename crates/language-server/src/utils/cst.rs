@@ -5,7 +5,7 @@
 
 use lsp_types::Position;
 use ropey::Rope;
-use tree_sitter::Node;
+use tree_sitter::{Node, Point};
 
 use crate::utils::rope::RopeHelper;
 
@@ -13,9 +13,20 @@ pub trait CstNodeHelper {
     fn get_name(&self, content: &str) -> Option<String>;
     fn get_prev_node(&self) -> Option<Node<'_>>;
     fn get_prev_sibling_or_parent(&self) -> Option<Node<'_>>;
+    fn get_node_at(&self, point: Point) -> Option<Node<'_>>;
 }
 
 impl<'a> CstNodeHelper for Node<'a> {
+    fn get_node_at(&self, point: Point) -> Option<Node<'_>> {
+        let mut start_pos = point;
+        let end_pos = point;
+
+        if start_pos.column > 0 {
+            start_pos.column -= 1;
+        }
+
+        self.descendant_for_point_range(start_pos, end_pos)
+    }
     fn get_name(&self, content: &str) -> Option<String> {
         let rope = Rope::from_str(content);
 
