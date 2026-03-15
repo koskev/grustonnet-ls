@@ -23,7 +23,7 @@ use lsp_types::{
     WorkDoneProgressEnd, WorkDoneProgressReport,
     notification::{
         DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument,
-        Notification as NotificationTrait, Progress,
+        DidSaveTextDocument, Notification as NotificationTrait, Progress,
     },
     request::{
         CodeActionRequest, Completion, DocumentDiagnosticRequest, ExecuteCommand, Formatting,
@@ -278,6 +278,7 @@ where
             req
         );
         req = lsp_handle_notification!(self.server, did_change_text, DidChangeTextDocument, req);
+        req = lsp_handle_notification!(self.server, did_save, DidSaveTextDocument, req);
         req = lsp_handle_notification!(self.server, did_open, DidOpenTextDocument, req);
         req = lsp_handle_notification!(self.server, did_close, DidCloseTextDocument, req);
 
@@ -451,6 +452,7 @@ pub trait LSPServer: Clone + Send + 'static {
     // Notifications
 
     lsp_function_not!(did_change_configuration, DidChangeConfiguration);
+    lsp_function_not!(did_save, DidSaveTextDocument);
 
     fn did_close(&self, params: DidCloseTextDocumentParams) -> Result<()> {
         self.cache().remove_document(&params.text_document.uri);
