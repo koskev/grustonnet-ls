@@ -7,13 +7,4 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-bincode = { workspace = true }
-lsp-types = { workspace = true, features = ["proposed"] }
-serde = { workspace = true, features = ["derive", "rc"] }
 language-server = { path = "../language-server"}
-jsonnet-location = { path = "../jsonnet-location"}
-log = { workspace = true }
-itertools = { workspace = true }
-name-variant = { path = "../name-variant"}
-jsonnet-bridge = { path = "../jsonnet-bridge"}
-grustonnet-config = { path = "../grustonnet-config"}
