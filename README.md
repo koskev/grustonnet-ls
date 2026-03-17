@@ -47,7 +47,7 @@ This repository contains 3 components:
 * [-] Inlay Hints
     * [x] Function parameters
         * [ ] Only update if needed
-    * [ ] Indices
+    * [x] Indices
     * [x] Name after long objects
 * [x] Goto definition
     * [x] Goto file from import string
