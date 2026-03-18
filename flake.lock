@@ -11,11 +11,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1771315428,
-        "narHash": "sha256-SQJhAFxS1XUiAClNMu5JfrDB7Rk67FBr0Y3w2aKgWHU=",
+        "lastModified": 1773385671,
+        "narHash": "sha256-PTsUy5Pynmg7aLxB7LBoGzoWsYIzZ+gZdDN0FnTLo5M=",
         "owner": "nialov",
         "repo": "actions.nix",
-        "rev": "7ed8d74df34ddf5e51e3f14750698e9232163864",
+        "rev": "749019ea27ca61d23bb75d9884734ea227e06012",
         "type": "github"
       },
       "original": {
@@ -67,11 +67,11 @@
         "nixpkgs-lib": "nixpkgs-lib"
       },
       "locked": {
-        "lastModified": 1769996383,
-        "narHash": "sha256-AnYjnFWgS49RlqX7LrC4uA+sCCDBj0Ry/WOJ5XWAsa0=",
+        "lastModified": 1772408722,
+        "narHash": "sha256-rHuJtdcOjK7rAHpHphUb1iCvgkU3GpfvicLMwwnfMT0=",
         "owner": "hercules-ci",
         "repo": "flake-parts",
-        "rev": "57928607ea566b5db3ad13af0e57e921e6b12381",
+        "rev": "f20dc5d9b8027381c474144ecabc9034d6a839a3",
         "type": "github"
       },
       "original": {
@@ -145,11 +145,11 @@
     },
     "import-tree": {
       "locked": {
-        "lastModified": 1772344373,
-        "narHash": "sha256-OQQ1MhB9t1J71b2wxRRTdH/Qd8UGG0p+dGspfCf5U1c=",
+        "lastModified": 1773693634,
+        "narHash": "sha256-BtZ2dtkBdSUnFPPFc+n0kcMbgaTxzFNPv2iaO326Ffg=",
         "owner": "vic",
         "repo": "import-tree",
-        "rev": "10fda59eee7d7970ec443b925f32a1bc7526648c",
+        "rev": "c41e7d58045f9057880b0d85e1152d6a4430dbf1",
         "type": "github"
       },
       "original": {
@@ -214,11 +214,11 @@
     },
     "nixpkgs-lib": {
       "locked": {
-        "lastModified": 1769909678,
-        "narHash": "sha256-cBEymOf4/o3FD5AZnzC3J9hLbiZ+QDT/KDuyHXVJOpM=",
+        "lastModified": 1772328832,
+        "narHash": "sha256-e+/T/pmEkLP6BHhYjx6GmwP5ivonQQn0bJdH9YrRB+Q=",
         "owner": "nix-community",
         "repo": "nixpkgs.lib",
-        "rev": "72716169fe93074c333e8d0173151350670b824c",
+        "rev": "c185c7a5e5dd8f9add5b2f8ebeff00888b070742",
         "type": "github"
       },
       "original": {
@@ -229,11 +229,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1770843696,
-        "narHash": "sha256-LovWTGDwXhkfCOmbgLVA10bvsi/P8eDDpRudgk68HA8=",
+        "lastModified": 1773628058,
+        "narHash": "sha256-hpXH0z3K9xv0fHaje136KY872VT2T5uwxtezlAskQgY=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "2343bbb58f99267223bc2aac4fc9ea301a155a16",
+        "rev": "f8573b9c935cfaa162dd62cc9e75ae2db86f85df",
         "type": "github"
       },
       "original": {
@@ -265,11 +265,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1768343795,
-        "narHash": "sha256-VEiLWJcB+bAadMQmcNh2npSXaI64yQF6t5K0Op+kyr0=",
+        "lastModified": 1771531658,
+        "narHash": "sha256-vzgY+5wBgZGZl+2Os2TJEGURHwd4hw31HEzFZaY1qQM=",
         "ref": "refs/heads/main",
-        "rev": "5eb453f37ee7e2c11121f0833ceebcfbf31e839e",
-        "revCount": 10,
+        "rev": "761bc41075115e8cd817519bfed757a8412f1b07",
+        "revCount": 11,
         "type": "git",
         "url": "https://codeberg.org/kokev/lsp-recorder.git"
       },
