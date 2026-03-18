@@ -1,3 +1,20 @@
 {
-	"$schema": "https://docs.renovatebot.com/renovate-schema.json"
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"lockFileMaintenance": {
+		"enabled": true,
+		"schedule": [
+			"0 0 * * 0"
+		]
+	},
+	"nix": {
+		"managerFilePatterns": [
+			"/(^|/)flake\\.nix$/"
+		],
+		"commitMessageTopic": "nix",
+		"commitMessageExtra": "to {{newValue}}",
+		"enabled": true
+	},
+	"github-actions": {
+		"enabled": false
+	}
 }
