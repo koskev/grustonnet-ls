@@ -50,7 +50,7 @@ impl RopeHelper for Rope {
             if curr_char == '\n' {
                 return i + index;
             }
-        };
+        }
         self.len_chars()
     }
 
@@ -90,6 +90,33 @@ mod tests {
     use ropey::Rope;
 
     use crate::utils::rope::RopeHelper;
+
+    #[test]
+    fn test_wide_characters() {
+        let rope = Rope::from_str("üüüü4\n6öööö");
+
+        assert_eq!(
+            rope.get_location(0),
+            Some(Position {
+                line: 0,
+                character: 0
+            })
+        );
+        assert_eq!(
+            rope.get_location(3),
+            Some(Position {
+                line: 0,
+                character: 3
+            })
+        );
+        assert_eq!(
+            rope.get_location(8),
+            Some(Position {
+                line: 1,
+                character: 2
+            })
+        );
+    }
 
     #[test]
     fn test_rope_whitespace() {
