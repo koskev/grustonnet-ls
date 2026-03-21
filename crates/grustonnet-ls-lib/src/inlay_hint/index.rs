@@ -78,7 +78,7 @@ impl<'a> Inlay for IndexInlay<'a> {
                 let iter = CallStackIter::new(self.cache, &mut stack)?;
                 let last_node = iter.last().ok()??;
                 let line_end_loc = node.node_base.loc_range.end.clone();
-                let mut val = last_node.node_kind.get_value()?;
+                let mut val = last_node.node_kind.get_value()?.trim().to_string();
                 if val.len() > self.max_len {
                     val = format!("{}...", val.chars().take(self.max_len).collect::<String>());
                 }
