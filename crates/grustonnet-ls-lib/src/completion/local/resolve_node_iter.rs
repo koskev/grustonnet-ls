@@ -10,8 +10,9 @@ use grustonnet_node::{
     stack::{JsonnetNodeStack, NodeStack},
     types::{binary::BinaryOp, literals::LiteralBoolean, node::Node, node_kind::NodeKind},
 };
-use language_server::{cache::Cache, utils::UriHelper};
+use language_server::cache::Cache;
 use lsp_types::Uri;
+use utils::uri::UriHelper;
 
 use crate::{
     cache::JsonnetASTGenerator,

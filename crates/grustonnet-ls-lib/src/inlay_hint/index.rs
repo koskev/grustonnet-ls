@@ -9,8 +9,9 @@ use anyhow::Result;
 use fallible_iterator::FallibleIterator;
 use grustonnet_node::types::{node::Node, node_kind::NodeKind};
 use jsonnet_location::LocationRange;
-use language_server::{cache::Cache, utils::UriHelper};
+use language_server::cache::Cache;
 use lsp_types::{InlayHint, Range, Uri};
+use utils::uri::UriHelper;
 
 use crate::{
     cache::JsonnetASTGenerator, completion::local::call_stack_iter::CallStackIter,

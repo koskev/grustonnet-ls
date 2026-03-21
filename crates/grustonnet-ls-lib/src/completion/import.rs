@@ -14,9 +14,9 @@ use anyhow::anyhow;
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionResult},
-    utils::UriHelper,
 };
 use lsp_types::{CompletionItem, CompletionItemKind, Position, Uri};
+use utils::uri::UriHelper;
 use walkdir::WalkDir;
 
 use crate::cache::JsonnetASTGenerator;

@@ -8,13 +8,12 @@ use std::{collections::HashMap, str::FromStr};
 use language_server::{
     cache::Cache,
     server::{LSPError, LSPResponse},
-    utils::UriHelper,
 };
 use lsp_server::ErrorCode;
 use lsp_types::Uri;
 use strum::{Display, EnumIter, EnumString};
 use thiserror::Error;
-use utils::RwLockPanic;
+use utils::{RwLockPanic, uri::UriHelper};
 
 use crate::{bridge::GenerateAST, cache::JsonnetASTGenerator};
 

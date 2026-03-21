@@ -13,9 +13,10 @@ use grustonnet_node::types::{
     node::Node,
     node_kind::NodeKind,
 };
-use language_server::{cache::Cache, utils::UriHelper};
+use language_server::cache::Cache;
 use lsp_types::{Documentation, MarkupContent, MarkupKind, Uri};
 use regex::Regex;
+use utils::uri::UriHelper;
 
 use crate::{cache::JsonnetASTGenerator, completion::local::call_stack_iter::CallStackIter};
 

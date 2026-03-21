@@ -5,8 +5,9 @@
 
 use anyhow::Result;
 use jsonnet_location::LocationRange;
-use language_server::{cache::Cache, utils::UriHelper};
+use language_server::cache::Cache;
 use lsp_types::{InlayHint, Range, Uri};
+use utils::uri::UriHelper;
 
 use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay};
 

@@ -9,8 +9,9 @@ use std::path::Path;
 use anyhow::{Result, anyhow};
 use grustonnet_node::types::node_kind::NodeKind;
 use jsonnet_location::{Location, LocationRange};
-use language_server::{cache::Cache, utils::UriHelper};
+use language_server::cache::Cache;
 use lsp_types::{Range, Uri};
+use utils::uri::UriHelper;
 
 use crate::{cache::JsonnetASTGenerator, node::Stackhelper};
 

@@ -14,9 +14,9 @@ use std::{
 use anyhow::{Result, anyhow};
 use lsp_server::ErrorCode;
 use lsp_types::Uri;
-use utils::RwLockPanic;
+use utils::{RwLockPanic, uri::UriHelper};
 
-use crate::{server::LSPError, utils::UriHelper};
+use crate::server::LSPError;
 
 pub trait ASTGenerator: Clone + Default
 where

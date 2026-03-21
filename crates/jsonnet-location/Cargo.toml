@@ -11,5 +11,5 @@ bincode = { workspace = true }
 lsp-types = { workspace = true, features = ["proposed"] }
 serde = { workspace = true, features = ["derive", "rc"] }
 tree-sitter = { workspace = true }
-language-server = { path = "../language-server"}
+utils = { path = "../utils"}
 anyhow.workspace = true

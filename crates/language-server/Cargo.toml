@@ -22,5 +22,5 @@ crossbeam = { workspace = true }
 rand = "0.10.0"
 mockall = "0.14.0"
 utils = { path = "../utils"}
-url = "2.5.8"
+url.workspace = true
 rayon.workspace = true

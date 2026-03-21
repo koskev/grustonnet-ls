@@ -8,7 +8,7 @@ use std::{
     time::Instant,
 };
 
-use ::utils::RwLockPanic;
+use ::utils::{RwLockPanic, uri::UriHelper};
 use anyhow::{Result, anyhow};
 use grustonnet_config::{Configuration, VariableNaming};
 use jsonnet_cst::{
@@ -24,17 +24,16 @@ use language_server::{
     server::{
         LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
     },
-    utils::{UriHelper, cst::CstNodeHelper, diff},
+    utils::{cst::CstNodeHelper, diff},
 };
 use lsp_types::{
     CodeActionOrCommand, CodeActionProviderCapability, CompletionList, CompletionOptions,
     CompletionParams, CompletionResponse, DidChangeConfigurationParams, DocumentDiagnosticParams,
     DocumentDiagnosticReportResult, ExecuteCommandOptions, GotoDefinitionParams,
     GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams, OneOf,
-    ParameterInformation, ParameterLabel, PositionEncodingKind,
-    RelatedFullDocumentDiagnosticReport, SemanticTokens, SemanticTokensOptions,
-    SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp, SignatureHelpOptions,
-    SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
+    ParameterInformation, ParameterLabel, RelatedFullDocumentDiagnosticReport, SemanticTokens,
+    SemanticTokensOptions, SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp,
+    SignatureHelpOptions, SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use strum::IntoEnumIterator;
