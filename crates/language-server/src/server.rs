@@ -487,12 +487,14 @@ pub trait LSPServer: Clone + Send + 'static {
         for change in params.content_changes {
             let current_text = self.cache().get_document(&params.text_document.uri)?;
 
-            let range = match change.range {
-                Some(r) => r,
-                None => return Err(get_response_error("Got change params without range".into())),
-            };
-            let mut rope = Rope::from_str(&current_text.content);
-            if self.is_incremental() {
+            let rope = if self.is_incremental() {
+                let mut rope = Rope::from_str(&current_text.content);
+                let range = match change.range {
+                    Some(r) => r,
+                    None => {
+                        return Err(get_response_error("Got change params without range".into()));
+                    }
+                };
                 // TODO: This breaks with wide characters
                 let idx_start =
                     rope.line_to_char(range.start.line as usize) + range.start.character as usize;
@@ -500,9 +502,10 @@ pub trait LSPServer: Clone + Send + 'static {
                     rope.line_to_char(range.end.line as usize) + range.end.character as usize;
                 rope.remove(idx_start..idx_end);
                 rope.insert(idx_start, &change.text);
+                rope
             } else {
-                rope = Rope::from_str(&current_text.content);
-            }
+                Rope::from_str(&change.text)
+            };
             let start = Instant::now();
             self.cache()
                 .update_content(params.text_document.uri.clone(), rope.to_string().as_str());
