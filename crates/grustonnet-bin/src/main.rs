@@ -20,7 +20,7 @@ struct Args {
     #[arg(long, short)]
     port: Option<u16>,
 
-    #[arg(long, short, default_value_t = false)]
+    #[arg(long, short, default_value_t = true)]
     full_sync: bool,
 }
 

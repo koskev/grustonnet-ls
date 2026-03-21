@@ -31,9 +31,10 @@ use lsp_types::{
     CompletionParams, CompletionResponse, DidChangeConfigurationParams, DocumentDiagnosticParams,
     DocumentDiagnosticReportResult, ExecuteCommandOptions, GotoDefinitionParams,
     GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams, OneOf,
-    ParameterInformation, ParameterLabel, RelatedFullDocumentDiagnosticReport, SemanticTokens,
-    SemanticTokensOptions, SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp,
-    SignatureHelpOptions, SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
+    ParameterInformation, ParameterLabel, PositionEncodingKind,
+    RelatedFullDocumentDiagnosticReport, SemanticTokens, SemanticTokensOptions,
+    SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp, SignatureHelpOptions,
+    SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use strum::IntoEnumIterator;
@@ -273,6 +274,7 @@ impl LSPServer for JsonnetServer {
                 trigger_characters: Some(vec!["(".into(), ",".into()]),
                 ..Default::default()
             }),
+            // TODO: Check position encoding. Currently it is just utf16
             ..Default::default()
         }
     }

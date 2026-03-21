@@ -493,6 +493,7 @@ pub trait LSPServer: Clone + Send + 'static {
             };
             let mut rope = Rope::from_str(&current_text.content);
             if self.is_incremental() {
+                // TODO: This breaks with wide characters
                 let idx_start =
                     rope.line_to_char(range.start.line as usize) + range.start.character as usize;
                 let idx_end =
