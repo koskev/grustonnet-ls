@@ -1,5 +1,5 @@
-local vala = 5;
-local valb = 5;
+local vala = 'üüüüüü';
+local valb = '🔭';
 
 {
   x: vala,

@@ -64,8 +64,8 @@ impl ReferenceProvider for IdentifierReferences {
                             Some(lsp_types::Location {
                                 uri: uri.clone(),
                                 range: Range {
-                                    start: rope.get_location(index)?,
-                                    end: rope.get_location(index + val.len())?,
+                                    start: rope.get_location_from_byte(index)?,
+                                    end: rope.get_location_from_byte(index + val.len())?,
                                 },
                             })
                         })
