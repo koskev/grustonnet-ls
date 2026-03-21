@@ -9,6 +9,7 @@ use ropey::Rope;
 
 pub trait RopeHelper {
     fn replace_get_end(&mut self, old: &str, new: &str) -> Option<Position>;
+    fn get_location_from_byte(&self, byte_index: usize) -> Option<Position>;
     fn get_location(&self, character: usize) -> Option<Position>;
     // Gets the next non whitspace character before index
     fn get_prev_non_whitespace(&self, index: usize) -> usize;
@@ -56,6 +57,10 @@ impl RopeHelper for Rope {
 
     fn get_index(&self, loc: Position) -> usize {
         self.line_to_char(loc.line as usize) + loc.character as usize
+    }
+
+    fn get_location_from_byte(&self, byte_index: usize) -> Option<Position> {
+        self.get_location(self.byte_to_char(byte_index))
     }
 
     fn get_location(&self, character: usize) -> Option<Position> {

@@ -25,12 +25,12 @@ pub fn get_text_edits(old: &str, new: &str) -> Vec<TextEdit> {
                 new_len,
             } => Some(TextEdit {
                 new_text: rope_new
-                    .slice(new_index..&(new_index + new_len))
+                    .byte_slice(new_index..&(new_index + new_len))
                     .as_str()?
                     .to_string(),
                 range: Range {
-                    start: rope_old.get_location(*old_index)?,
-                    end: rope_old.get_location(*old_index + *old_len)?,
+                    start: rope_old.get_location_from_byte(*old_index)?,
+                    end: rope_old.get_location_from_byte(*old_index + *old_len)?,
                 },
             }),
             similar::DiffOp::Delete {
@@ -40,8 +40,8 @@ pub fn get_text_edits(old: &str, new: &str) -> Vec<TextEdit> {
             } => Some(TextEdit {
                 new_text: String::new(),
                 range: Range {
-                    start: rope_old.get_location(*old_index)?,
-                    end: rope_old.get_location(*old_index + *old_len)?,
+                    start: rope_old.get_location_from_byte(*old_index)?,
+                    end: rope_old.get_location_from_byte(*old_index + *old_len)?,
                 },
             }),
             similar::DiffOp::Insert {
@@ -49,14 +49,14 @@ pub fn get_text_edits(old: &str, new: &str) -> Vec<TextEdit> {
                 new_index,
                 new_len,
             } => {
-                let pos = rope_old.get_location(*old_index)?;
+                let pos = rope_old.get_location_from_byte(*old_index)?;
                 Some(TextEdit {
                     range: Range {
                         start: pos,
                         end: pos,
                     },
                     new_text: rope_new
-                        .slice(new_index..&(new_index + new_len))
+                        .byte_slice(new_index..&(new_index + new_len))
                         .as_str()?
                         .to_string(),
                 })
@@ -66,4 +66,39 @@ pub fn get_text_edits(old: &str, new: &str) -> Vec<TextEdit> {
         .collect();
 
     edits
+}
+
+#[cfg(test)]
+mod test {
+    use pretty_assertions::assert_eq;
+
+    use crate::utils::diff::get_text_edits;
+
+    #[test]
+    fn wide_chars_insert() {
+        let old = "123";
+        let new = "1234";
+
+        let edits_normal = get_text_edits(old, new);
+
+        let old = "1ö3";
+        let new = "1ö34";
+        let edits_wide = get_text_edits(old, new);
+
+        assert_eq!(edits_wide, edits_normal);
+    }
+
+    #[test]
+    fn wide_chars_replace() {
+        let old = "123";
+        let new = "124";
+
+        let edits_normal = get_text_edits(old, new);
+
+        let old = "1ö3";
+        let new = "1ö4";
+        let edits_wide = get_text_edits(old, new);
+
+        assert_eq!(edits_wide, edits_normal);
+    }
 }
