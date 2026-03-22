@@ -5,13 +5,15 @@
 
 use anyhow::Result;
 use grustonnet_node::types::node_kind::NodeKind;
-use jsonnet_location::LocationRange;
 use language_server::cache::Cache;
-use lsp_types::{InlayHint, Range, Uri};
+use lsp_types::InlayHint;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use utils::uri::UriHelper;
 
-use crate::{cache::JsonnetASTGenerator, inlay_hint::Inlay, node::NodeHelper};
+use crate::{
+    cache::JsonnetASTGenerator,
+    inlay_hint::{Inlay, InlayContext},
+    node::NodeHelper,
+};
 
 pub struct ApplyInlay<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -24,16 +26,10 @@ impl<'a> ApplyInlay<'a> {
 }
 
 impl<'a> Inlay for ApplyInlay<'a> {
-    fn inlay(&self, uri: &Uri, range: Range) -> Result<Vec<InlayHint>> {
-        let doc = self.cache.get_document(uri)?;
+    fn inlay(&self, context: &InlayContext) -> Result<Vec<InlayHint>> {
+        let doc = self.cache.get_document(&context.uri)?;
         let ast = doc.get_ast()?;
         let doc_stack = doc.get_ast()?.get_complete_stack();
-        let loc_range = LocationRange {
-            file_name: uri.to_file_path_string()?,
-            begin: range.start.into(),
-            end: range.end.into(),
-            ..Default::default()
-        };
         let hints: Vec<InlayHint> = doc_stack
             .stack
             .into_par_iter()
@@ -45,7 +41,7 @@ impl<'a> Inlay for ApplyInlay<'a> {
                     false
                 }
             })
-            .filter(|n| loc_range.in_range(&n.node_base.loc_range.begin))
+            .filter(|n| context.range.in_range(&n.node_base.loc_range.begin))
             // For every apply node: Complete the node until we find an apply
             // First find the node in the document and get its stack
             .filter_map(|n| {

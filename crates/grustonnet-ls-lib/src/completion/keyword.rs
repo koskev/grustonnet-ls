@@ -6,6 +6,7 @@
 use std::fmt::Display;
 
 use grustonnet_node::{stack::NodeStack, types::node_kind::NodeKind};
+use jsonnet_location::Location;
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionContext, CompletionResult},

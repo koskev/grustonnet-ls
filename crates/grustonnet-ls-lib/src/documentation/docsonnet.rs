@@ -67,7 +67,6 @@ struct Value {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, JsonSchema)]
-#[allow(unused)]
 struct Package {
     name: String,
     import: String,

@@ -99,7 +99,10 @@ impl<'a> Completion for DocsonnetSnippets<'a> {
                     text_edit: Some(CompletionTextEdit::Edit(TextEdit {
                         range: Range {
                             start: start_location,
-                            end: context.location.clone().into(),
+                            end: context
+                                .location
+                                .clone()
+                                .into_position(&context.encoding, &doc.content),
                         },
                         new_text: val.to_string(),
                     })),

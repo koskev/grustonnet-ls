@@ -5,9 +5,11 @@
 
 use std::sync::LazyLock;
 
+use jsonnet_location::Location;
 use jsonnet_std_docs::StdFunctions;
 use language_server::completion::{Completion, CompletionContext, CompletionResult};
-use lsp_types::{CompletionItem, CompletionList, Documentation, MarkupContent, MarkupKind};
+use lsp_types::{
+    CompletionItem, CompletionList, Documentation, MarkupContent, MarkupKind, };
 use semver::{Version, VersionReq};
 pub const STDLIB_DEFINITIONS: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/gen/stdlib.json"));

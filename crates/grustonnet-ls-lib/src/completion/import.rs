@@ -11,6 +11,7 @@ use std::{
 };
 
 use anyhow::anyhow;
+use jsonnet_location::Location;
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionContext, CompletionResult},
