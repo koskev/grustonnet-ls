@@ -5,11 +5,8 @@
 
 use std::str::FromStr;
 
-use language_server::{
-    diagnostics::{
-        DiagnosticsList, DiagnosticsQueue, DiagnosticsResult, DummyFilter, MockDiagnostics,
-    },
-    utils::UriHelper,
+use language_server::diagnostics::{
+    DiagnosticsList, DiagnosticsQueue, DiagnosticsResult, DummyFilter, MockDiagnostics,
 };
 use lsp_types::Uri;
 use pretty_assertions::assert_eq;
@@ -61,6 +58,8 @@ impl DiagnosticsTest {
         assert!(rx.is_empty());
 
         for name in &names {
+            use utils::uri::UriHelper;
+
             let (uri, list) = queue.queue.lock_or_panic().pop().expect("");
             queue.process_queue(uri.clone(), list);
             let message = rx.try_recv().expect("");

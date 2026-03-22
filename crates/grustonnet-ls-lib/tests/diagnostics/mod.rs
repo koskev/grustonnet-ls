@@ -8,13 +8,13 @@ use grustonnet_config::{
     Configuration, DiagnosticConfig, DuplicateDetectionConfig, UnusedVariablesConfig,
     VariableNaming,
 };
-use language_server::{server::LSPServer, utils::UriHelper};
+use language_server::server::LSPServer;
 use std::{
     fs::read_to_string,
     str::FromStr,
     sync::{Arc, RwLock},
 };
-use utils::RwLockPanic;
+use utils::{RwLockPanic, uri::UriHelper};
 
 pub use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Uri};
 

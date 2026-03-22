@@ -5,8 +5,7 @@
 
 use grustonnet_config::DiagnosticConfig;
 use grustonnet_ls_lib::diagnostics::{
-    JsonnetDiagnostics,
-    linters::{dollar::DollarDiagnostics, number_rounding::NumberRoundingDiagnostics},
+    JsonnetDiagnostics, linters::number_rounding::NumberRoundingDiagnostics,
 };
 use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range};
 

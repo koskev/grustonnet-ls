@@ -11,10 +11,7 @@ use std::{
 
 use grustonnet_config::Configuration;
 use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
-use language_server::{
-    server::LSPServer,
-    utils::{UriHelper, rope::RopeHelper},
-};
+use language_server::{server::LSPServer, utils::rope::RopeHelper};
 use lsp_types::{
     CompletionList, CompletionResponse, PartialResultParams, Position, Range,
     TextDocumentContentChangeEvent, TextDocumentIdentifier, TextDocumentPositionParams, Uri,
@@ -22,7 +19,7 @@ use lsp_types::{
 };
 use pretty_assertions::assert_eq;
 use ropey::Rope;
-use utils::RwLockPanic;
+use utils::{RwLockPanic, uri::UriHelper};
 
 static INIT: Once = Once::new();
 

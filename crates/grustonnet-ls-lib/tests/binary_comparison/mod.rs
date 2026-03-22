@@ -6,10 +6,9 @@
 use language_server::server::LSPServer;
 use pretty_assertions::assert_eq;
 use std::fs::read_to_string;
-use utils::RwLockPanic;
+use utils::{RwLockPanic, uri::UriHelper};
 
 use grustonnet_ls_lib::{bridge::GenerateAST, server::jsonnet::JsonnetServer};
-use language_server::utils::UriHelper;
 use lsp_types::Uri;
 
 fn create_server() -> JsonnetServer {
