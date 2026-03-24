@@ -3,7 +3,7 @@ module goJsonnetBridge
 go 1.24.4
 
 require (
-	github.com/google/go-jsonnet v0.21.0
+	github.com/google/go-jsonnet v0.22.0
 	github.com/ihciah/rust2go v0.0.0-20260314034108-6f06b0697c1b
 	github.com/stretchr/testify v1.11.1
 	github.com/vmihailenco/msgpack/v5 v5.4.1
