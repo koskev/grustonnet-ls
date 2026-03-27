@@ -1,11 +1,11 @@
 local html = import 'html.libsonnet';
 local stdlib = import 'stdlib-content.jsonnet';
 
-local addTypeAlias(name) = {
+local addTypeAlias(name, availableSince='0.10.0') = {
   assert std.isString(name),
   name: 'is%s' % std.asciiUpper(name[0:1]) + name[1:],
   params: ['x'],
-  availableSince: '0.10.0',
+  availableSince: availableSince,
   description: "Alias for std.type(x) == '%s'" % name,
 };
 
@@ -39,6 +39,9 @@ local modified_lib =
           addTypeAlias('number'),
           addTypeAlias('object'),
           addTypeAlias('string'),
+
+          // XXX: Somehow this is already in the documentation
+          // addTypeAlias('null', '0.22.0'),
         ] else
           []
           + if group.id == 'math' then [

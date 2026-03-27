@@ -15,10 +15,10 @@
     let
 
       naersk' = pkgs.callPackage inputs.naersk { };
-      jsonnetVersion = "v0.21.0";
+      jsonnetVersion = "v0.22.0";
       stdlib-content = pkgs.fetchurl {
         url = "https://raw.githubusercontent.com/google/jsonnet/${jsonnetVersion}/doc/_stdlib_gen/stdlib-content.jsonnet";
-        hash = "sha256-Xk0V55wYdt9MGNx94DEGS2XW2c9MpYpYl+ly0hi+3vE=";
+        hash = "sha256-erfpz51EEWb2fQYRcjf+JAXU4wFBgv46IkNrvBUeUZE=";
       };
 
       stdlib-html = pkgs.fetchurl {

@@ -42,7 +42,7 @@ pub struct CompletionConfig {
     /// Configures the completion of various snippets
     pub snippets: SnippetConfig,
 
-    #[default = 21]
+    #[default = 22]
     /// Determines the current targeted jsonnet version. e.g. 21 for 0.21
     /// This will hide functions that are not yet supported for the current version
     pub target_version: u32,
