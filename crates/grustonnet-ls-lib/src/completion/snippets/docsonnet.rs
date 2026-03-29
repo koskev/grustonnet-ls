@@ -86,7 +86,7 @@ impl<'a> Completion for DocsonnetSnippets<'a> {
         let start_location = Position {
             line: location.line,
             // Subtract one to be at the cursor and not one ahead
-            character: location.character.checked_sub(1).unwrap_or_default(),
+            character: location.character.saturating_sub(1),
         };
         Ok(CompletionList {
             is_incomplete: false,
