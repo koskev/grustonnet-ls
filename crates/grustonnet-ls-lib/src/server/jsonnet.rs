@@ -96,6 +96,11 @@ pub struct JsonnetServer {
 }
 
 impl JsonnetServer {
+    fn get_encoding(&self) -> PositionEncodingKind {
+        self.get_capabilities()
+            .position_encoding
+            .unwrap_or(PositionEncodingKind::UTF16)
+    }
     pub fn new(connection: LSPConnection, full_sync: bool) -> Self {
         let cache = Cache::default();
         let diagnostics_queue = DiagnosticsQueue::new(
@@ -368,7 +373,7 @@ impl LSPServer for JsonnetServer {
             params
                 .text_document_position
                 .position
-                .into_location(self.get_capabilities().position_encoding, &doc.content),
+                .into_location(&self.get_encoding(), &doc.content),
         );
 
         let config = self.configuration.read_or_panic().clone();
@@ -412,10 +417,11 @@ impl LSPServer for JsonnetServer {
         }
 
         let context = CompletionContext {
-            location: completion_info.pos.clone(),
             uri: params.text_document_position.text_document.uri.clone(),
-            encoding: PositionEncodingKind::UTF8,
+            encoding: self.get_encoding(),
+            location: completion_info.pos.clone(),
         };
+
         let lists: Vec<_> = completion_list
             .into_par_iter()
             .map(|provider| provider.complete(&context))
@@ -474,7 +480,7 @@ impl LSPServer for JsonnetServer {
 
         let info = DefinitionProvider::new(&self.cache).definition(
             &params.text_document_position_params.text_document.uri,
-            pos.into(),
+            pos.into_location(&self.get_encoding(), "TODO"),
         )?;
 
         Ok(GotoDefinitionResponse::Scalar(info.location).into())
@@ -651,7 +657,7 @@ impl LSPServer for JsonnetServer {
 
         let cst_tree =
             jsonnet_cst::new_tree(&doc.content).ok_or(anyhow!("Unable to parse cst tree"))?;
-        let cst_loc: Location = pos.into();
+        let cst_loc: Location = pos.into_location(encoding, content);
         let root_node = cst_tree.root_node();
         let cst_node = root_node
             .get_node_at(cst_loc.into())
