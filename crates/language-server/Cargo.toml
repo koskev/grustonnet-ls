@@ -15,7 +15,7 @@ serde_json = { workspace = true }
 pretty_assertions = { workspace = true }
 log = { workspace = true }
 ropey = { workspace = true }
-similar = "2.7.0"
+similar = "3.0.0"
 # For better external library support
 tree-sitter = ">=0.22.6"
 crossbeam = { workspace = true }
