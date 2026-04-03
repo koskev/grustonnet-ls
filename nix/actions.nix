@@ -1,5 +1,7 @@
-{ inputs, lib, ... }:
+{ inputs, ... }:
+
 let
+  inherit (inputs.nix-actions.lib) mkSteps;
   actions = {
     checkout = "actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd"; # v5
     deploy-pages = "actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e"; # v4
@@ -27,22 +29,6 @@ let
     };
   };
 
-  mkSteps =
-    {
-      steps ? [ ],
-      branches ? null,
-    }:
-    map (
-      step:
-      step
-      // lib.optionalAttrs (branches != null) {
-        "if" =
-          let
-            branch_array = map (branch: "github.ref == 'refs/heads/${branch}'") branches;
-          in
-          builtins.concatStringsSep " || " branch_array;
-      }
-    ) steps;
   steps = {
     checkout-full = {
       name = "checkout full";

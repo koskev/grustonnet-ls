@@ -16,6 +16,7 @@
       };
     };
     import-tree.url = "github:vic/import-tree";
+    nix-actions.url = "github:koskev/nix-actions";
   };
 
   outputs =
