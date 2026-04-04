@@ -18,7 +18,7 @@ jobs:
           git -c color.ui=always diff
           exit 1
         fi
-  nix-test:
+  nix-build:
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
     - name: checkout
@@ -27,7 +27,7 @@ jobs:
       uses: cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Run tests
+    - name: Build
       run: nix build .#grustonnet-test
     - if: github.ref == 'refs/heads/main'
       uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc

@@ -19,7 +19,7 @@ jobs:
       uses: cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
-    - run: nix develop .#clippy --command make clippy
+    - run: nix develop .#clippy --command cargo clippy -- --deny "warnings"
 'on':
   pull_request: {}
   push: {}
