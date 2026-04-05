@@ -13,3 +13,4 @@ serde = { workspace = true, features = ["derive", "rc"] }
 tree-sitter = { workspace = true }
 utils = { path = "../utils"}
 anyhow.workspace = true
+ropey.workspace = true
