@@ -36,7 +36,10 @@ use ropey::Rope;
 use serde::Serialize;
 use utils::MutexPanic;
 
-use crate::cache::{ASTGenerator, Cache};
+use crate::{
+    cache::{ASTGenerator, Cache},
+    utils::rope::RopeHelper,
+};
 
 macro_rules! lsp_function_req {
     ($name:ident, $req:ty) => {
@@ -496,10 +499,8 @@ pub trait LSPServer: Clone + Send + 'static {
                     }
                 };
                 // TODO: This breaks with wide characters
-                let idx_start =
-                    rope.line_to_char(range.start.line as usize) + range.start.character as usize;
-                let idx_end =
-                    rope.line_to_char(range.end.line as usize) + range.end.character as usize;
+                let idx_start = rope.get_index(range.start);
+                let idx_end = rope.get_index(range.end);
                 rope.remove(idx_start..idx_end);
                 rope.insert(idx_start, &change.text);
                 rope
