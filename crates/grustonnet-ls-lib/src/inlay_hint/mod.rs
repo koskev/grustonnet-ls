@@ -5,7 +5,7 @@
 
 use anyhow::Result;
 use jsonnet_location::LocationRange;
-use lsp_types::{InlayHint, Range, Uri};
+use lsp_types::{InlayHint, Uri};
 
 pub mod apply;
 pub mod debug;

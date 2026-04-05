@@ -71,7 +71,10 @@ use crate::{
             variable_naming::{SnakeCaseDiagnostics, VariableNamingDiagnostics},
         },
     },
-    inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, index::IndexInlay, name::NameInlay},
+    inlay_hint::{
+        Inlay, InlayContext, apply::ApplyInlay, debug::DebugInlay, index::IndexInlay,
+        name::NameInlay,
+    },
     node::NodeHelper,
     references::{
         ReferenceHandler, ReferenceProvider, identifier::IdentifierReferences,
@@ -490,27 +493,30 @@ impl LSPServer for JsonnetServer {
         let mut hints: Vec<InlayHint> = vec![];
         let config = self.configuration.read_or_panic();
 
+        let context = InlayContext {
+            uri: params.text_document.uri,
+            range: params.range.into(),
+        };
+
         if config.inlay.enable_debug {
-            let debug_hints =
-                DebugInlay::new(&self.cache).inlay(&params.text_document.uri, params.range)?;
+            let debug_hints = DebugInlay::new(&self.cache).inlay(&context)?;
             hints.extend(debug_hints);
         }
 
         if config.inlay.name_hints.enabled {
             let function_end_hints =
                 NameInlay::new(&self.cache, config.inlay.name_hints.line_threshold)
-                    .inlay(&params.text_document.uri, params.range)?;
+                    .inlay(&context)?;
             hints.extend(function_end_hints);
         }
 
         if config.inlay.enable_function_parameters {
-            let argument_hints =
-                ApplyInlay::new(&self.cache).inlay(&params.text_document.uri, params.range)?;
+            let argument_hints = ApplyInlay::new(&self.cache).inlay(&context)?;
             hints.extend(argument_hints);
         }
         if config.inlay.index_values.enabled {
             let index_hints = IndexInlay::new(&self.cache, config.inlay.index_values.max_length)
-                .inlay(&params.text_document.uri, params.range)?;
+                .inlay(&context)?;
             hints.extend(index_hints);
         }
 
@@ -653,23 +659,23 @@ impl LSPServer for JsonnetServer {
             .get_document(&params.text_document_position_params.text_document.uri)?;
         let ast = doc.get_ast()?;
 
-        let mut pos = params.text_document_position_params.position;
+        let pos = params.text_document_position_params.position;
 
         let cst_tree =
             jsonnet_cst::new_tree(&doc.content).ok_or(anyhow!("Unable to parse cst tree"))?;
-        let cst_loc: Location = pos.into_location(encoding, content);
+        let mut cst_loc: Location = pos.into_location(&self.get_encoding(), &doc.content);
         let root_node = cst_tree.root_node();
         let cst_node = root_node
-            .get_node_at(cst_loc.into())
+            .get_node_at(cst_loc.clone().into())
             .ok_or(anyhow!("Unable to get node at position"))?;
         if NodeType::from(cst_node) == NodeType::NodeOpeningBracket {
             // If we are at the opening bracket we substract 1 to not get the info of a potential
             // nested apply: foo(bar(1))
-            pos.character = pos.character.saturating_sub(1);
+            cst_loc.column = cst_loc.column.saturating_sub(1);
         }
         let active_param = cst_node.get_param_pos();
 
-        let stack = ast.get_stack_by_position(&pos.into());
+        let stack = ast.get_stack_by_position(&cst_loc);
 
         Ok(stack
             .iter()

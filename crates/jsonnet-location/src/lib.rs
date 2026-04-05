@@ -44,14 +44,14 @@ pub struct Source {
     pub lines: Vec<String>,
 }
 
-//impl From<lsp_types::Position> for Location {
-//    fn from(value: lsp_types::Position) -> Self {
-//        Self {
-//            line: value.line as i32 + 1,
-//            column: value.character as i32 + 1,
-//        }
-//    }
-//}
+impl From<lsp_types::Position> for Location {
+    fn from(value: lsp_types::Position) -> Self {
+        Self {
+            line: value.line as i32 + 1,
+            column: value.character as i32 + 1,
+        }
+    }
+}
 
 impl From<Location> for lsp_types::Position {
     fn from(val: Location) -> Self {
@@ -80,15 +80,15 @@ impl From<LocationRange> for lsp_types::Range {
     }
 }
 
-//impl From<Range> for LocationRange {
-//    fn from(value: Range) -> Self {
-//        Self {
-//            begin: value.start.into(),
-//            end: value.end.into(),
-//            ..Default::default()
-//        }
-//    }
-//}
+impl From<Range> for LocationRange {
+    fn from(value: Range) -> Self {
+        Self {
+            begin: value.start.into(),
+            end: value.end.into(),
+            ..Default::default()
+        }
+    }
+}
 
 impl TryFrom<LocationRange> for lsp_types::Location {
     type Error = anyhow::Error;
