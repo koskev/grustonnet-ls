@@ -8,6 +8,13 @@ use std::{env, path::Path, process::Command};
 use rust2go::{GoCompiler, LinkType};
 
 fn main() {
+    // TODO: Somehow move this in the output dir to prevent cluttering the src dir with generated
+    // files. We could just write the file to OUT_DIR, but that breaks completion in ast.go
+    rust2go_cli::generate(&rust2go_cli::Args {
+        src: "./src/go.rs".into(),
+        dst: "./go/gen.go".into(),
+        ..Default::default()
+    });
     rust2go::Builder::new()
         .with_go_compiler(CrossGoCompiler {})
         .with_go_src("./go")

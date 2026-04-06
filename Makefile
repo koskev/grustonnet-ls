@@ -56,12 +56,3 @@ schema: $(SCHEMA_OUTPUT)
 .PHONY: test-ci
 test-ci:
 	cargo-tarpaulin --tests --out xml --engine llvm -- -Z unstable-options --format=json | cargo2junit > $(JUNIT_REPORT_FILE)
-
-.PHONY: FORCE
-FORCE:
-
-crates/jsonnet-bridge/go/gen.go: FORCE
-	rust2go-cli --src crates/jsonnet-bridge/src/go.rs --dst crates/jsonnet-bridge/go/gen.go
-
-.PHONY: rust2go
-rust2go: crates/jsonnet-bridge/go/gen.go

@@ -46,18 +46,6 @@ _: {
         # For `nix develop`:
         default = pkgs.mkShell {
           nativeBuildInputs =
-            let
-              rust2gocli = pkgs.rustPlatform.buildRustPackage rec {
-                name = "rust2go-cli";
-                src = pkgs.fetchCrate {
-                  pname = name;
-                  version = "0.4.2";
-                  hash = "sha256-WT09837Y6lwH6usdoOQ7UTm9HcuHKify/jA8v8R4Fek=";
-                };
-                cargoHash = "sha256-WP7j+JSByT9fyblcL2saDMmOz2dq0jTSJTjxkTJwn5M=";
-              };
-
-            in
             with pkgs;
             sharedNativeBuildInputs
             ++ [
@@ -78,8 +66,6 @@ _: {
               prek
               gnumake
               git-cliff
-
-              rust2gocli
             ];
           buildInputs =
             with pkgs;

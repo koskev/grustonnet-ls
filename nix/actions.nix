@@ -60,26 +60,6 @@ in
       ".github/workflows/test.yaml" = inputs.nix-actions.lib.mkBuild {
         targetName = ".#grustonnet-test";
         extraJobs = {
-          generated-files.steps = [
-            {
-              uses = actions.checkout;
-            }
-            {
-              run = "cargo install ${packages.rust.rust2go-cli}";
-            }
-            {
-              run = "make rust2go";
-            }
-            {
-              run = ''
-                if [ -n "$(git status --porcelain)" ]; then
-                  echo "rust2go-cli found a diff. Make sure to run 'make rust2go' if you change any of the bridge code"
-                  git -c color.ui=always diff
-                  exit 1
-                fi
-              '';
-            }
-          ];
           windows-test = {
             inherit (platforms.windows-cross) runs-on;
             steps = [
