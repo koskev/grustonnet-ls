@@ -16,7 +16,6 @@ lsp-server = { workspace = true }
 lsp-types = { workspace = true, features = ["proposed"] }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json = { workspace = true }
-name-variant = { path = "../name-variant"}
 jsonnet-bridge = { path = "../jsonnet-bridge"}
 jsonnet-location = { path = "../jsonnet-location"}
 jsonnet-cst = { path = "../jsonnet-cst"}

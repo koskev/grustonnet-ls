@@ -929,7 +929,6 @@ dependencies = [
  "log",
  "lsp-server",
  "lsp-types",
- "name-variant",
  "paste",
  "pretty_assertions",
  "rayon",
@@ -963,7 +962,6 @@ dependencies = [
  "language-server",
  "log",
  "lsp-types",
- "name-variant",
  "node-stack",
  "serde",
 ]
@@ -1445,7 +1443,6 @@ dependencies = [
  "jsonnet-location",
  "language-server",
  "lsp-server",
- "name-variant",
  "regex",
  "rust2go",
 ]
@@ -1721,15 +1718,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca41ce716dda6a9be188b385aa78ee5260fc25cd3802cb2a8afdc6afbe6b6dbf"
 dependencies = [
  "cfg-if",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "name-variant"
-version = "0.1.0"
-dependencies = [
  "proc-macro2",
  "quote",
  "syn",

@@ -9,7 +9,6 @@ use grustonnet_node::types::{node::Node, node_kind::NodeKind};
 use jsonnet_location::LocationRange;
 use language_server::cache::Cache;
 use lsp_types::{SemanticTokenModifier, SemanticTokenType, SemanticTokens, SemanticTokensLegend};
-use name_variant::NamedVariant;
 use strum::{EnumDiscriminants, EnumIter, IntoEnumIterator};
 
 use crate::{cache::JsonnetASTGenerator, node::var::VarHelper};
@@ -17,7 +16,7 @@ use crate::{cache::JsonnetASTGenerator, node::var::VarHelper};
 macro_rules! token_enum {
     ($name: ident, $lsp_type: ty, $($item: expr),*) => {
         paste::paste! {
-            #[derive(Default, Debug, EnumIter, EnumDiscriminants, NamedVariant, Clone)]
+            #[derive(Default, Debug, EnumIter, EnumDiscriminants, Clone)]
             pub enum $name {
                 $(
                     $item,
@@ -34,6 +33,15 @@ macro_rules! token_enum {
 
                 fn to_int(&self) -> u32 {
                     [<$name Discriminants>]::from(self) as u32
+                }
+
+                fn variant_name(&self) -> &str {
+                    match self {
+                        $(
+                            Self::$item => stringify!($item),
+                        )*
+                        Self::Unknown => "unknown",
+                    }
                 }
             }
 
@@ -82,6 +90,30 @@ token_enum!(
     Regexp,
     Operator
 );
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_semantic_token_to_int() {
+        let token = SemanticToken::Function;
+        assert_eq!(token.to_int(), 12);
+    }
+
+    #[test]
+    fn test_semantic_token_variant_name() {
+        let token = SemanticToken::Variable;
+        assert_eq!(token.variant_name(), "Variable");
+    }
+
+    #[test]
+    fn test_semantic_token_into_lsp_type() {
+        let token = SemanticToken::Comment;
+        let lsp_token: SemanticTokenType = token.into();
+        assert_eq!(lsp_token.as_str(), "comment");
+    }
+}
 
 token_enum!(
     SemanticModifier,

@@ -10,7 +10,6 @@ use std::{
 
 use bincode::{Decode, Encode};
 use lsp_types::CompletionItemKind;
-use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
@@ -44,7 +43,7 @@ pub struct SuperIndex {
     pub id: Option<Identifier>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq, Decode, Encode)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 #[derive(Default)]
 pub enum NodeKind {
@@ -144,6 +143,35 @@ impl NodeKind {
             NodeKind::Apply(_) | NodeKind::Function(_) => CompletionItemKind::FUNCTION,
             NodeKind::Import(_) => CompletionItemKind::MODULE,
             _ => CompletionItemKind::VARIABLE,
+        }
+    }
+
+    /// Gets the variant name
+    pub fn variant_name(&self) -> &'static str {
+        match self {
+            NodeKind::LiteralNumber(_) => "LiteralNumber",
+            NodeKind::LiteralString(_) => "LiteralString",
+            NodeKind::LiteralBoolean(_) => "LiteralBoolean",
+            NodeKind::LiteralNull => "LiteralNull",
+            NodeKind::DesugaredObject(_) => "DesugaredObject",
+            NodeKind::ImportStr(_) => "ImportStr",
+            NodeKind::Import(_) => "Import",
+            NodeKind::ImportBin(_) => "ImportBin",
+            NodeKind::Var(_) => "Var",
+            NodeKind::SuperIndex(_) => "SuperIndex",
+            NodeKind::InSuper(_) => "InSuper",
+            NodeKind::Index(_) => "Index",
+            NodeKind::Binary(_) => "Binary",
+            NodeKind::Array(_) => "Array",
+            NodeKind::Apply(_) => "Apply",
+            NodeKind::Function(_) => "Function",
+            NodeKind::Conditional(_) => "Conditional",
+            NodeKind::Unary(_) => "Unary",
+            NodeKind::Error(_) => "Error",
+            NodeKind::SelfNode => "Self",
+            NodeKind::Dollar => "Dollar",
+            NodeKind::Local(_) => "Local",
+            NodeKind::Other => "Other",
         }
     }
 
