@@ -5,7 +5,7 @@
 
 use std::{fmt::Display, sync::Arc};
 
-use bincode::{Decode, Encode};
+use bincode_next::{Decode, Encode};
 use jsonnet_location::Location;
 use language_server::cache::ASTNode;
 use serde::{Deserialize, Serialize};

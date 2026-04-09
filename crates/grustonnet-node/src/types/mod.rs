@@ -18,7 +18,7 @@ pub mod var;
 
 use std::sync::Arc;
 
-use bincode::{Decode, Encode};
+use bincode_next::{Decode, Encode};
 use jsonnet_location::LocationRange;
 use serde::{Deserialize, Serialize};
 
