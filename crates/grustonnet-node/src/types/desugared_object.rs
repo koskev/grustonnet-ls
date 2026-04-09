@@ -8,7 +8,7 @@ use std::{
     sync::Arc,
 };
 
-use bincode::{Decode, Encode};
+use bincode_next::{Decode, Encode};
 use grustonnet_config::FormatOptions;
 use itertools::Itertools;
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl};

@@ -66,11 +66,11 @@ fn check(file_name: &str) {
         .get_ast_data(file_name, &file_content)
         .unwrap();
 
-    let json_bin = bincode::encode_to_vec(&json_node, bincode::config::legacy()).unwrap();
+    let json_bin = bincode_next::encode_to_vec(&json_node, bincode_next::config::legacy()).unwrap();
     eprintln!("{:#?}", json_node);
 
     assert_eq!(json_bin, bin_data);
-    let (bin_node, _) = bincode::decode_from_slice(&bin_data, bincode::config::legacy()).unwrap();
+    let (bin_node, _) = bincode_next::decode_from_slice(&bin_data, bincode_next::config::legacy()).unwrap();
 
     assert_eq!(json_node, bin_node);
 }

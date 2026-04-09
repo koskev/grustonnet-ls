@@ -8,7 +8,7 @@ use std::{
 };
 
 use anyhow::{Result, anyhow};
-use bincode::{
+use bincode_next::{
     Decode, Encode,
     de::{self},
 };
@@ -255,9 +255,9 @@ impl DAPServer for JsonnetDAPServer {
         _args: <StackTrace as Request>::Arguments,
     ) -> Result<DAPResponse, DAPError> {
         let res = DebuggerBridgeImpl::get_stack_trace();
-        let (data, _) = bincode::decode_from_slice::<DebugStackTrace, _>(
+        let (data, _) = bincode_next::decode_from_slice::<DebugStackTrace, _>(
             &res.ast_data,
-            bincode::config::legacy(),
+            bincode_next::config::legacy(),
         )
         .expect("Decoding stack trace");
         let frames: Vec<_> = data
@@ -384,7 +384,7 @@ where
     if !input.error_data.is_empty() {
         Err(anyhow!(input.error_data.clone()))
     } else {
-        let (data, _) = bincode::decode_from_slice(&input.ast_data, bincode::config::legacy())?;
+        let (data, _) = bincode_next::decode_from_slice(&input.ast_data, bincode_next::config::legacy())?;
         Ok(data)
     }
 }

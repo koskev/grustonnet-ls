@@ -215,7 +215,7 @@ impl GenerateAST for GoJsonnet {
             return Err(EvaluateError::from(res.error_data));
         }
         let start = Instant::now();
-        let (node, _) = bincode::decode_from_slice(&res.ast_data, bincode::config::legacy())
+        let (node, _) = bincode_next::decode_from_slice(&res.ast_data, bincode_next::config::legacy())
             .map_err(|e| EvaluateError {
                 error_type: EvaluateErrorType::Deserialize,
                 message: format!("Could not decode AST. This is most likely a bug: {e}"),
@@ -309,20 +309,20 @@ mod test {
 
     #[test]
     fn base_object() {
-        let config = bincode::config::legacy();
+        let config = bincode_next::config::legacy();
         let test_objects = ASTBridgeImpl::get_test_objects();
         for test_object in test_objects {
             match test_object.name.as_str() {
                 "location" => {
                     let result: (Location, usize) =
-                        bincode::decode_from_slice(&test_object.data, config)
+                        bincode_next::decode_from_slice(&test_object.data, config)
                             .expect("unable to decode location");
                     assert_eq!(result.0.line, 5);
                     assert_eq!(result.0.column, 19);
                 }
                 "locrange" => {
                     let (result, _): (LocationRange, usize) =
-                        bincode::decode_from_slice(&test_object.data, config)
+                        bincode_next::decode_from_slice(&test_object.data, config)
                             .unwrap_or_else(|_| panic!("Got {:?}", test_object.data));
                     assert_eq!(result.file_name, "test");
                     assert_eq!(result.begin.line, 1);
@@ -332,11 +332,11 @@ mod test {
                 }
                 "base" => {
                     let _result: (NodeBase, usize) =
-                        bincode::decode_from_slice(&test_object.data, config).expect("decode");
+                        bincode_next::decode_from_slice(&test_object.data, config).expect("decode");
                 }
                 "fodder" => {
                     let (result, _): (Fodder, usize) =
-                        bincode::decode_from_slice(&test_object.data, config).expect("decode");
+                        bincode_next::decode_from_slice(&test_object.data, config).expect("decode");
 
                     assert_eq!(result.0.len(), 1);
                     assert_eq!(result.0[0].kind, FodderKind::FodderInterstitial);
@@ -348,7 +348,7 @@ mod test {
                 }
                 "node_base" => {
                     let (result, _): (NodeBase, usize) =
-                        bincode::decode_from_slice(&test_object.data, config).expect("decode");
+                        bincode_next::decode_from_slice(&test_object.data, config).expect("decode");
                     assert_eq!(result.ctx, "\0", "Wrong CTX");
                     assert_eq!(result.fodder.0.len(), 0);
                     assert_eq!(result.free_vars.len(), 0);
@@ -360,7 +360,7 @@ mod test {
                 }
                 _ => {
                     let (_result, _): (Node, usize) =
-                        bincode::decode_from_slice(&test_object.data, config)
+                        bincode_next::decode_from_slice(&test_object.data, config)
                             .unwrap_or_else(|_| panic!("Got {:?}", test_object.data));
                 }
             }

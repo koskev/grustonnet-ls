@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use bincode::{Decode, Encode};
+use bincode_next::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{Identifier, fodder::Fodder, node::Node, node_kind::NodeKind};

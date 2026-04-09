@@ -23,7 +23,7 @@ rust-dap = { path = "../rust-dap"}
 clap = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 jsonnet-bridge = { path = "../jsonnet-bridge"}
-bincode = { workspace = true }
+bincode-next = { workspace = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 anyhow.workspace = true
 log = { workspace = true }

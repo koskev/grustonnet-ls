@@ -5,7 +5,7 @@
 
 use std::fmt::Display;
 
-use bincode::{Decode, Encode};
+use bincode_next::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 use crate::types::{node::Node, node_kind::NodeKind};

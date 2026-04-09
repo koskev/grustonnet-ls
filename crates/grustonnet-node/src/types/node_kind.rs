@@ -8,7 +8,7 @@ use std::{
     sync::Arc,
 };
 
-use bincode::{Decode, Encode};
+use bincode_next::{Decode, Encode};
 use lsp_types::CompletionItemKind;
 use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};

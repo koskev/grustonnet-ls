@@ -7,7 +7,7 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-bincode = { workspace = true }
+bincode-next = { workspace = true }
 lsp-types = { workspace = true, features = ["proposed"] }
 serde = { workspace = true, features = ["derive", "rc"] }
 tree-sitter = { workspace = true }
