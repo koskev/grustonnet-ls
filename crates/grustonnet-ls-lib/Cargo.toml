@@ -48,7 +48,7 @@ fallible-iterator = "0.3.0"
 stacker = "0.1.23"
 
 [build-dependencies]
-reqwest = { version = "0.13.0", features = ["blocking", "rustls"], default-features = false }
+ureq = "3.3.0"
 jsonnet-bridge = { path = "../jsonnet-bridge"}
 jsonnet-std-docs = { path = "../jsonnet-std-docs"}
 htmd = { workspace = true }

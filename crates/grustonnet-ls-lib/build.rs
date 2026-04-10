@@ -42,10 +42,12 @@ fn build_stdlib() {
     for (name, url) in urls {
         let url_path = gen_path.join(name);
         if !url_path.exists() {
-            let content = reqwest::blocking::get(url)
+            let content = ureq::get(url)
+                .call()
                 .expect("Unable to download stdlib")
-                .text()
-                .expect("Unable to get text of stdlib");
+                .body_mut()
+                .read_to_string()
+                .expect("Unable to get body of stdlib");
             fs::write(url_path, content).expect("Unable to write stdlib");
         }
     }
