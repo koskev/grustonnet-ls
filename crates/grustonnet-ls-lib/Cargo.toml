@@ -55,3 +55,4 @@ htmd = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 rmp-serde = "1.3.0"
+sha2 = "0.11.0"
