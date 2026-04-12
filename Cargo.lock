@@ -1277,7 +1277,6 @@ dependencies = [
  "serde_json",
  "similar",
  "tree-sitter",
- "url",
  "utils",
 ]
 

@@ -56,3 +56,7 @@ schema: $(SCHEMA_OUTPUT)
 .PHONY: test-ci
 test-ci:
 	cargo-tarpaulin --tests --out xml --engine llvm -- -Z unstable-options --format=json | cargo2junit > $(JUNIT_REPORT_FILE)
+
+.PHONY: unused-deps
+unused-deps:
+	cargo machete
