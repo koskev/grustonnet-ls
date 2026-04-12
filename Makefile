@@ -60,3 +60,7 @@ test-ci:
 .PHONY: unused-deps
 unused-deps:
 	cargo machete
+
+.PHONY: workspace-deps
+workspace-deps:
+	cargo workspace-deps --exclude tree-sitter
