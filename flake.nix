@@ -24,9 +24,6 @@
     # https://flake.parts/module-arguments.html
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [ (inputs.import-tree ./nix) ];
-      flake = {
-        # Put your original flake attributes here.
-      };
       systems = [
         # systems for which you want to build the `perSystem` attributes
         "x86_64-linux"
