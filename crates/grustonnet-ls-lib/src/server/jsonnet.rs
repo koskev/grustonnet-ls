@@ -16,7 +16,7 @@ use jsonnet_cst::{
     node::JsonnetNode,
     node_type::NodeType,
 };
-use jsonnet_location::{Location, LocationRange};
+use jsonnet_location::{Location, LocationRange, LspPositionHelper};
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionContext},
@@ -96,6 +96,11 @@ pub struct JsonnetServer {
 }
 
 impl JsonnetServer {
+    fn get_encoding(&self) -> PositionEncodingKind {
+        self.get_capabilities()
+            .position_encoding
+            .unwrap_or(PositionEncodingKind::UTF16)
+    }
     pub fn new(connection: LSPConnection, full_sync: bool) -> Self {
         let cache = Cache::default();
         let diagnostics_queue = DiagnosticsQueue::new(
@@ -274,7 +279,9 @@ impl LSPServer for JsonnetServer {
                 trigger_characters: Some(vec!["(".into(), ",".into()]),
                 ..Default::default()
             }),
-            // TODO: Check position encoding. Currently it is just utf16
+            // FIXME: This violates the lsp!!
+            // UTF-16 has to be supported and the client capabilities must be checked first!!
+            position_encoding: Some(PositionEncodingKind::UTF8),
             ..Default::default()
         }
     }
@@ -361,8 +368,13 @@ impl LSPServer for JsonnetServer {
             .cache
             .get_document(&params.text_document_position.text_document.uri)?;
 
-        let completion_info =
-            CompletionInfo::new(&doc.content, params.text_document_position.position.into());
+        let completion_info = CompletionInfo::new(
+            &doc.content,
+            params
+                .text_document_position
+                .position
+                .into_location(&self.get_encoding(), &doc.content),
+        );
 
         let config = self.configuration.read_or_panic().clone();
         let mut completion_list: Vec<Box<dyn Completion>> = vec![];
@@ -407,7 +419,7 @@ impl LSPServer for JsonnetServer {
         let context = CompletionContext {
             location: completion_info.pos.clone(),
             uri: params.text_document_position.text_document.uri.clone(),
-            encoding: PositionEncodingKind::UTF8,
+            encoding: self.get_encoding(),
         };
         let lists: Vec<_> = completion_list
             .into_par_iter()
