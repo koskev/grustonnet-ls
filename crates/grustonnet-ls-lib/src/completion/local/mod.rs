@@ -25,9 +25,9 @@ use grustonnet_node::{
 };
 use language_server::{
     cache::Cache,
-    completion::{Completion, CompletionResult},
+    completion::{Completion, CompletionContext, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemLabelDetails, CompletionList, Position, Uri};
+use lsp_types::{CompletionItem, CompletionItemLabelDetails, CompletionList};
 use thiserror::Error;
 
 pub mod call_stack_iter;
@@ -111,16 +111,16 @@ impl<'a> LocalCompletion<'a> {
 }
 
 impl<'a> Completion for LocalCompletion<'a> {
-    fn complete(&self, location: Position, uri: &Uri) -> CompletionResult {
+    fn complete(&self, context: &CompletionContext) -> CompletionResult {
         let start = Instant::now();
-        let doc = self.cache.get_document(uri)?;
+        let doc = self.cache.get_document(&context.uri)?;
 
-        let stack = doc.get_ast()?.get_stack_by_position(&location.into());
+        let stack = doc.get_ast()?.get_stack_by_position(&context.location);
         let top_node = stack.peek().ok_or(anyhow!("Stack empty"))?;
         log::debug!(
             "Completing {} at {:?}",
             top_node.node_kind.variant_name(),
-            location
+            context.location
         );
         log::trace!("Stack {}", stack);
         // TODO: get the current index and use it as the filter for the rest of the completion
@@ -172,7 +172,7 @@ impl<'a> Completion for LocalCompletion<'a> {
             NodeKind::Var(var) => {
                 if var.is_std() {
                     StdCompletion::new(Some(self.config.target_version))
-                        .complete(location, uri)?
+                        .complete(context)?
                         .items
                 } else {
                     log::warn!("Tried to complete var that is not std! {}", node.node_kind);

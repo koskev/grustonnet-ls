@@ -13,9 +13,9 @@ use std::{
 use anyhow::anyhow;
 use language_server::{
     cache::Cache,
-    completion::{Completion, CompletionResult},
+    completion::{Completion, CompletionContext, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemKind, Position, Uri};
+use lsp_types::{CompletionItem, CompletionItemKind, Uri};
 use utils::uri::UriHelper;
 use walkdir::WalkDir;
 
@@ -59,7 +59,7 @@ impl TryInto<Uri> for &ImportFolder {
 // TODO: Get the typed string and support completion after "/". The editor might not consider the
 // parts before the slash
 impl<'a> Completion for ImportCompletion<'a> {
-    fn complete(&self, _pos: Position, uri: &Uri) -> CompletionResult {
+    fn complete(&self, context: &CompletionContext) -> CompletionResult {
         let extensions = ["jsonnet", "libsonnet", "json"];
         // Allow jsonpkg imports
         let prefixes = ["@"];
@@ -67,7 +67,7 @@ impl<'a> Completion for ImportCompletion<'a> {
             .cache
             .ast_generator
             .jsonnet
-            .get_evaluate_params(&uri.to_file_path_string()?)
+            .get_evaluate_params(&context.uri.to_file_path_string()?)
             .jpaths;
 
         // Get all files

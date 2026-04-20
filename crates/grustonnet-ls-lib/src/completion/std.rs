@@ -6,10 +6,8 @@
 use std::sync::LazyLock;
 
 use jsonnet_std_docs::StdFunctions;
-use language_server::completion::{Completion, CompletionResult};
-use lsp_types::{
-    CompletionItem, CompletionList, Documentation, MarkupContent, MarkupKind, Position, Uri,
-};
+use language_server::completion::{Completion, CompletionContext, CompletionResult};
+use lsp_types::{CompletionItem, CompletionList, Documentation, MarkupContent, MarkupKind};
 use semver::{Version, VersionReq};
 pub const STDLIB_DEFINITIONS: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/gen/stdlib.json"));
@@ -31,7 +29,7 @@ pub static STD_FUNCTIONS: LazyLock<StdFunctions> =
 // TODO: Remove this dedicated completion and instead support documentation for functions and
 // handle the stdlib as a normal function with documentation
 impl Completion for StdCompletion {
-    fn complete(&self, _location: Position, _uri: &Uri) -> CompletionResult {
+    fn complete(&self, _context: &CompletionContext) -> CompletionResult {
         let version_req =
             VersionReq::parse(&format!("<=0.{}.0", self.target_version.unwrap_or(999)))?;
         let items = STD_FUNCTIONS

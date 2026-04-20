@@ -6,9 +6,9 @@
 use grustonnet_node::types::{local_bind::LocalBind, node_kind::NodeKind};
 use language_server::{
     cache::Cache,
-    completion::{Completion, CompletionResult},
+    completion::{Completion, CompletionContext, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemKind, CompletionItemLabelDetails, Position, Uri};
+use lsp_types::{CompletionItem, CompletionItemKind, CompletionItemLabelDetails};
 
 use crate::cache::JsonnetASTGenerator;
 
@@ -23,10 +23,10 @@ impl<'a> GlobalCompletion<'a> {
 }
 
 impl<'a> Completion for GlobalCompletion<'a> {
-    fn complete(&self, pos: Position, uri: &Uri) -> CompletionResult {
-        let doc = self.cache.get_document(uri)?;
+    fn complete(&self, context: &CompletionContext) -> CompletionResult {
+        let doc = self.cache.get_document(&context.uri)?;
 
-        let stack = doc.get_ast()?.get_stack_by_position(&pos.into());
+        let stack = doc.get_ast()?.get_stack_by_position(&context.location);
         let binds: Vec<LocalBind> = stack
             .stack
             .iter()
@@ -36,7 +36,7 @@ impl<'a> Completion for GlobalCompletion<'a> {
                     let mut locals = obj.locals.clone();
                     // For a DesugaredObject we need to find the field and check if the field is a
                     // function. If it is, we'll just add the binding of that function to the vec
-                    if let Some(field_name) = obj.get_name_at(&pos.into())
+                    if let Some(field_name) = obj.get_name_at(&context.location)
                         && let Some(field) = obj.get_field(&field_name)
                         && let NodeKind::Function(func) = field.body.node_kind.as_ref()
                     {
