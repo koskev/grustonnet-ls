@@ -373,10 +373,7 @@ impl LSPServer for JsonnetServer {
 
         let completion_info = CompletionInfo::new(
             &doc.content,
-            params
-                .text_document_position
-                .position
-                .into_location(&self.get_encoding(), &doc.content),
+            params.text_document_position.position.into(), //.into_location(&self.get_encoding(), &doc.content),
         );
 
         let config = self.configuration.read_or_panic().clone();

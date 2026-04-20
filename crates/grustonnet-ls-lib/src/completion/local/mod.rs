@@ -23,7 +23,6 @@ use grustonnet_node::{
     stack::NodeStack,
     types::{desugared_object::DesugaredObjectField, node::Node, node_kind::NodeKind},
 };
-use jsonnet_location::Location;
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionContext, CompletionResult},

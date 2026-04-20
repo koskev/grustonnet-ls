@@ -129,7 +129,8 @@ impl Location {
                     rope.char_to_utf16_cu(self.column as usize) as u32
                 }
                 _ => unimplemented!("Not supported"),
-            },
+            }
+            .saturating_sub(1),
         }
     }
     fn from_position(
@@ -183,6 +184,26 @@ impl LocationRange {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn location_conversion() {
+        let lsp_pos = lsp_types::Position {
+            line: 2,
+            character: 5,
+        };
+        let test_text = r#"
+            first line
+            second line
+            third line
+            "#;
+        let loc = lsp_pos.into_location(&PositionEncodingKind::UTF8, test_text);
+        let converted_lsp_pos = loc
+            .clone()
+            .into_position(&PositionEncodingKind::UTF8, test_text);
+
+        assert_eq!(loc, Location { line: 3, column: 6 });
+
+        assert_eq!(lsp_pos, converted_lsp_pos, "Converted failed");
+    }
 
     #[test]
     fn test_range_multi_line() {
