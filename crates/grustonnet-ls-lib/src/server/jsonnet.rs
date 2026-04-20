@@ -480,10 +480,13 @@ impl LSPServer for JsonnetServer {
 
     fn goto_definition(&self, params: GotoDefinitionParams) -> Result<LSPResponse, LSPError> {
         let pos = params.text_document_position_params.position;
+        let doc = self
+            .cache
+            .get_document(&params.text_document_position_params.text_document.uri)?;
 
         let info = DefinitionProvider::new(&self.cache).definition(
             &params.text_document_position_params.text_document.uri,
-            pos.into_location(&self.get_encoding(), "TODO"),
+            pos.into_location(&self.get_encoding(), &doc.content),
         )?;
 
         Ok(GotoDefinitionResponse::Scalar(info.location).into())
