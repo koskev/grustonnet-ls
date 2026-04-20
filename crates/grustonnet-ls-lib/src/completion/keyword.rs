@@ -8,9 +8,9 @@ use std::fmt::Display;
 use grustonnet_node::{stack::NodeStack, types::node_kind::NodeKind};
 use language_server::{
     cache::Cache,
-    completion::{Completion, CompletionResult},
+    completion::{Completion, CompletionContext, CompletionResult},
 };
-use lsp_types::{CompletionItem, CompletionItemKind, CompletionList, Position, Uri};
+use lsp_types::{CompletionItem, CompletionItemKind, CompletionList};
 
 use crate::cache::JsonnetASTGenerator;
 
@@ -97,10 +97,10 @@ fn show_self(stack: &NodeStack) -> bool {
 }
 
 impl<'a> Completion for KeywordCompletion<'a> {
-    fn complete(&self, location: Position, uri: &Uri) -> CompletionResult {
-        let doc = self.cache.get_document(uri)?;
+    fn complete(&self, context: &CompletionContext) -> CompletionResult {
+        let doc = self.cache.get_document(&context.uri)?;
 
-        let stack = doc.get_ast()?.get_stack_by_position(&location.into());
+        let stack = doc.get_ast()?.get_stack_by_position(&context.location);
 
         // TODO: check if keywords are really usable
         // Valid keywords: else error false for function if import importstr importbin in local null tailstrict then self super true

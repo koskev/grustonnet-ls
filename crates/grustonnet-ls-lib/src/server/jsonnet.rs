@@ -19,7 +19,7 @@ use jsonnet_cst::{
 use jsonnet_location::{Location, LocationRange};
 use language_server::{
     cache::Cache,
-    completion::Completion,
+    completion::{Completion, CompletionContext},
     diagnostics::{Diagnostics, DiagnosticsQueue, DiagnosticsResult},
     server::{
         LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
@@ -31,9 +31,10 @@ use lsp_types::{
     CompletionParams, CompletionResponse, DidChangeConfigurationParams, DocumentDiagnosticParams,
     DocumentDiagnosticReportResult, ExecuteCommandOptions, GotoDefinitionParams,
     GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams, OneOf,
-    ParameterInformation, ParameterLabel, RelatedFullDocumentDiagnosticReport, SemanticTokens,
-    SemanticTokensOptions, SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp,
-    SignatureHelpOptions, SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
+    ParameterInformation, ParameterLabel, PositionEncodingKind,
+    RelatedFullDocumentDiagnosticReport, SemanticTokens, SemanticTokensOptions,
+    SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp, SignatureHelpOptions,
+    SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use strum::IntoEnumIterator;
@@ -403,13 +404,14 @@ impl LSPServer for JsonnetServer {
             _ => (),
         }
 
+        let context = CompletionContext {
+            location: completion_info.pos.clone(),
+            uri: params.text_document_position.text_document.uri.clone(),
+            encoding: PositionEncodingKind::UTF8,
+        };
         let lists: Vec<_> = completion_list
             .into_par_iter()
-            .map(|provider| {
-                let location = completion_info.pos.clone().into();
-                let uri = params.text_document_position.text_document.uri.clone();
-                provider.complete(location, &uri)
-            })
+            .map(|provider| provider.complete(&context))
             .collect();
 
         let failed: Vec<_> = lists.iter().filter_map(|res| res.as_ref().err()).collect();
