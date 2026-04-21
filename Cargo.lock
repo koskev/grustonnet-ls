@@ -817,6 +817,7 @@ dependencies = [
  "log",
  "lsp-types",
  "miette",
+ "rayon",
  "ropey",
  "rust2go-env",
  "serde",

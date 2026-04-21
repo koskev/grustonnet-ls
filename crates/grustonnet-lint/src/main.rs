@@ -17,6 +17,7 @@ use language_server::diagnostics::DiagnosticFilter;
 use language_server::utils::rope::RopeHelper;
 use lsp_types::{DiagnosticSeverity, Uri};
 use miette::LabeledSpan;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use ropey::Rope;
 use rust2go_env::restart_with_fixed_env;
 use utils::RwLockPanic;
@@ -122,7 +123,7 @@ async fn main() -> Result<()> {
             }
         })
         .collect();
-    log::debug!("Paths to check {:?}", paths);
+    log::debug!("Paths to check {:#?}", paths);
     let server = JsonnetServer::default();
     server
         .configuration
@@ -139,7 +140,7 @@ async fn main() -> Result<()> {
         .set_config(&server.configuration.read_or_panic().jsonnet);
     let filter = JsonnetDiagnosticFilter::new(server.cache.clone());
     let code_climates: Vec<CodeClimate> = paths
-        .iter()
+        .par_iter()
         .flat_map(|path| {
             let uri = Uri::from_path(path).expect("invalid uri");
             let diags = server.get_diagnostics(&uri);
