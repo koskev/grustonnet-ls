@@ -15,12 +15,12 @@ pub struct IdentifierReferences {
 
 impl ReferenceProvider for IdentifierReferences {
     fn is_valid(&self, location: FileRange) -> bool {
-        let identifier_option = self.get_identifier(location.range.begin.into(), &location.uri);
+        let identifier_option = self.get_identifier(location.range.begin, &location.uri);
         identifier_option.is_some()
     }
 
     fn local_only(&self, location: FileRange) -> bool {
-        let identifier_option = self.get_identifier(location.range.begin.into(), &location.uri);
+        let identifier_option = self.get_identifier(location.range.begin, &location.uri);
 
         match identifier_option {
             Some(option) => option.1,
