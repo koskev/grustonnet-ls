@@ -10,7 +10,7 @@ use language_server::{
 use lazy_static::lazy_static;
 use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionList, CompletionTextEdit, InsertTextFormat,
-    Position, Range, TextEdit,
+    Range, TextEdit,
 };
 
 use crate::cache::JsonnetASTGenerator;
@@ -85,9 +85,9 @@ impl<'a> Completion for DocsonnetSnippets<'a> {
             return Ok(CompletionList::default());
         }
 
-        let mut start_location: Position = context.location.clone().into();
+        let mut start_location = context.location.clone();
         // Subtract one to be at the cursor and not one ahead
-        start_location.character = start_location.character.saturating_sub(1);
+        start_location.column = std::cmp::max(0, start_location.column - 1);
         Ok(CompletionList {
             is_incomplete: false,
             items: DOCSONNET_SNIPPETS
@@ -98,8 +98,13 @@ impl<'a> Completion for DocsonnetSnippets<'a> {
                     insert_text_format: Some(InsertTextFormat::SNIPPET),
                     text_edit: Some(CompletionTextEdit::Edit(TextEdit {
                         range: Range {
-                            start: start_location,
-                            end: context.location.clone().into(),
+                            start: start_location
+                                .clone()
+                                .into_position(&context.encoding, &doc.content),
+                            end: context
+                                .location
+                                .clone()
+                                .into_position(&context.encoding, &doc.content),
                         },
                         new_text: val.to_string(),
                     })),
