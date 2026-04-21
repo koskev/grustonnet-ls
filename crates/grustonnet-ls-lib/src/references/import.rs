@@ -1,7 +1,6 @@
 use jsonnet_cst::new_tree;
-use jsonnet_location::Location;
+use jsonnet_location::{FileRange, Location, Range};
 use language_server::cache::Cache;
-use lsp_types::Range;
 use tree_sitter::{Query, QueryCursor, StreamingIterator};
 
 use crate::{cache::JsonnetASTGenerator, references::ReferenceProvider};
@@ -17,14 +16,14 @@ impl ImportReferences {
 }
 
 impl ReferenceProvider for ImportReferences {
-    fn is_valid(&self, loc: lsp_types::Location) -> bool {
+    fn is_valid(&self, loc: FileRange) -> bool {
         loc.range == Range::default()
     }
     fn generate_potential_locations(
         &self,
         target_info: &crate::definition::DefinitionInfo,
         files: &[lsp_types::Uri],
-    ) -> Option<Vec<lsp_types::Location>> {
+    ) -> Option<Vec<FileRange>> {
         // Target is not the start of a file
         if target_info.location.range != Range::default() {
             return None;
@@ -46,17 +45,14 @@ impl ReferenceProvider for ImportReferences {
                     .unwrap_or_else(|_| panic!("BUG: Invalid query: {}", query_source));
                 let mut cursor = QueryCursor::new();
                 let captures = cursor.captures(&query, tree.root_node(), content.as_bytes());
-                let mut locations: Vec<lsp_types::Location> = vec![];
+                let mut locations: Vec<FileRange> = vec![];
                 captures.for_each(|query_match| {
                     query_match.0.captures.iter().for_each(|capture| {
-                        let start: Location = capture.node.start_position().into();
+                        let begin: Location = capture.node.start_position().into();
                         let end: Location = capture.node.end_position().into();
-                        locations.push(lsp_types::Location {
+                        locations.push(FileRange {
                             uri: uri.clone(),
-                            range: Range {
-                                start: start.into(),
-                                end: end.into(),
-                            },
+                            range: Range { begin, end },
                         });
                     })
                 });

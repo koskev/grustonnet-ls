@@ -1,7 +1,7 @@
 use grustonnet_node::types::node_kind::NodeKind;
-use jsonnet_location::Location;
+use jsonnet_location::{FileRange, Location, Range};
 use language_server::{cache::Cache, utils::rope::RopeHelper};
-use lsp_types::{Range, Uri};
+use lsp_types::Uri;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use ropey::Rope;
 #[cfg(feature = "tracing")]
@@ -14,13 +14,13 @@ pub struct IdentifierReferences {
 }
 
 impl ReferenceProvider for IdentifierReferences {
-    fn is_valid(&self, location: lsp_types::Location) -> bool {
-        let identifier_option = self.get_identifier(location.range.start.into(), &location.uri);
+    fn is_valid(&self, location: FileRange) -> bool {
+        let identifier_option = self.get_identifier(location.range.begin.into(), &location.uri);
         identifier_option.is_some()
     }
 
-    fn local_only(&self, location: lsp_types::Location) -> bool {
-        let identifier_option = self.get_identifier(location.range.start.into(), &location.uri);
+    fn local_only(&self, location: FileRange) -> bool {
+        let identifier_option = self.get_identifier(location.range.begin.into(), &location.uri);
 
         match identifier_option {
             Some(option) => option.1,
@@ -31,9 +31,9 @@ impl ReferenceProvider for IdentifierReferences {
         &self,
         target_info: &crate::definition::DefinitionInfo,
         files: &[lsp_types::Uri],
-    ) -> Option<Vec<lsp_types::Location>> {
+    ) -> Option<Vec<FileRange>> {
         let (identifier, _is_local) = self.get_identifier(
-            target_info.location.range.start.into(),
+            target_info.location.range.begin.clone(),
             &target_info.location.uri,
         )?;
         // Search for in all caches and files and get all potential positions
@@ -57,16 +57,16 @@ impl ReferenceProvider for IdentifierReferences {
                         .ok()?
                         .content;
                     // Check for name in file and get locations
-                    let locations: Vec<lsp_types::Location> = content
+                    let locations: Vec<FileRange> = content
                         .match_indices(&identifier)
                         .filter_map(|(index, val)| {
                             let rope = Rope::from_str(&content);
-                            Some(lsp_types::Location {
+                            Some(FileRange {
                                 uri: uri.clone(),
                                 range: Range {
                                     // TODO: Properly handle utf16 etc.
-                                    start: rope.get_location_from_byte(index)?,
-                                    end: rope.get_location_from_byte(index + val.len())?,
+                                    begin: rope.get_location_from_byte(index)?.into(),
+                                    end: rope.get_location_from_byte(index + val.len())?.into(),
                                 },
                             })
                         })

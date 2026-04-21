@@ -8,9 +8,9 @@ use std::path::Path;
 
 use anyhow::{Result, anyhow};
 use grustonnet_node::types::node_kind::NodeKind;
-use jsonnet_location::{Location, LocationRange};
+use jsonnet_location::{FileRange, Location, LocationRange, Range};
 use language_server::cache::Cache;
-use lsp_types::{Range, Uri};
+use lsp_types::Uri;
 use utils::uri::UriHelper;
 
 use crate::{cache::JsonnetASTGenerator, node::Stackhelper};
@@ -21,7 +21,7 @@ pub struct DefinitionProvider<'a> {
 
 #[derive(Debug, Clone)]
 pub struct DefinitionInfo {
-    pub location: lsp_types::Location,
+    pub location: FileRange,
     pub name: String,
 }
 
@@ -86,7 +86,7 @@ impl<'a> DefinitionProvider<'a> {
                 if p.exists() {
                     return Ok(DefinitionInfo {
                         name: "".into(),
-                        location: lsp_types::Location {
+                        location: FileRange {
                             uri: Uri::from_path(p)?,
                             range: Range::default(),
                         },
@@ -140,11 +140,11 @@ impl<'a> DefinitionProvider<'a> {
         log::trace!("Location: {:?}", location);
         Ok(DefinitionInfo {
             name: index_name,
-            location: lsp_types::Location {
+            location: FileRange {
                 uri: Uri::from_path(&location.file_name)?,
                 range: Range {
-                    start: location.begin.into(),
-                    end: location.end.into(),
+                    begin: location.begin,
+                    end: location.end,
                 },
             },
         })

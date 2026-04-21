@@ -6,9 +6,9 @@
 use std::time::Instant;
 
 use anyhow::Result;
-use jsonnet_location::Location;
+use jsonnet_location::{FileRange, Location, Range};
 use language_server::cache::Cache;
-use lsp_types::{Range, Uri};
+use lsp_types::{PositionEncodingKind, Uri};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 #[cfg(feature = "tracing")]
 use tracy_client::span;
@@ -42,15 +42,15 @@ pub trait ReferenceProvider {
         &self,
         target_info: &DefinitionInfo,
         files: &[Uri],
-    ) -> Option<Vec<lsp_types::Location>>;
+    ) -> Option<Vec<FileRange>>;
 
     /// Check if we should only consider the current file
-    fn local_only(&self, _loc: lsp_types::Location) -> bool {
+    fn local_only(&self, _loc: FileRange) -> bool {
         false
     }
 
     /// Check if this is even a valid place to get references
-    fn is_valid(&self, loc: lsp_types::Location) -> bool;
+    fn is_valid(&self, loc: FileRange) -> bool;
 }
 
 impl<'a> ReferenceHandler<'a> {
@@ -60,9 +60,9 @@ impl<'a> ReferenceHandler<'a> {
         target_info: &DefinitionInfo,
         include_declaration: bool,
         goto_provider: &DefinitionProvider,
-    ) -> Vec<lsp_types::Location>
+    ) -> Vec<FileRange>
     where
-        T: ParallelIterator<Item = lsp_types::Location>,
+        T: ParallelIterator<Item = FileRange>,
     {
         locations
             .filter(move |loc| {
@@ -71,7 +71,7 @@ impl<'a> ReferenceHandler<'a> {
                     return include_declaration;
                 }
                 let Ok(potential_location) =
-                    goto_provider.definition(&loc.uri, loc.range.start.into())
+                    goto_provider.definition(&loc.uri, loc.range.begin.clone())
                 else {
                     return false;
                 };
@@ -79,7 +79,7 @@ impl<'a> ReferenceHandler<'a> {
                 // with local functions), we will just compare the start position (which should be
                 // enough anyways). If we land on the same position we have a reference
                 let found = potential_location.location.uri == target_info.location.uri
-                    && potential_location.location.range.start == target_info.location.range.start;
+                    && potential_location.location.range.begin == target_info.location.range.begin;
                 log::trace!(
                     "Potential reference {} for target {}? {}",
                     potential_location,
@@ -100,11 +100,11 @@ impl<'a> ReferenceHandler<'a> {
     ) -> Result<Option<Vec<lsp_types::Location>>> {
         let goto_provider = DefinitionProvider::new(self.cache);
         let default_info = DefinitionInfo {
-            location: lsp_types::Location {
+            location: FileRange {
                 uri: uri.clone(),
                 range: Range {
-                    start: pos.clone().into(),
-                    end: pos.clone().into(),
+                    begin: pos.clone(),
+                    end: pos.clone(),
                 },
             },
             name: "".into(),
@@ -145,6 +145,11 @@ impl<'a> ReferenceHandler<'a> {
                     include_declaration,
                     &goto_provider,
                 )
+            })
+            .filter_map(|range| {
+                // FIXME: Correct encoding
+                let doc = self.cache.get_document(&range.uri).ok()?;
+                Some(range.into_location(&PositionEncodingKind::UTF8, &doc.content))
             })
             .collect();
 

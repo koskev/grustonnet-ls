@@ -485,7 +485,11 @@ impl LSPServer for JsonnetServer {
             pos.into_location(&self.get_encoding(), &doc.content),
         )?;
 
-        Ok(GotoDefinitionResponse::Scalar(info.location).into())
+        Ok(GotoDefinitionResponse::Scalar(
+            info.location
+                .into_location(&self.get_encoding(), &doc.content),
+        )
+        .into())
     }
 
     fn inlay_hint(&self, params: InlayHintParams) -> Result<LSPResponse, LSPError> {
