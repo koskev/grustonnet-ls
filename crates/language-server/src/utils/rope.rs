@@ -14,6 +14,7 @@ pub trait RopeHelper {
     // Gets the next non whitspace character before index
     fn get_prev_non_whitespace(&self, index: usize) -> usize;
     fn get_index(&self, loc: Position) -> usize;
+    fn try_get_index(&self, loc: Position) -> Result<usize>;
     fn remove_line(&mut self, line: usize) -> Result<()>;
     fn get_next_newline(&self, index: usize) -> usize;
 }
@@ -57,6 +58,9 @@ impl RopeHelper for Rope {
 
     fn get_index(&self, loc: Position) -> usize {
         self.line_to_char(loc.line as usize) + loc.character as usize
+    }
+    fn try_get_index(&self, loc: Position) -> Result<usize> {
+        Ok(self.try_line_to_char(loc.line as usize)? + loc.character as usize)
     }
 
     fn get_location_from_byte(&self, byte_index: usize) -> Option<Position> {

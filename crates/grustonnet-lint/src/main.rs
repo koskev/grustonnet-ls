@@ -146,8 +146,14 @@ async fn main() -> Result<()> {
         for diag in &diags {
             let source = content.clone();
             let rope = Rope::from_str(&source);
-            let start = rope.get_index(diag.diagnostics.range.start);
-            let end = rope.get_index(diag.diagnostics.range.end);
+            // Just use 0 if we get an error. Go-Jsonnet likes to give ranges that are not inside
+            // the file
+            let start = rope
+                .try_get_index(diag.diagnostics.range.start)
+                .unwrap_or_default();
+            let end = rope
+                .try_get_index(diag.diagnostics.range.end)
+                .unwrap_or_default();
             let fix_text = if !diag.code_actions.is_empty() {
                 Some(" (fix available in language server)".to_string())
             } else {
