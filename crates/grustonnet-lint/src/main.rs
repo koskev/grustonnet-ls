@@ -103,7 +103,10 @@ async fn main() -> Result<()> {
             if path.is_dir() {
                 glob::glob(&format!(
                     "{}/**/*.*sonnet",
-                    path.to_str().expect("invalid path string")
+                    path.to_str()
+                        .expect("invalid path string")
+                        .strip_suffix("/")
+                        .expect("unable to strip /")
                 ))
                 .expect("Unable to execute glob")
                 .filter_map(|g| {
@@ -119,6 +122,7 @@ async fn main() -> Result<()> {
             }
         })
         .collect();
+    log::debug!("Paths to check {:?}", paths);
     let server = JsonnetServer::default();
     server
         .configuration

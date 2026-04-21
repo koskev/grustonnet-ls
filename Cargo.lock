@@ -814,6 +814,7 @@ dependencies = [
  "glob",
  "grustonnet-ls-lib",
  "language-server",
+ "log",
  "lsp-types",
  "miette",
  "ropey",
