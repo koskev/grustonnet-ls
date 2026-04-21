@@ -138,58 +138,59 @@ async fn main() -> Result<()> {
         .jsonnet
         .set_config(&server.configuration.read_or_panic().jsonnet);
     let filter = JsonnetDiagnosticFilter::new(server.cache.clone());
-    let mut code_climates = vec![];
-    for path in &paths {
-        let uri = Uri::from_path(path).expect("invalid uri");
-        let diags = server.get_diagnostics(&uri);
-        let diags = filter.filter_diagnostics(&uri, diags);
-        let content = std::fs::read_to_string(path).expect("invalid path");
-        if !diags.is_empty() {
-            eprintln!("Lint results for {:?}", path);
-        }
-        for diag in &diags {
-            let source = content.clone();
-            let rope = Rope::from_str(&source);
-            // Just use 0 if we get an error. Go-Jsonnet likes to give ranges that are not inside
-            // the file
-            let start = rope
-                .try_get_index(diag.diagnostics.range.start)
-                .unwrap_or_default();
-            let end = rope
-                .try_get_index(diag.diagnostics.range.end)
-                .unwrap_or_default();
-            let fix_text = if !diag.code_actions.is_empty() {
-                Some(" (fix available in language server)".to_string())
-            } else {
-                None
-            };
-            let mut miette_diag = miette::MietteDiagnostic::new("Linter result");
-            miette_diag.labels = Some(vec![LabeledSpan::at(
-                start..end,
-                format!(
-                    "{}{}",
-                    diag.diagnostics.message.clone(),
-                    fix_text.unwrap_or_default()
-                ),
-            )]);
-            let severity: Severity = diag
-                .diagnostics
-                .severity
-                .unwrap_or(DiagnosticSeverity::ERROR)
-                .into();
-            if severity > args.severity_threshold.clone().unwrap_or_default() {
-                continue;
+    let code_climates: Vec<CodeClimate> = paths
+        .iter()
+        .flat_map(|path| {
+            let uri = Uri::from_path(path).expect("invalid uri");
+            let diags = server.get_diagnostics(&uri);
+            let diags = filter.filter_diagnostics(&uri, diags);
+            let content = std::fs::read_to_string(path).expect("invalid path");
+            if !diags.is_empty() {
+                eprintln!("Lint results for {:?}", path);
             }
-            miette_diag.severity = Some(severity.into());
-            let report = miette::Report::from(miette_diag).with_source_code(source);
-            eprintln!("{:?}", report)
-        }
-        code_climates.extend(
+            for diag in &diags {
+                let source = content.clone();
+                let rope = Rope::from_str(&source);
+                // Just use 0 if we get an error. Go-Jsonnet likes to give ranges that are not inside
+                // the file
+                let start = rope
+                    .try_get_index(diag.diagnostics.range.start)
+                    .unwrap_or_default();
+                let end = rope
+                    .try_get_index(diag.diagnostics.range.end)
+                    .unwrap_or_default();
+                let fix_text = if !diag.code_actions.is_empty() {
+                    Some(" (fix available in language server)".to_string())
+                } else {
+                    None
+                };
+                let mut miette_diag = miette::MietteDiagnostic::new("Linter result");
+                miette_diag.labels = Some(vec![LabeledSpan::at(
+                    start..end,
+                    format!(
+                        "{}{}",
+                        diag.diagnostics.message.clone(),
+                        fix_text.unwrap_or_default()
+                    ),
+                )]);
+                let severity: Severity = diag
+                    .diagnostics
+                    .severity
+                    .unwrap_or(DiagnosticSeverity::ERROR)
+                    .into();
+                if severity > args.severity_threshold.clone().unwrap_or_default() {
+                    continue;
+                }
+                miette_diag.severity = Some(severity.into());
+                let report = miette::Report::from(miette_diag).with_source_code(source);
+                eprintln!("{:?}", report)
+            }
             diags
                 .iter()
-                .map(|diag| CodeClimate::from_diagnostics_result(diag.clone(), &uri)),
-        );
-    }
+                .map(|diag| CodeClimate::from_diagnostics_result(diag.clone(), &uri))
+                .collect::<Vec<_>>()
+        })
+        .collect();
 
     if let Some(quality_file) = args.quality_file {
         let file = File::create(quality_file)?;
