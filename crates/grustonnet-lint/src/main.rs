@@ -102,12 +102,10 @@ async fn main() -> Result<()> {
         .iter()
         .flat_map(|path| {
             if path.is_dir() {
+                let path_str = path.to_str().expect("invalid path string");
                 glob::glob(&format!(
                     "{}/**/*.*sonnet",
-                    path.to_str()
-                        .expect("invalid path string")
-                        .strip_suffix("/")
-                        .expect("unable to strip /")
+                    path_str.strip_suffix("/").unwrap_or(path_str)
                 ))
                 .expect("Unable to execute glob")
                 .filter_map(|g| {
