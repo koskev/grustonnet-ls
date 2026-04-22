@@ -149,7 +149,7 @@ impl<'a> ReferenceHandler<'a> {
             .filter_map(|range| {
                 // FIXME: Correct encoding
                 let doc = self.cache.get_document(&range.uri).ok()?;
-                Some(range.into_location(&PositionEncodingKind::UTF8, &doc.content))
+                Some(range.into_location(&PositionEncodingKind::UTF16, &doc.content))
             })
             .collect();
 

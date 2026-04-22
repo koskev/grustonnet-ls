@@ -93,6 +93,8 @@ pub struct JsonnetServer {
     pub diagnostics_queue: Option<DiagnosticsQueue<JsonnetDiagnosticFilter>>,
 
     pub full_sync: bool,
+
+    pub init_params: Arc<RwLock<InitializeParams>>,
 }
 
 impl JsonnetServer {
@@ -215,7 +217,7 @@ impl LSPServer for JsonnetServer {
     }
 
     fn handle_init_parameters(&self, params: InitializeParams) {
-        let workspaces = params.workspace_folders.unwrap_or_default();
+        let workspaces = params.workspace_folders.clone().unwrap_or_default();
 
         if let Some(workspace) = workspaces.first() {
             // TODO: Support multiple workspaces?
@@ -226,6 +228,7 @@ impl LSPServer for JsonnetServer {
                     .expect("Unable to load workspace directory"),
             );
         }
+        *self.init_params.write_or_panic() = params;
         if let Some(task_queue) = self.diagnostics_queue.clone() {
             rayon::spawn(move || {
                 task_queue.run();
@@ -240,6 +243,21 @@ impl LSPServer for JsonnetServer {
     }
 
     fn get_capabilities(&self) -> ServerCapabilities {
+        let supported_encodings = self
+            .init_params
+            .read_or_panic()
+            .capabilities
+            .general
+            .clone()
+            .unwrap_or_default()
+            .position_encodings
+            .unwrap_or_default();
+        // Prefer utf8 encoding, since it is way easier
+        let encoding = if supported_encodings.contains(&PositionEncodingKind::UTF8) {
+            Some(PositionEncodingKind::UTF8)
+        } else {
+            None
+        };
         ServerCapabilities {
             text_document_sync: Some(lsp_types::TextDocumentSyncCapability::Options(
                 TextDocumentSyncOptions {
@@ -279,9 +297,7 @@ impl LSPServer for JsonnetServer {
                 trigger_characters: Some(vec!["(".into(), ",".into()]),
                 ..Default::default()
             }),
-            // FIXME: This violates the lsp!!
-            // UTF-16 has to be supported and the client capabilities must be checked first!!
-            position_encoding: Some(PositionEncodingKind::UTF8),
+            position_encoding: encoding,
             ..Default::default()
         }
     }
