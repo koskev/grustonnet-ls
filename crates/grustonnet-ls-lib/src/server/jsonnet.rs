@@ -36,7 +36,7 @@ use lsp_types::{
     SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp, SignatureHelpOptions,
     SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, Uri,
 };
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use strum::IntoEnumIterator;
 
 use crate::{
@@ -121,7 +121,7 @@ impl JsonnetServer {
     pub fn get_diagnostics(&self, uri: &Uri) -> Vec<DiagnosticsResult> {
         let diags = self.get_diagnostics_provider();
         diags
-            .iter()
+            .par_iter()
             .flat_map(|diag| diag.diagnostics(uri))
             .collect()
     }
