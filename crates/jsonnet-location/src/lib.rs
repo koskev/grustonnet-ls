@@ -27,7 +27,7 @@ pub struct LocationRange {
 pub struct Location {
     /// The line beginning at 1
     pub line: i32,
-    /// The character index (independent of encoding) beginning at 1
+    /// The byte offset beginning at 1 (yes not the column despite the name)
     pub column: i32,
 }
 
