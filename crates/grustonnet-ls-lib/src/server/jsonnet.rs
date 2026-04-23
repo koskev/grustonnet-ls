@@ -496,14 +496,25 @@ impl LSPServer for JsonnetServer {
             .cache
             .get_document(&params.text_document_position_params.text_document.uri)?;
 
-        let info = DefinitionProvider::new(&self.cache).definition(
+        let mut definitions = vec![];
+        if let Ok(info) = DefinitionProvider::new(&self.cache).definition(
             &params.text_document_position_params.text_document.uri,
             pos.into_location(&self.get_encoding(), &doc.content),
-        )?;
+        ) {
+            definitions.push(info);
+        };
 
-        Ok(GotoDefinitionResponse::Scalar(
-            info.location
-                .into_location(&self.get_encoding(), &doc.content),
+        Ok(GotoDefinitionResponse::Array(
+            definitions
+                .into_iter()
+                .filter_map(|def| {
+                    let target_doc = self.cache.get_document(&def.location.uri).ok()?;
+                    Some(
+                        def.location
+                            .into_location(&self.get_encoding(), &target_doc.content),
+                    )
+                })
+                .collect(),
         )
         .into())
     }

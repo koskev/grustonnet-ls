@@ -78,6 +78,19 @@ impl DefinitionTestCase {
                 );
                 assert_eq!(loc.range.start, self.target);
             }
+            GotoDefinitionResponse::Array(loc) => {
+                assert_eq!(
+                    loc.len(),
+                    1,
+                    "Currently only locations with a length of 1 are supported"
+                );
+                assert_eq!(
+                    loc[0].uri,
+                    Uri::from_path(self.target_file.clone().unwrap_or(self.filename.clone()))
+                        .unwrap(),
+                );
+                assert_eq!(loc[0].range.start, self.target);
+            }
             _ => panic!("Not supported"),
         }
     }
