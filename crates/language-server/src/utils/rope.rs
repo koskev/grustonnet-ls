@@ -9,7 +9,7 @@ use ropey::Rope;
 
 pub trait RopeHelper {
     fn replace_get_end(&mut self, old: &str, new: &str) -> Option<Position>;
-    fn get_location_from_byte(&self, byte_index: usize) -> Option<Position>;
+    fn get_location_from_byte(&self, char_idx: usize) -> Option<Position>;
     fn get_location(&self, character: usize) -> Option<Position>;
     // Gets the next non whitspace character before index
     fn get_prev_non_whitespace(&self, index: usize) -> usize;
@@ -35,11 +35,11 @@ impl RopeHelper for Rope {
         Ok(())
     }
 
-    fn get_prev_non_whitespace(&self, index: usize) -> usize {
-        let mut non_whitespace_idx = index;
-        for (i, prev_char) in self.chars_at(index).reversed().enumerate() {
+    fn get_prev_non_whitespace(&self, char_idx: usize) -> usize {
+        let mut non_whitespace_idx = char_idx;
+        for (i, prev_char) in self.chars_at(char_idx).reversed().enumerate() {
             if !prev_char.is_whitespace() {
-                non_whitespace_idx = index - i - 1;
+                non_whitespace_idx = char_idx - i - 1;
                 break;
             }
         }
@@ -57,10 +57,10 @@ impl RopeHelper for Rope {
     }
 
     fn get_index(&self, loc: Position) -> usize {
-        self.line_to_char(loc.line as usize) + loc.character as usize
+        self.try_get_index(loc).expect("Invalid position")
     }
     fn try_get_index(&self, loc: Position) -> Result<usize> {
-        Ok(self.try_line_to_char(loc.line as usize)? + loc.character as usize)
+        Ok(self.try_line_to_char(loc.line as usize)? + self.byte_to_char(loc.character as usize))
     }
 
     fn get_location_from_byte(&self, byte_index: usize) -> Option<Position> {
