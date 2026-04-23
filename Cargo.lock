@@ -2728,7 +2728,7 @@ dependencies = [
 [[package]]
 name = "tree-sitter-jsonnet"
 version = "0.0.1"
-source = "git+https://github.com/koskev/tree-sitter-jsonnet#c337456c4a08b721d1de2309c5dab51699c20b26"
+source = "git+https://github.com/koskev/tree-sitter-jsonnet#2d71ee158ef6eac51262b6d0adc52bc36d30fe10"
 dependencies = [
  "cc",
  "tree-sitter-language",
