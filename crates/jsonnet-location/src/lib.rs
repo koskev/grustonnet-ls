@@ -148,15 +148,16 @@ impl Location {
         encoding: &PositionEncodingKind,
         content: &str,
     ) -> lsp_types::Position {
-        let rope = Rope::from_str(content);
         lsp_types::Position {
             line: self.line.saturating_sub(1) as u32,
             character: match encoding {
                 x if *x == PositionEncodingKind::UTF8 => {
-                    rope.char_to_byte(self.column as usize) as u32
+                    // Column is already in bytes
+                    self.column as u32
                 }
                 x if *x == PositionEncodingKind::UTF16 => {
-                    rope.char_to_utf16_cu(self.column as usize) as u32
+                    let rope = Rope::from_str(content);
+                    rope.char_to_utf16_cu(rope.byte_to_char(self.column as usize)) as u32
                 }
                 _ => unimplemented!("Not supported"),
             }
@@ -171,8 +172,10 @@ impl Location {
         let rope = Rope::from_str(content);
         let rope = rope.line(pos.line as usize);
         let column = match encoding {
-            x if *x == PositionEncodingKind::UTF8 => rope.byte_to_char(pos.character as usize),
-            x if *x == PositionEncodingKind::UTF16 => rope.utf16_cu_to_char(pos.character as usize),
+            x if *x == PositionEncodingKind::UTF8 => pos.character as usize,
+            x if *x == PositionEncodingKind::UTF16 => {
+                rope.char_to_byte(rope.utf16_cu_to_char(pos.character as usize))
+            }
             _ => todo!("Not yet implemented"),
         };
         Self {

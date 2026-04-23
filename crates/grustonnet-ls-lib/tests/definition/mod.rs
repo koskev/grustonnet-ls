@@ -574,3 +574,57 @@ fn double_assert_after() {
     }
     .check();
 }
+
+#[test]
+fn encoding_var() {
+    DefinitionTestCase {
+        filename: "testdata/definition/encoding.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 15,
+        },
+        target: Position {
+            line: 2,
+            character: 2,
+        },
+        target_file: Some("testdata/definition/encoding.libsonnet".into()),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn encoding_literal() {
+    DefinitionTestCase {
+        filename: "testdata/definition/encoding.jsonnet".into(),
+        source: Position {
+            line: 3,
+            character: 15,
+        },
+        target: Position {
+            line: 3,
+            character: 2,
+        },
+        target_file: Some("testdata/definition/encoding.libsonnet".into()),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn encoding_after() {
+    DefinitionTestCase {
+        filename: "testdata/definition/encoding.jsonnet".into(),
+        source: Position {
+            line: 4,
+            character: 15,
+        },
+        target: Position {
+            line: 4,
+            character: 2,
+        },
+        target_file: Some("testdata/definition/encoding.libsonnet".into()),
+        ..Default::default()
+    }
+    .check();
+}
