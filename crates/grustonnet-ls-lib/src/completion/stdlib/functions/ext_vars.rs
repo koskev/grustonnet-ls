@@ -25,10 +25,12 @@ impl<'a> StdLibFunction for ExtVar<'a> {
         let conf = self.cache.ast_generator.jsonnet.get_config();
         let arg_node = params.first().ok_or(StdLibCallError::MissingArgument)?;
         if let NodeKind::LiteralString(name_node) = arg_node.node_kind.as_ref() {
-            let val = conf
-                .ext_code
-                .get(&name_node.value)
-                .ok_or(StdLibCallError::Unknown)?;
+            let val =
+                conf.ext_code
+                    .get(&name_node.value)
+                    .ok_or(StdLibCallError::InvalidArgument {
+                        reason: format!("Could not get extcode with name {}", name_node.value),
+                    })?;
             // Get ast snippet and add to stack
             let ext_node: Arc<Node> = self
                 .cache
