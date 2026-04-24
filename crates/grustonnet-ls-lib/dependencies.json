@@ -8,5 +8,10 @@
 		"name": "html.libsonnet",
 		"url": "https://raw.githubusercontent.com/google/jsonnet/v0.22.0/doc/_stdlib_gen/html.libsonnet",
 		"hash": "69f08864099f2d9ab2464c6ba321cf8495370016845c643cc6cd93ce5ae6000a"
+	},
+	{
+		"name": "std.libsonnet",
+		"url": "https://raw.githubusercontent.com/google/jsonnet/refs/tags/v0.22.0/stdlib/std.jsonnet",
+		"hash": "a80c64500331da5b699962dd6b81fb3a1af7067d8580470fe8a1728bf74877fe"
 	}
 ]

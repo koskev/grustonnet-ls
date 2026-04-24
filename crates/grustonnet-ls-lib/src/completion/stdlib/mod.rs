@@ -34,6 +34,8 @@ use thiserror::Error;
 
 pub mod functions;
 
+pub const STDLIB: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/gen/std.libsonnet"));
+
 #[derive(Error, Debug)]
 pub enum StdLibCallError {
     #[error("Missing argument")]
@@ -155,11 +157,11 @@ pub fn call_std_function(
         // mapWithKey
         // $objectFlatMerge
         _ => {
-            let stdlib = include_str!("./std.libsonnet");
+            // TODO: Only calculate this once
             let std_ast = cache
                 .ast_generator
                 .jsonnet
-                .get_ast_snippet_binary("std.libsonnet", stdlib)
+                .get_ast_snippet_binary("std.libsonnet", STDLIB)
                 .map_err(|e| StdLibCallError::Wrapped { error: Box::new(e) })?;
             let NodeKind::DesugaredObject(obj) = std_ast.node_kind.as_ref() else {
                 return Err(StdLibCallError::Unknown);
