@@ -12,6 +12,39 @@ This repository contains 3 components:
 | grustonnet-debugger | A jsonnet debugger using DAP |
 
 
+## Editor Setup
+
+Take a look at the [Documentation](https://koskev.github.io/grustonnet-ls/editors.html) to learn how to set up your editor.
+
+TL;DR
+
+### Neovim
+
+```lua
+return {
+    cmd = { "grustonnet-ls" },
+    filetypes = { 'jsonnet', 'libsonnet' },
+    root_markers = { 'jsonnetfile.json', '.git' },
+    settings = {},
+}
+```
+
+### Helix
+
+```toml
+[language-server.grustonnet-ls]
+command = "grustonnet-ls"
+config = {}
+
+[[language]]
+name = "jsonnet"
+language-servers = ["grustonnet-ls"]
+```
+
+### VSCode
+
+In VSCodium just install the `grustonnet` plugin. For VSCode add the openvsx marketplace or head to the plugin [releases page](https://github.com/koskev/vscode-grustonnet/releases) and install it manually.
+
 ## Roadmap
 
 * [-] Completion
