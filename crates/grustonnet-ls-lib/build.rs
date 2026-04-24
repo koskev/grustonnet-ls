@@ -11,29 +11,21 @@ use std::{
 
 use jsonnet_bridge::go::{ASTBridge, ASTBridgeImpl, EvaluateParams};
 use jsonnet_std_docs::StdLib;
+use serde::Deserialize;
 use sha2::{Digest, Sha256};
 
 const STDLIB_FILE: &str = "stdlib-content.jsonnet";
 
-fn get_stdlib_urls(version: &str) -> Vec<(String, String, String)> {
-    vec![
-        (
-            STDLIB_FILE.to_string(),
-            format!(
-                "https://raw.githubusercontent.com/google/jsonnet/{}/doc/_stdlib_gen/stdlib-content.jsonnet",
-                version
-            ),
-            "7ab7e9cf9d441166f67d06117237fe2405d4e3014182fe3a22436bbc151e5191".into(),
-        ),
-        (
-            "html.libsonnet".to_string(),
-            format!(
-                "https://raw.githubusercontent.com/google/jsonnet/{}/doc/_stdlib_gen/html.libsonnet",
-                version
-            ),
-            "69f08864099f2d9ab2464c6ba321cf8495370016845c643cc6cd93ce5ae6000a".into(),
-        ),
-    ]
+#[derive(Debug, Deserialize)]
+struct Dependency {
+    name: String,
+    url: String,
+    hash: String,
+}
+
+fn get_stdlib_urls() -> Vec<Dependency> {
+    let file = fs::File::open("./dependencies.json").expect("unable to read dependency file");
+    serde_json::from_reader(file).expect("the dependency file is in the wrong format")
 }
 
 fn calculate_sha256(file_path: impl AsRef<Path>) -> io::Result<String> {
@@ -63,17 +55,17 @@ fn build_stdlib() {
     let gen_dir = format!("{root_dir}/gen");
     let gen_path = Path::new(&gen_dir);
     let _ = fs::create_dir(gen_path);
-    let urls = get_stdlib_urls("v0.22.0");
-    for (name, url, hash) in urls {
-        let url_path = gen_path.join(name);
+    let dependencies = get_stdlib_urls();
+    for dep in dependencies {
+        let url_path = gen_path.join(dep.name);
 
         let calculated_hash = calculate_sha256(&url_path).unwrap_or("".into());
-        if calculated_hash != hash {
+        if calculated_hash != dep.hash {
             println!(
                 "Downloading files due to different hashes.\nGot: {}.\nExpected: {}",
-                calculated_hash, hash
+                calculated_hash, dep.hash
             );
-            let content = ureq::get(url)
+            let content = ureq::get(dep.url)
                 .call()
                 .expect("Unable to download stdlib")
                 .body_mut()
@@ -81,10 +73,10 @@ fn build_stdlib() {
                 .expect("Unable to get body of stdlib");
             fs::write(&url_path, content).expect("Unable to write stdlib");
             let calculated_hash = calculate_sha256(&url_path).unwrap_or("".into());
-            if calculated_hash != hash {
+            if calculated_hash != dep.hash {
                 panic!(
                     "Unable to verify hash for {:?}.\nExpected: {}\nGot: {}",
-                    url_path, hash, calculated_hash
+                    url_path, dep.hash, calculated_hash
                 );
             }
         }

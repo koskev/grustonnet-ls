@@ -1,6 +1,7 @@
 {
   inputs,
   self,
+  lib,
   ...
 }:
 {
@@ -15,16 +16,18 @@
     let
 
       naersk' = pkgs.callPackage inputs.naersk { };
-      jsonnetVersion = "v0.22.0";
-      stdlib-content = pkgs.fetchurl {
-        url = "https://raw.githubusercontent.com/google/jsonnet/${jsonnetVersion}/doc/_stdlib_gen/stdlib-content.jsonnet";
-        hash = "sha256-erfpz51EEWb2fQYRcjf+JAXU4wFBgv46IkNrvBUeUZE=";
-      };
-
-      stdlib-html = pkgs.fetchurl {
-        url = "https://raw.githubusercontent.com/google/jsonnet/${jsonnetVersion}/doc/_stdlib_gen/html.libsonnet";
-        hash = "sha256-afCIZAmfLZqyRkxroyHPhJU3ABaEXGQ8xs2TzlrmAAo=";
-      };
+      depFile = builtins.fromJSON (builtins.readFile ./../crates/grustonnet-ls-lib/dependencies.json);
+      deps = map (dep: {
+        inherit (dep) name;
+        file = pkgs.fetchurl {
+          inherit (dep) url;
+          hash = builtins.convertHash {
+            inherit (dep) hash;
+            toHashFormat = "sri";
+            hashAlgo = "sha256";
+          };
+        };
+      }) depFile;
 
       mkGrustonnet =
         {
@@ -46,8 +49,7 @@
 
             # Download stdlib packages as they are otherwise downloaded by `build.rs`
             mkdir -p ./crates/grustonnet-ls-lib/gen
-            cp ${stdlib-content} ./crates/grustonnet-ls-lib/gen/stdlib-content.jsonnet
-            cp ${stdlib-html} ./crates/grustonnet-ls-lib/gen/html.libsonnet
+            ${lib.join "\n" (map (dep: "cp ${dep.file} ./crates/grustonnet-ls-lib/gen/${dep.name}") deps)}
           '';
 
           nativeBuildInputs = sharedNativeBuildInputs;

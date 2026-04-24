@@ -1,0 +1,12 @@
+[
+	{
+		"name": "stdlib-content.jsonnet",
+		"url": "https://raw.githubusercontent.com/google/jsonnet/v0.22.0/doc/_stdlib_gen/stdlib-content.jsonnet",
+		"hash": "7ab7e9cf9d441166f67d06117237fe2405d4e3014182fe3a22436bbc151e5191"
+	},
+	{
+		"name": "html.libsonnet",
+		"url": "https://raw.githubusercontent.com/google/jsonnet/v0.22.0/doc/_stdlib_gen/html.libsonnet",
+		"hash": "69f08864099f2d9ab2464c6ba321cf8495370016845c643cc6cd93ce5ae6000a"
+	}
+]
