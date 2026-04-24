@@ -23,39 +23,10 @@ struct Dependency {
     hash: String,
 }
 
-fn get_stdlib_urls() -> Vec<Dependency> {
+fn download_dependencies(gen_path: &Path) {
     let file = fs::File::open("./dependencies.json").expect("unable to read dependency file");
-    serde_json::from_reader(file).expect("the dependency file is in the wrong format")
-}
-
-fn calculate_sha256(file_path: impl AsRef<Path>) -> io::Result<String> {
-    let file = File::open(file_path)?;
-    let mut reader = BufReader::new(file);
-    let mut hasher = Sha256::new();
-    let mut buffer = [0u8; 8192];
-
-    loop {
-        let count = reader.read(&mut buffer)?;
-        if count == 0 {
-            break;
-        }
-        hasher.update(&buffer[..count]);
-    }
-
-    Ok(hasher
-        .finalize()
-        .iter()
-        .map(|b| format!("{:02x}", b))
-        .collect())
-}
-
-fn build_stdlib() {
-    // Use gen dir to avoid downloading the file again after each change
-    let root_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR undefined");
-    let gen_dir = format!("{root_dir}/gen");
-    let gen_path = Path::new(&gen_dir);
-    let _ = fs::create_dir(gen_path);
-    let dependencies = get_stdlib_urls();
+    let dependencies: Vec<Dependency> =
+        serde_json::from_reader(file).expect("the dependency file is in the wrong format");
     for dep in dependencies {
         let url_path = gen_path.join(dep.name);
 
@@ -81,6 +52,30 @@ fn build_stdlib() {
             }
         }
     }
+}
+
+fn calculate_sha256(file_path: impl AsRef<Path>) -> io::Result<String> {
+    let file = File::open(file_path)?;
+    let mut reader = BufReader::new(file);
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 8192];
+
+    loop {
+        let count = reader.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        hasher.update(&buffer[..count]);
+    }
+
+    Ok(hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect())
+}
+
+fn build_stdlib(gen_path: &Path) {
     let content = include_str!("stdlib.jsonnet");
     let info = ASTBridgeImpl::evaluate_snippet(
         STDLIB_FILE.to_string(),
@@ -127,5 +122,11 @@ fn build_stdlib() {
 }
 
 fn main() {
-    build_stdlib();
+    // Use gen dir to avoid downloading the file again after each change
+    let root_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR undefined");
+    let gen_dir = format!("{root_dir}/gen");
+    let gen_path = Path::new(&gen_dir);
+    let _ = fs::create_dir(gen_path);
+    download_dependencies(gen_path);
+    build_stdlib(gen_path);
 }
