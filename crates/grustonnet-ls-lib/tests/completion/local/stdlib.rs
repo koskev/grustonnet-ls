@@ -120,7 +120,6 @@ fn get_local() {
 }
 
 #[test]
-#[ignore = "not implemented"]
 fn get_direct() {
     CompletionTestCase {
         filename: "testdata/complete/std/functions/get.jsonnet".into(),

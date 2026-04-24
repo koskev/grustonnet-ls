@@ -84,7 +84,7 @@ impl<'a> FallibleIterator for CallStackIter<'a> {
     type Error = CallStackError;
 
     fn next(&mut self) -> Result<Option<Self::Item>, Self::Error> {
-        let Some(call_node) = self.call_stack.stack.pop() else {
+        let Some(mut call_node) = self.call_stack.stack.pop() else {
             return Ok(None);
         };
         self.iterations += 1;
@@ -98,6 +98,20 @@ impl<'a> FallibleIterator for CallStackIter<'a> {
         }
 
         log::trace!("New call node: {}", call_node.node_kind);
+        if let NodeKind::Var(possible_std_var) = call_node.node_kind.as_ref()
+            && possible_std_var.is_std()
+            && self.call_stack.stack.len() >= 2
+            && let Some(_index_node) = self.call_stack.stack.pop()
+            && let Some(apply_node) = self.call_stack.stack.pop()
+        {
+            // Call node is currently the std var itself
+            // Then remove the index
+            // Put the apply on the call node
+            call_node = apply_node
+            // TODO: Burn this abomination with fire!!!
+            // We "fix" the call here by removing the "std" var + the index and still keep the
+            // apply. Then later we do the reverse
+        }
         // Get the next object to complete. If we don't have a base object: Just use the call node
         // if we have a base object: Check for the DesugaredObject fields and get the correct one
         let to_complete_object = match &self.base_object {

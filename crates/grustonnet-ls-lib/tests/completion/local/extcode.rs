@@ -33,7 +33,6 @@ fn ext_code_var() {
 }
 
 #[test]
-#[ignore = "not implemented yet"]
 fn ext_code_direct() {
     CompletionTestCase {
         filename: "testdata/complete/extvar/extcode.jsonnet".into(),
