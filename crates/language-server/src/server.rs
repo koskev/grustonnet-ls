@@ -23,12 +23,12 @@ use lsp_types::{
     WorkDoneProgressEnd, WorkDoneProgressReport,
     notification::{
         DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument,
-        DidSaveTextDocument, Notification as NotificationTrait, Progress,
+        DidRenameFiles, DidSaveTextDocument, Notification as NotificationTrait, Progress,
     },
     request::{
         CodeActionRequest, Completion, DocumentDiagnosticRequest, ExecuteCommand, Formatting,
         GotoDefinition, InlayHintRequest, References, Rename, Request as RequestTrait,
-        SemanticTokensFullRequest, SignatureHelpRequest,
+        SemanticTokensFullRequest, SignatureHelpRequest, WillRenameFiles,
     },
 };
 use rand::Rng;
@@ -242,6 +242,7 @@ where
         req = lsp_handle_request!(self.server, semantic_tokens, SemanticTokensFullRequest, req);
         req = lsp_handle_request!(self.server, code_action, CodeActionRequest, req);
         req = lsp_handle_request!(self.server, signature_help, SignatureHelpRequest, req);
+        req = lsp_handle_request!(self.server, will_rename_files, WillRenameFiles, req);
 
         // Commands are mostly independent of the rest and might block -> We just start them in a
         // separate thread
@@ -284,6 +285,7 @@ where
         req = lsp_handle_notification!(self.server, did_save, DidSaveTextDocument, req);
         req = lsp_handle_notification!(self.server, did_open, DidOpenTextDocument, req);
         req = lsp_handle_notification!(self.server, did_close, DidCloseTextDocument, req);
+        req = lsp_handle_notification!(self.server, did_rename_files, DidRenameFiles, req);
 
         let _ = req;
         Err(LSPError {
@@ -451,11 +453,13 @@ pub trait LSPServer: Clone + Send + 'static {
     lsp_function_req!(execute_command, ExecuteCommand);
     lsp_function_req!(code_action, CodeActionRequest);
     lsp_function_req!(signature_help, SignatureHelpRequest);
+    lsp_function_req!(will_rename_files, WillRenameFiles);
 
     // Notifications
 
     lsp_function_not!(did_change_configuration, DidChangeConfiguration);
     lsp_function_not!(did_save, DidSaveTextDocument);
+    lsp_function_not!(did_rename_files, DidRenameFiles);
 
     fn did_close(&self, params: DidCloseTextDocumentParams) -> Result<()> {
         self.cache().remove_document(&params.text_document.uri);
