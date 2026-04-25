@@ -826,7 +826,17 @@ impl LSPServer for JsonnetServer {
                                     .unwrap_or(stripped),
                             )
                         })
-                        .min()
+                        // Get the path that is the shortest
+                        .reduce(|acc, path| {
+                            if acc.is_empty()
+                                || acc.len() > path.len()
+                                || acc.len() == path.len() && acc > path
+                            {
+                                path
+                            } else {
+                                acc
+                            }
+                        })
                         .or_else(|| {
                             // Fallback: use relative path
                             let new_uri = Uri::from_str(&rename.new_uri).ok()?;
