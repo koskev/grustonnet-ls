@@ -604,7 +604,7 @@ impl LSPServer for JsonnetServer {
             params.text_document_position.position.into(),
             &params.text_document_position.text_document.uri,
             params.context.include_declaration,
-            refernce_types,
+            &refernce_types,
         )?;
         log::debug!("Finding references took {:?}", start.elapsed());
 

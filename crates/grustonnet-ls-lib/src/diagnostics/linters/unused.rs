@@ -19,7 +19,7 @@ use lsp_types::{
 
 use crate::{
     cache::JsonnetASTGenerator,
-    references::{ReferenceHandler, identifier::IdentifierReferences},
+    references::{ReferenceHandler, ReferenceProvider, identifier::IdentifierReferences},
 };
 
 pub struct UnusedDiagnostics {
@@ -123,11 +123,13 @@ impl UnusedDiagnostics {
 
         let search_paths = vec![];
         let provider = ReferenceHandler::new(&self.cache, &search_paths);
+        let reference_types: Vec<Box<dyn ReferenceProvider>> =
+            vec![Box::new(IdentifierReferences::new(self.cache.clone()))];
 
         Some(
             locals
                 .filter(|local| {
-                    if let Ok(res) = provider.references(local.location.begin.clone(), uri, true, vec![Box::new(IdentifierReferences::new(self.cache.clone()))])
+                    if let Ok(res) = provider.references(local.location.begin.clone(), uri, true, &reference_types )
                         && let Some(locations) = res
                         && locations.len() == 1
                     {

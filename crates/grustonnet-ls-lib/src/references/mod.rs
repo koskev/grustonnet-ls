@@ -96,7 +96,7 @@ impl<'a> ReferenceHandler<'a> {
         pos: Location,
         uri: &Uri,
         include_declaration: bool,
-        reference_providers: Vec<Box<dyn ReferenceProvider>>,
+        reference_providers: &[Box<dyn ReferenceProvider>],
     ) -> Result<Option<Vec<lsp_types::Location>>> {
         let goto_provider = DefinitionProvider::new(self.cache);
         let default_info = DefinitionInfo {

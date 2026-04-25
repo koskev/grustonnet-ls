@@ -11,7 +11,7 @@ use utils::RwLockPanic;
 use crate::{
     cache::JsonnetASTGenerator,
     diagnostics::JsonnetDiagnostics,
-    references::{ReferenceHandler, import::ImportReferences},
+    references::{ReferenceHandler, ReferenceProvider, import::ImportReferences},
 };
 
 pub struct UnusedFilesDiagnostics {
@@ -42,14 +42,11 @@ impl JsonnetDiagnostics for UnusedFilesDiagnostics {
             .jpaths
             .clone();
         let reference_handler = ReferenceHandler::new(&self.cache, &search_paths);
+        let reference_types: Vec<Box<dyn ReferenceProvider>> =
+            vec![Box::new(ImportReferences::new(self.cache.clone()))];
 
         let refs = reference_handler
-            .references(
-                Location::default(),
-                uri,
-                true,
-                vec![Box::new(ImportReferences::new(self.cache.clone()))],
-            )
+            .references(Location::default(), uri, true, &reference_types)
             .ok()?;
         // Include self reference to avoid false positives due to potential bugs
         if refs.unwrap_or_default().len() == 1 {
