@@ -89,7 +89,7 @@ In VSCodium just install the `grustonnet` plugin. For VSCode add the openvsx mar
     * [x] Import strings
     * Can find references for all identifiers we can goto
 * [x] Rename
-    * [ ] Rename imports if file is renamed
+    * [x] Rename imports if file is renamed
     * [ ] Rename file if import is renamed
     * Can rename all identifiers we can find the reference of
 * [x] Signature Help

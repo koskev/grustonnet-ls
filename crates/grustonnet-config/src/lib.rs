@@ -214,6 +214,10 @@ pub struct JsonnetConfig {
     #[default = false]
     /// Preload all jsonnet files in all jpaths to allow for faster cross file search
     pub preload_files: bool,
+
+    #[default = true]
+    /// Update imports if a file is moved
+    pub rename_imports: bool,
 }
 
 #[repr(C)]
