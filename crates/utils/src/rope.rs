@@ -98,7 +98,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use ropey::Rope;
 
-    use crate::utils::rope::RopeHelper;
+    use crate::rope::RopeHelper;
 
     #[test]
     fn test_wide_characters() {

@@ -1232,11 +1232,11 @@ name = "jsonnet-cst"
 version = "0.1.0"
 dependencies = [
  "jsonnet-location",
- "language-server",
  "log",
  "ropey",
  "tree-sitter",
  "tree-sitter-jsonnet",
+ "utils",
 ]
 
 [[package]]
@@ -1279,7 +1279,6 @@ dependencies = [
  "serde",
  "serde_json",
  "similar",
- "tree-sitter",
  "utils",
 ]
 
@@ -2886,8 +2885,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dunce",
+ "log",
  "lsp-types",
  "path-calculate",
+ "pretty_assertions",
+ "ropey",
+ "tree-sitter",
  "url",
 ]
 

@@ -34,12 +34,9 @@ use lsp_types::{
 use rand::Rng;
 use ropey::Rope;
 use serde::Serialize;
-use utils::MutexPanic;
+use utils::{MutexPanic, rope::RopeHelper};
 
-use crate::{
-    cache::{ASTGenerator, Cache},
-    utils::rope::RopeHelper,
-};
+use crate::cache::{ASTGenerator, Cache};
 
 macro_rules! lsp_function_req {
     ($name:ident, $req:ty) => {

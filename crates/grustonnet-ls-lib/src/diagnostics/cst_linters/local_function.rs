@@ -10,12 +10,12 @@ use jsonnet_location::Location;
 use language_server::{
     cache::Cache,
     diagnostics::{Diagnostics, DiagnosticsResult},
-    utils::cst::CstNodeHelper,
 };
 use lsp_types::{
     CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, Range, TextEdit, Uri, WorkspaceEdit,
 };
 use tree_sitter::{Query, QueryCursor, QueryMatch, StreamingIterator};
+use utils::cst::CstNodeHelper;
 
 use crate::cache::JsonnetASTGenerator;
 

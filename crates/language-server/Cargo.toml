@@ -16,8 +16,6 @@ pretty_assertions = { workspace = true }
 log = { workspace = true }
 ropey = { workspace = true }
 similar = "3.0.0"
-# For better external library support
-tree-sitter = ">=0.22.6"
 crossbeam = { workspace = true }
 rand = "0.10.0"
 mockall = "0.14.0"

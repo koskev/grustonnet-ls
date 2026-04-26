@@ -1,11 +1,12 @@
 use grustonnet_node::types::node_kind::NodeKind;
 use jsonnet_location::{FileRange, Location, Range};
-use language_server::{cache::Cache, utils::rope::RopeHelper};
+use language_server::cache::Cache;
 use lsp_types::Uri;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use ropey::Rope;
 #[cfg(feature = "tracing")]
 use tracy_client::{set_thread_name, span};
+use utils::rope::RopeHelper;
 
 use crate::{cache::JsonnetASTGenerator, references::ReferenceProvider};
 

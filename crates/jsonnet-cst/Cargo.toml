@@ -12,4 +12,4 @@ tree-sitter-jsonnet = {git = "https://github.com/koskev/tree-sitter-jsonnet"}
 jsonnet-location = { path = "../jsonnet-location"}
 ropey = { workspace = true }
 log = { workspace = true }
-language-server = { path = "../language-server"}
+utils.workspace = true

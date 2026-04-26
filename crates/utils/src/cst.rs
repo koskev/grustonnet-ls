@@ -7,7 +7,7 @@ use lsp_types::Position;
 use ropey::Rope;
 use tree_sitter::{Node, Point};
 
-use crate::utils::rope::RopeHelper;
+use crate::rope::RopeHelper;
 
 pub trait CstNodeHelper {
     fn get_name(&self, content: &str) -> Option<String>;

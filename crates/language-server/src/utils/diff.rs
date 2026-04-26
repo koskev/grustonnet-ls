@@ -6,8 +6,7 @@
 use lsp_types::{Range, TextEdit};
 use ropey::Rope;
 use similar::Algorithm;
-
-use crate::utils::rope::RopeHelper;
+use utils::rope::RopeHelper;
 
 pub fn get_text_edits(old: &str, new: &str) -> Vec<TextEdit> {
     let operations = similar::capture_diff_slices(Algorithm::Myers, old.as_bytes(), new.as_bytes());

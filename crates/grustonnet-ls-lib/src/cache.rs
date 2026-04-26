@@ -8,8 +8,9 @@ use std::{collections::VecDeque, sync::Arc};
 use anyhow::{Result, anyhow};
 use grustonnet_node::types::node::Node;
 use jsonnet_bridge::evaluate_error::EvaluateErrorType;
-use language_server::{cache::ASTGenerator, utils::rope::RopeHelper};
+use language_server::cache::ASTGenerator;
 use ropey::Rope;
+use utils::rope::RopeHelper;
 
 use crate::bridge::{GenerateAST, GoJsonnet};
 

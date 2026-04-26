@@ -26,7 +26,7 @@ use language_server::{
     server::{
         LSPConnection, LSPError, LSPResponse, LSPServer, WorkProgressSender, get_response_error,
     },
-    utils::{cst::CstNodeHelper, diff},
+    utils::diff,
 };
 use lsp_types::{
     CodeActionOrCommand, CodeActionProviderCapability, CompletionList, CompletionOptions,
@@ -43,6 +43,7 @@ use lsp_types::{
 };
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use strum::IntoEnumIterator;
+use utils::cst::CstNodeHelper;
 
 use crate::{
     bridge::GenerateAST,
@@ -77,6 +78,7 @@ use crate::{
         },
     },
     inlay_hint::{Inlay, apply::ApplyInlay, debug::DebugInlay, index::IndexInlay, name::NameInlay},
+    lib_utils,
     node::NodeHelper,
     references::{
         ReferenceHandler, ReferenceProvider, identifier::IdentifierReferences,
@@ -84,7 +86,6 @@ use crate::{
     },
     rename::RenameProvider,
     semantic_tokens::{self, SemanticDataList},
-    utils,
 };
 
 #[derive(Default, Clone)]
@@ -365,7 +366,7 @@ impl LSPServer for JsonnetServer {
 
         if new_config.jsonnet.preload_files {
             let eval_params = self.cache.ast_generator.jsonnet.get_evaluate_params(".");
-            let all_files = utils::files::get_all_jsonnnet_files(&eval_params.jpaths);
+            let all_files = lib_utils::files::get_all_jsonnnet_files(&eval_params.jpaths);
             let cache = self.cache.clone();
             let sender = self.connection.connection.sender.clone();
             rayon::spawn(move || {

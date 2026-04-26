@@ -16,7 +16,7 @@ use tracy_client::span;
 use crate::{
     cache::JsonnetASTGenerator,
     definition::{DefinitionInfo, DefinitionProvider},
-    utils,
+    lib_utils,
 };
 
 pub mod identifier;
@@ -129,7 +129,7 @@ impl<'a> ReferenceHandler<'a> {
                 let files = if is_local {
                     vec![uri.clone()]
                 } else {
-                    utils::files::get_all_jsonnnet_files(self.search_paths)
+                    lib_utils::files::get_all_jsonnnet_files(self.search_paths)
                 };
                 log::debug!("Getting all files took {:?}", start.elapsed());
                 #[cfg(feature = "tracing")]

@@ -55,3 +55,4 @@ tracy-client = "0.18.2"
 tree-sitter = "0.26.0"
 walkdir = "2.5.0"
 url = "2.5.8"
+utils = { path = "crates/utils"}

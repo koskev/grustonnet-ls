@@ -14,14 +14,12 @@ use grustonnet_ls_lib::{
     diagnostics::filter::JsonnetDiagnosticFilter, server::jsonnet::JsonnetServer,
 };
 use language_server::diagnostics::DiagnosticFilter;
-use language_server::utils::rope::RopeHelper;
 use lsp_types::{DiagnosticSeverity, Uri};
 use miette::LabeledSpan;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use ropey::Rope;
 use rust2go_env::restart_with_fixed_env;
-use utils::RwLockPanic;
-use utils::uri::UriHelper;
+use utils::{RwLockPanic, rope::RopeHelper, uri::UriHelper};
 
 use crate::code_quality::CodeClimate;
 
