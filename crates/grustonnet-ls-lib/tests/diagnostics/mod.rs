@@ -20,6 +20,7 @@ pub use lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Uri};
 
 use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 
+pub mod conditional_parenthesis;
 pub mod docsonnet_default;
 pub mod dollar;
 pub mod empty;
@@ -71,6 +72,7 @@ fn disabled_diagnostics_config() -> DiagnosticConfig {
         unused_file: false,
         number_rounding: false,
         unknown_variable: false,
+        conditional_parenthesis: false,
     }
 }
 

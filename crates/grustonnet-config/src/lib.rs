@@ -143,6 +143,11 @@ pub struct DiagnosticConfig {
     /// Warns if a variable could not be found
     /// Still has problems if an object has multiple asserts or inside for loops
     pub unknown_variable: bool,
+
+    #[default = true]
+    /// Enable linting suggesting surrounding conditional in parenthesis if they contain a binary
+    /// operation
+    pub conditional_parenthesis: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]

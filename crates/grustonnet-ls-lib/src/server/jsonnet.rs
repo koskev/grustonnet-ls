@@ -57,6 +57,7 @@ use crate::{
     diagnostics::{
         ASTDiagnosticsHandler, JsonnetDiagnostics,
         cst_linters::{
+            conditional_parathesis::ConditionalParenthesis,
             docsonnet_val::DocsonnetDefaultDiagnostics, local_function::LocalFunctionDiagnostics,
         },
         eval::EvalDiagnostics,
@@ -190,6 +191,12 @@ impl JsonnetServer {
 
         if config.diagnostics.local_function {
             diags.push(Box::new(LocalFunctionDiagnostics {
+                cache: self.cache.clone(),
+            }));
+        }
+
+        if config.diagnostics.conditional_parenthesis {
+            diags.push(Box::new(ConditionalParenthesis {
                 cache: self.cache.clone(),
             }));
         }
