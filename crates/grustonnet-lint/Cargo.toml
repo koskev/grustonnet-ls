@@ -16,6 +16,7 @@ env_logger = { workspace = true }
 log.workspace = true
 rayon.workspace = true
 grustonnet-ls-lib = { path = "../grustonnet-ls-lib"}
+grustonnet-config = { path = "../grustonnet-config"}
 language-server = { path = "../language-server"}
 utils = { path = "../utils"}
 clap = { workspace = true, features = ["derive"] }

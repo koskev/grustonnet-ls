@@ -10,6 +10,7 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::Parser;
 use env_logger::Env;
+use grustonnet_config::Configuration;
 use grustonnet_ls_lib::{
     diagnostics::filter::JsonnetDiagnosticFilter, server::jsonnet::JsonnetServer,
 };
@@ -70,6 +71,9 @@ struct Args {
 
     #[arg(long, short)]
     severity_threshold: Option<Severity>,
+
+    #[arg(long, short)]
+    config_file: Option<String>,
 }
 
 #[tokio::main]
@@ -121,6 +125,14 @@ async fn main() -> Result<()> {
         .collect();
     log::debug!("Paths to check {:#?}", paths);
     let server = JsonnetServer::default();
+
+    if let Some(config_path) = args.config_file {
+        let file = std::fs::File::open(config_path).expect("unable to find provided config file");
+        let config: Configuration =
+            serde_json::from_reader(file).expect("config file is not in the correct format");
+        *server.configuration.write_or_panic() = config;
+    };
+
     server
         .configuration
         .write_or_panic()

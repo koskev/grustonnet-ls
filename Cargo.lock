@@ -812,6 +812,7 @@ dependencies = [
  "env_logger",
  "exec",
  "glob",
+ "grustonnet-config",
  "grustonnet-ls-lib",
  "language-server",
  "log",
