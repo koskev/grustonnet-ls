@@ -32,10 +32,15 @@ _: {
             nix2containerPkgs.nix2container.buildImage {
               name = "grustonnet-${name}";
               tag = "latest";
+              copyToRoot = pkgs.buildEnv {
+                name = "root";
+                paths = [ pkgs.bash ];
+                pathsToLink = [ "/bin" ];
+              };
               config = {
                 Cmd = [ "${binaries}/bin/grustonnet-${name}" ];
                 Env = [
-                  "PATH=${binaries}/bin:${pkgs.bash}/bin:${pkgs.coreutils}/bin"
+                  "PATH=${binaries}/bin:${pkgs.bash}/bin:${pkgs.coreutils}/bin:/bin"
                 ];
               };
             };
@@ -52,14 +57,19 @@ _: {
               name = "grustonnet";
               tag = "latest";
 
+              copyToRoot = pkgs.buildEnv {
+                name = "root";
+                paths = [ pkgs.bash ];
+                pathsToLink = [ "/bin" ];
+              };
+
               config = {
                 Cmd = [ "${binaries}/bin/grustonnet-lint" ];
                 Env = [
-                  "PATH=${binaries}/bin:${pkgs.bash}/bin:${pkgs.coreutils}/bin"
+                  "PATH=${binaries}/bin:${pkgs.bash}/bin:${pkgs.coreutils}/bin:/bin"
                 ];
               };
             };
-
         };
     };
 }
