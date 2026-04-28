@@ -35,11 +35,10 @@ use lsp_types::{
     FileOperationPattern, FileOperationPatternKind, FileOperationRegistrationOptions,
     GotoDefinitionParams, GotoDefinitionResponse, InitializeParams, InlayHint, InlayHintParams,
     OneOf, ParameterInformation, ParameterLabel, PositionEncodingKind,
-    RelatedFullDocumentDiagnosticReport, RenameOptions, SemanticTokens, SemanticTokensOptions,
+    RelatedFullDocumentDiagnosticReport, SemanticTokens, SemanticTokensOptions,
     SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelp, SignatureHelpOptions,
     SignatureInformation, TextDocumentSyncKind, TextDocumentSyncOptions, TextEdit, Uri,
-    WorkDoneProgressOptions, WorkspaceEdit, WorkspaceFileOperationsServerCapabilities,
-    WorkspaceServerCapabilities,
+    WorkspaceEdit, WorkspaceFileOperationsServerCapabilities, WorkspaceServerCapabilities,
 };
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use strum::IntoEnumIterator;
@@ -313,10 +312,7 @@ impl LSPServer for JsonnetServer {
                 }),
             ),
             references_provider: Some(OneOf::Left(true)),
-            rename_provider: Some(OneOf::Right(RenameOptions {
-                prepare_provider: Some(true),
-                work_done_progress_options: WorkDoneProgressOptions::default(),
-            })),
+            rename_provider: Some(OneOf::Left(true)),
             execute_command_provider: Some(ExecuteCommandOptions {
                 commands: Commands::iter().map(|c| c.to_string()).collect(),
                 ..Default::default()
