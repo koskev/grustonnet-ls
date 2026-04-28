@@ -107,8 +107,18 @@ impl Diagnostics for ConditionalParenthesis {
         let Some(tree) = new_tree(&doc.content) else {
             return results;
         };
-        let query_source = r#"(conditional (_) (binary (additive)) (binary (additive))?) @conditional
-"#;
+        let query_source = r#"
+            (conditional
+                (_)
+                (binary (additive))
+                (binary (additive))?
+            ) @conditional
+            (conditional
+                (_)
+                (implicit_plus)
+                (implicit_plus)?
+            ) @conditional
+            "#;
         let query = Query::new(&tree.language(), query_source).expect("BUG: Invalid query");
         let mut cursor = QueryCursor::new();
         let captures = cursor.matches(&query, tree.root_node(), doc.content.as_bytes());
