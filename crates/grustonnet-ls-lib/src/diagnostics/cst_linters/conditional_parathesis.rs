@@ -110,13 +110,14 @@ impl Diagnostics for ConditionalParenthesis {
         let query_source = r#"
             (conditional
                 (_)
-                (binary (additive))
-                (binary (additive))?
+                consequence: (_)
+                alternative: [(implicit_plus) (binary (additive))]
             ) @conditional
+
             (conditional
                 (_)
-                (implicit_plus)
-                (implicit_plus)?
+                consequence: [(implicit_plus) (binary (additive))]
+	            !alternative
             ) @conditional
             "#;
         let query = Query::new(&tree.language(), query_source).expect("BUG: Invalid query");
