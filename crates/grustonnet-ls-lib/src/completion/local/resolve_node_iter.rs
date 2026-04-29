@@ -373,12 +373,26 @@ impl<'a> ResolveNodeIter<'a> {
             NodeKind::SelfNode => self.handle_self_super(&current_node, false),
             NodeKind::Conditional(cond) => {
                 let resolved = cond.resolve().clone();
-                self.search_stack.push(resolved.clone());
-                // TODO: this breaks outer assert. Is it even needed?
-                //self.next_nodes.push(cond.cond.clone());
-                self.next_nodes.push(cond.branch_false.clone());
-                // TODO: handle both cases the same as a binary
-                Some(resolved)
+                let mut cond_stack = self.document_stack.clone();
+                cond_stack.push(cond.cond.clone());
+                let resolved_condition: Arc<Node> =
+                    CallStackIter::new(self.cache, &mut cond_stack)?.last().ok()??;
+                if let NodeKind::LiteralBoolean(resolved_bool) = resolved_condition.node_kind.as_ref() {
+                    if resolved_bool.value {
+                        self.search_stack.push(cond.branch_true.clone());
+                        Some(cond.branch_true.clone())
+                    } else {
+                        self.search_stack.push(cond.branch_false.clone());
+                        Some(cond.branch_false.clone())
+                    }
+                } else {
+                    self.search_stack.push(resolved.clone());
+                    // TODO: this breaks outer assert. Is it even needed?
+                    //self.next_nodes.push(cond.cond.clone());
+                    self.next_nodes.push(cond.branch_false.clone());
+                    // TODO: handle both cases the same as a binary
+                    Some(resolved)
+                }
             }
             NodeKind::Dollar => {
                 // Get the outer most object
