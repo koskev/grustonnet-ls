@@ -57,7 +57,7 @@ use crate::{
     diagnostics::{
         ASTDiagnosticsHandler, JsonnetDiagnostics,
         cst_linters::{
-            conditional_parathesis::ConditionalParenthesis,
+            conditional_parenthesis::ConditionalParenthesis,
             docsonnet_val::DocsonnetDefaultDiagnostics, local_function::LocalFunctionDiagnostics,
         },
         eval::EvalDiagnostics,
