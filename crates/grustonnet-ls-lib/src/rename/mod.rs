@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use anyhow::{Result, anyhow};
 use language_server::cache::Cache;
-use lsp_types::{RenameParams, TextEdit, Uri, WorkspaceEdit};
+use lsp_types::{PositionEncodingKind, RenameParams, TextEdit, Uri, WorkspaceEdit};
 
 use crate::{
     cache::JsonnetASTGenerator,
@@ -16,17 +16,19 @@ use crate::{
 
 pub struct RenameProvider<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
+    encoding: PositionEncodingKind,
 }
 
 impl<'a> RenameProvider<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
-        Self { cache }
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>, encoding: PositionEncodingKind) -> Self {
+        Self { cache, encoding }
     }
 }
 
 impl<'a> RenameProvider<'a> {
     pub fn rename(&self, params: RenameParams, search_paths: &[String]) -> Result<WorkspaceEdit> {
-        let reference_provider = ReferenceHandler::new(self.cache, search_paths);
+        let reference_provider =
+            ReferenceHandler::new(self.cache, search_paths, self.encoding.clone());
         let reference_types: Vec<Box<dyn ReferenceProvider>> =
             vec![Box::new(IdentifierReferences::new(self.cache.clone()))];
 

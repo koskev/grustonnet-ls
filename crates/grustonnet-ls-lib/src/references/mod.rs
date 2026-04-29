@@ -25,13 +25,19 @@ pub mod import;
 pub struct ReferenceHandler<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,
     pub search_paths: &'a [String],
+    pub encoding: PositionEncodingKind,
 }
 
 impl<'a> ReferenceHandler<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator>, search_paths: &'a [String]) -> Self {
+    pub fn new(
+        cache: &'a Cache<JsonnetASTGenerator>,
+        search_paths: &'a [String],
+        encoding: PositionEncodingKind,
+    ) -> Self {
         Self {
             cache,
             search_paths,
+            encoding,
         }
     }
 }
@@ -147,9 +153,8 @@ impl<'a> ReferenceHandler<'a> {
                 )
             })
             .filter_map(|range| {
-                // FIXME: Correct encoding
                 let doc = self.cache.get_document(&range.uri).ok()?;
-                Some(range.into_location(&PositionEncodingKind::UTF16, &doc.content))
+                Some(range.into_location(&self.encoding, &doc.content))
             })
             .collect();
 

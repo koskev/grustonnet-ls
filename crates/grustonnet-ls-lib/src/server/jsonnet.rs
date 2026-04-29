@@ -144,6 +144,7 @@ impl JsonnetServer {
         diags.push(Box::new(linters::unused::UnusedDiagnostics::new(
             self.cache.clone(),
             config.diagnostics.unused_variables,
+            self.get_encoding(),
         )));
 
         // TODO: Add a macro for all those settings
@@ -155,9 +156,9 @@ impl JsonnetServer {
                     diagnostics_handler_diags.push(Box::new(<$diag>::default()));
                 }
             };
-            ($config_name: ident, $diag: ty, $cache: expr) => {
+            ($config_name: ident, $diag: ty, $($args:expr),*) => {
                 if config.diagnostics.$config_name {
-                    diagnostics_handler_diags.push(Box::new(<$diag>::new($cache)));
+                    diagnostics_handler_diags.push(Box::new(<$diag>::new($($args),*)));
                 }
             };
         }
@@ -180,7 +181,12 @@ impl JsonnetServer {
             ObjectFunctionDiagnostics,
             self.cache.clone()
         );
-        add_jsonnet_diag!(unused_file, UnusedFilesDiagnostics, self.cache.clone());
+        add_jsonnet_diag!(
+            unused_file,
+            UnusedFilesDiagnostics,
+            self.cache.clone(),
+            self.get_encoding()
+        );
         add_jsonnet_diag!(number_rounding, NumberRoundingDiagnostics);
         add_jsonnet_diag!(unknown_variable, UnknownVariableDiagnostics);
 
@@ -632,12 +638,13 @@ impl LSPServer for JsonnetServer {
             Box::new(IdentifierReferences::new(self.cache.clone())),
             Box::new(ImportReferences::new(self.cache.clone())),
         ];
-        let references = ReferenceHandler::new(&self.cache, &search_paths).references(
-            params.text_document_position.position.into(),
-            &params.text_document_position.text_document.uri,
-            params.context.include_declaration,
-            &refernce_types,
-        )?;
+        let references = ReferenceHandler::new(&self.cache, &search_paths, self.get_encoding())
+            .references(
+                params.text_document_position.position.into(),
+                &params.text_document_position.text_document.uri,
+                params.context.include_declaration,
+                &refernce_types,
+            )?;
         log::debug!("Finding references took {:?}", start.elapsed());
 
         Ok(references.into())
@@ -664,7 +671,7 @@ impl LSPServer for JsonnetServer {
                 .clone(),
         );
 
-        Ok(RenameProvider::new(&self.cache)
+        Ok(RenameProvider::new(&self.cache, self.get_encoding())
             .rename(params, &search_paths)?
             .into())
     }
@@ -799,7 +806,8 @@ impl LSPServer for JsonnetServer {
                 .read_or_panic()
                 .clone(),
         );
-        let reference_handler = ReferenceHandler::new(&self.cache, &search_paths);
+        let reference_handler =
+            ReferenceHandler::new(&self.cache, &search_paths, self.get_encoding());
         let reference_types: Vec<Box<dyn ReferenceProvider>> =
             vec![Box::new(ImportReferences::new(self.cache.clone()))];
 

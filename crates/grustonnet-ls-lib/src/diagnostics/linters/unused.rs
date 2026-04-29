@@ -13,8 +13,8 @@ use language_server::{
     diagnostics::{Diagnostics, DiagnosticsResult},
 };
 use lsp_types::{
-    CodeActionKind, CodeDescription, Diagnostic, DiagnosticSeverity, DiagnosticTag, Range,
-    TextEdit, Uri, WorkspaceEdit,
+    CodeActionKind, CodeDescription, Diagnostic, DiagnosticSeverity, DiagnosticTag,
+    PositionEncodingKind, Range, TextEdit, Uri, WorkspaceEdit,
 };
 
 use crate::{
@@ -25,11 +25,20 @@ use crate::{
 pub struct UnusedDiagnostics {
     cache: Cache<JsonnetASTGenerator>,
     config: UnusedVariablesConfig,
+    encoding: PositionEncodingKind,
 }
 
 impl UnusedDiagnostics {
-    pub fn new(cache: Cache<JsonnetASTGenerator>, config: UnusedVariablesConfig) -> Self {
-        Self { cache, config }
+    pub fn new(
+        cache: Cache<JsonnetASTGenerator>,
+        config: UnusedVariablesConfig,
+        encoding: PositionEncodingKind,
+    ) -> Self {
+        Self {
+            cache,
+            config,
+            encoding,
+        }
     }
 }
 
@@ -122,7 +131,7 @@ impl UnusedDiagnostics {
             .filter(|unused| !unused.name.starts_with("$"));
 
         let search_paths = vec![];
-        let provider = ReferenceHandler::new(&self.cache, &search_paths);
+        let provider = ReferenceHandler::new(&self.cache, &search_paths, self.encoding.clone());
         let reference_types: Vec<Box<dyn ReferenceProvider>> =
             vec![Box::new(IdentifierReferences::new(self.cache.clone()))];
 

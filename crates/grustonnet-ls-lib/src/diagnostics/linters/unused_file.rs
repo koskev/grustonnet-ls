@@ -5,7 +5,7 @@
 
 use jsonnet_location::Location;
 use language_server::{cache::Cache, diagnostics::DiagnosticsResult};
-use lsp_types::{Diagnostic, DiagnosticSeverity, DiagnosticTag, Range, Uri};
+use lsp_types::{Diagnostic, DiagnosticSeverity, DiagnosticTag, PositionEncodingKind, Range, Uri};
 use utils::RwLockPanic;
 
 use crate::{
@@ -16,11 +16,12 @@ use crate::{
 
 pub struct UnusedFilesDiagnostics {
     pub cache: Cache<JsonnetASTGenerator>,
+    encoding: PositionEncodingKind,
 }
 
 impl UnusedFilesDiagnostics {
-    pub fn new(cache: Cache<JsonnetASTGenerator>) -> Self {
-        Self { cache }
+    pub fn new(cache: Cache<JsonnetASTGenerator>, encoding: PositionEncodingKind) -> Self {
+        Self { cache, encoding }
     }
 }
 
@@ -41,7 +42,8 @@ impl JsonnetDiagnostics for UnusedFilesDiagnostics {
             .read_or_panic()
             .jpaths
             .clone();
-        let reference_handler = ReferenceHandler::new(&self.cache, &search_paths);
+        let reference_handler =
+            ReferenceHandler::new(&self.cache, &search_paths, self.encoding.clone());
         let reference_types: Vec<Box<dyn ReferenceProvider>> =
             vec![Box::new(ImportReferences::new(self.cache.clone()))];
 
