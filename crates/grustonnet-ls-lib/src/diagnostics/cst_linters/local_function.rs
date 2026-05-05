@@ -19,6 +19,7 @@ use utils::cst::CstNodeHelper;
 
 use crate::cache::JsonnetASTGenerator;
 
+#[derive(Default)]
 pub struct LocalFunctionDiagnostics {
     pub cache: Cache<JsonnetASTGenerator>,
 }
@@ -111,7 +112,7 @@ impl Diagnostics for LocalFunctionDiagnostics {
         let Some(tree) = new_tree(&doc.content) else {
             return results;
         };
-        let query_source = r#"(bind (id) @id (anonymous_function (params)? @params (")") @params_end) @func) @bind"#;
+        let query_source = r#"(bind !function (id) @id (anonymous_function (params)? @params (")") @params_end) @func) @bind"#;
         let query = Query::new(&tree.language(), query_source).expect("BUG: Invalid query");
         let mut cursor = QueryCursor::new();
         let captures = cursor.matches(&query, tree.root_node(), doc.content.as_bytes());

@@ -25,6 +25,7 @@ pub mod docsonnet_default;
 pub mod dollar;
 pub mod empty;
 pub mod error;
+pub mod local_function;
 pub mod number_rounding;
 pub mod object_function;
 pub mod recursion;
