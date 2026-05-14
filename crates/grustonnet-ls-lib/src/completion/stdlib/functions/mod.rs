@@ -1,8 +1,10 @@
 pub mod ext_vars;
+pub mod flat_map;
 pub mod flatten_array;
 pub mod fold;
 pub mod get;
 pub mod make_array;
+pub mod map;
 pub mod member;
 pub mod object_has_ex;
 

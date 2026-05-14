@@ -26,7 +26,7 @@ use crate::{
         std::STD_FUNCTIONS,
         stdlib::functions::{
             ext_vars::ExtVar, flatten_array::FlattenArray, fold::Fold, get::Get,
-            make_array::MakeArray, member::Member, object_has_ex::ObjectHasEx,
+            make_array::MakeArray, map::Map, member::Member, object_has_ex::ObjectHasEx,
         },
     },
 };
@@ -126,6 +126,18 @@ pub fn call_std_function(
             cache,
             document_stack,
         }),
+        "map" => Box::new(Map {
+            cache,
+            document_stack,
+        }),
+        "flatMap" => Box::new(Map {
+            cache,
+            document_stack,
+        }),
+        "$flatMapArray" => Box::new(Map {
+            cache,
+            document_stack,
+        }),
         // Current non Rust functions that return objects we might want to complete
         // prune
         // split
@@ -135,11 +147,8 @@ pub fn call_std_function(
         // parseJson
         // parseYaml
         // find
-        // map
         // mapWithIndex
         // filterMap
-        // flatmap
-        // $flatMapArray
         // filter
         // repeat
         // slice
