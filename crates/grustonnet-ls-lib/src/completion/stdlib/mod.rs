@@ -26,7 +26,7 @@ use crate::{
         std::STD_FUNCTIONS,
         stdlib::functions::{
             ext_vars::ExtVar, flatten_array::FlattenArray, fold::Fold, get::Get,
-            make_array::MakeArray, object_has_ex::ObjectHasEx,
+            make_array::MakeArray, member::Member, object_has_ex::ObjectHasEx,
         },
     },
 };
@@ -117,6 +117,15 @@ pub fn call_std_function(
             cache,
             document_stack,
         }),
+        "member" => Box::new(Member {
+            cache,
+            document_stack,
+        }),
+        // Not entirely correct, but is close enough
+        "contains" => Box::new(Member {
+            cache,
+            document_stack,
+        }),
         // Current non Rust functions that return objects we might want to complete
         // prune
         // split
@@ -189,7 +198,13 @@ pub fn call_std_function(
         .collect();
     if params.len() > std_args.len() {
         return Err(StdLibCallError::InvalidArgument {
-            reason: "Too many arguments".into(),
+            reason: format!(
+                "Too many arguments for {}. Got {:?} expected {:?} ({:?})",
+                name,
+                params.len(),
+                std_args.len(),
+                std_args
+            ),
         });
     }
 
