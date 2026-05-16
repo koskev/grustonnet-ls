@@ -15,7 +15,7 @@ use crate::{
     cache::JsonnetASTGenerator,
     completion::stdlib::{
         StdArgument, StdLibCallError, StdLibFunction,
-        functions::{get_parameter, resolve_node},
+        functions::{get_parameter, resolve_node, resolve_node_mut},
     },
 };
 
@@ -42,7 +42,8 @@ impl<'a> StdLibFunction for Map<'a> {
         let func = get_parameter(&params, 0)?;
         let array = get_parameter(&params, 1)?;
 
-        let resolved_function = resolve_node(self.cache, self.document_stack, func)?;
+        let mut function_stack = self.document_stack.clone();
+        let resolved_function = resolve_node_mut(self.cache, &mut function_stack, func)?;
         let resolved_array = resolve_node(self.cache, self.document_stack, array)?;
 
         let NodeKind::Array(array_kind) = resolved_array.node_kind.as_ref() else {
@@ -55,13 +56,21 @@ impl<'a> StdLibFunction for Map<'a> {
         let apply_array: Vec<_> = array_kind
             .elements
             .iter()
-            .map(|elem| Apply {
-                target: resolved_function.clone(),
-                arguments: Arguments {
-                    positional: vec![elem.clone()],
+            .filter_map(|elem| {
+                let resolved_elem =
+                    resolve_node(self.cache, &function_stack, elem.expr.clone()).ok()?;
+                log::error!("#### RESOLVED: {}", resolved_elem);
+                Some(Apply {
+                    target: resolved_function.clone(),
+                    arguments: Arguments {
+                        positional: vec![CommaSeparatedExpr {
+                            expr: resolved_elem,
+                            ..Default::default()
+                        }],
+                        ..Default::default()
+                    },
                     ..Default::default()
-                },
-                ..Default::default()
+                })
             })
             .map(|apply| CommaSeparatedExpr {
                 expr: Arc::new(Node {

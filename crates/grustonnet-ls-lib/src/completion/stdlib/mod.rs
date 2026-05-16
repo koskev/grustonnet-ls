@@ -244,7 +244,12 @@ pub fn call_std_function(
         };
     }
 
-    target.call(params)
+    let res = target.call(params);
+    if let Ok(res) = res.as_ref() {
+        log::error!("#### RES {}", res.node_kind);
+    }
+
+    res
 }
 
 trait StdLibFunction: Sync {

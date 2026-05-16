@@ -52,8 +52,16 @@ pub fn resolve_node(
     node: Arc<Node>,
 ) -> Result<Arc<Node>, StdLibCallError> {
     let mut stack = stack.clone();
+    resolve_node_mut(cache, &mut stack, node)
+}
+
+pub fn resolve_node_mut(
+    cache: &Cache<JsonnetASTGenerator>,
+    stack: &mut NodeStack,
+    node: Arc<Node>,
+) -> Result<Arc<Node>, StdLibCallError> {
     stack.push(node);
-    CallStackIter::new(cache, &mut stack)
+    CallStackIter::new(cache, stack)
         .ok_or(StdLibCallError::InvalidArgument {
             reason: "Unable to create callsack".into(),
         })?
