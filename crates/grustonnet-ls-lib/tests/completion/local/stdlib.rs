@@ -210,3 +210,41 @@ fn invalid_chain() {
     }
     .check();
 }
+
+#[test]
+fn member_true() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/member.jsonnet".into(),
+        replace_string: "x: myObjTrue".into(),
+        replace_by_string: "x: myObjTrue.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "trueKey".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+fn member_false() {
+    CompletionTestCase {
+        filename: "testdata/complete/std/functions/member.jsonnet".into(),
+        replace_string: "y: myObjFalse".into(),
+        replace_by_string: "y: myObjFalse.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "falseKey".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
