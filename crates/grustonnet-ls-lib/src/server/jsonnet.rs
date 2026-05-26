@@ -18,7 +18,7 @@ use jsonnet_cst::{
     node::JsonnetNode,
     node_type::NodeType,
 };
-use jsonnet_location::{Location, LocationRange, LspPositionHelper};
+use jsonnet_location::{Location, LocationRange, LspPositionHelper, Range};
 use language_server::{
     cache::Cache,
     completion::{Completion, CompletionContext},
@@ -47,6 +47,7 @@ use utils::cst::CstNodeHelper;
 use crate::{
     bridge::GenerateAST,
     cache::JsonnetASTGenerator,
+    code_action::{CodeAction, ParameterCodeAction},
     command::{Commands, handle_command},
     completion::{
         apply_arguments::ApplyArgumentCompletion, global::GlobalCompletion,
@@ -687,7 +688,8 @@ impl LSPServer for JsonnetServer {
         &self,
         params: <lsp_types::request::CodeActionRequest as lsp_types::request::Request>::Params,
     ) -> Result<LSPResponse, LSPError> {
-        let actions: Vec<CodeActionOrCommand> = self
+        let doc = self.cache.get_document(&params.text_document.uri)?;
+        let mut actions: Vec<CodeActionOrCommand> = self
             .diagnostics_queue
             .as_ref()
             .ok_or(anyhow!("No diagnostics queue"))?
@@ -713,6 +715,26 @@ impl LSPServer for JsonnetServer {
                 })
             })
             .collect();
+        if let Ok(param_action) = ParameterCodeAction::new(self.cache.clone()).get_code_actions(
+            &params.text_document.uri,
+            Range {
+                begin: params
+                    .range
+                    .start
+                    .into_location(&self.get_encoding(), &doc.content),
+                end: params
+                    .range
+                    .end
+                    .into_location(&self.get_encoding(), &doc.content),
+            },
+        ) {
+            actions.extend(
+                param_action
+                    .iter()
+                    .map(|action| CodeActionOrCommand::CodeAction(action.clone())),
+            );
+        }
+
         Ok(actions.into())
     }
 
