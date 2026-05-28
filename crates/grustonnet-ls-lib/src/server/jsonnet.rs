@@ -454,14 +454,12 @@ impl LSPServer for JsonnetServer {
                     completion_list.push(Box::new(DocsonnetSnippets::new(&self.cache)));
                 }
             }
-            CompletionType::Local => {
-                if config.completion.enable_local {
-                    let local_completion = LocalCompletion::new(
-                        &self.cache,
-                        self.configuration.read_or_panic().completion.clone(),
-                    );
-                    completion_list.push(Box::new(local_completion));
-                }
+            CompletionType::Local if config.completion.enable_local => {
+                let local_completion = LocalCompletion::new(
+                    &self.cache,
+                    self.configuration.read_or_panic().completion.clone(),
+                );
+                completion_list.push(Box::new(local_completion));
             }
             CompletionType::Import => {
                 log::info!("Import completion");
@@ -695,8 +693,8 @@ impl LSPServer for JsonnetServer {
             .ok_or(anyhow!("No diagnostics queue"))?
             .current_diagnostics
             .read_or_panic()
-            .iter()
-            .flat_map(|(_, d)| {
+            .values()
+            .flat_map(|d| {
                 d.iter().flat_map(|d| {
                     d.1.iter()
                         .filter(|d| {
