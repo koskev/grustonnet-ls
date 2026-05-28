@@ -9,6 +9,8 @@
           pname = name;
           version = "0.4.2";
           hash = "sha256-WT09837Y6lwH6usdoOQ7UTm9HcuHKify/jA8v8R4Fek=";
+          # TODO: Workaround until this is in unstable. I don't want to use master
+          registryDl = "https://static.crates.io/crates";
         };
         cargoHash = "sha256-WP7j+JSByT9fyblcL2saDMmOz2dq0jTSJTjxkTJwn5M=";
       };
