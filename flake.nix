@@ -3,7 +3,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     naersk = {
-      url = "github:nix-community/naersk";
+      url = "github:nix-community/naersk/pull/391/head";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix2container.url = "github:nlewo/nix2container";
