@@ -628,3 +628,20 @@ fn encoding_after() {
     }
     .check();
 }
+
+#[test]
+fn apply_parameter() {
+    DefinitionTestCase {
+        filename: "testdata/definition/parameter.jsonnet".into(),
+        source: Position {
+            line: 2,
+            character: 15,
+        },
+        target: Position {
+            line: 0,
+            character: 19,
+        },
+        ..Default::default()
+    }
+    .check();
+}

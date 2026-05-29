@@ -15,7 +15,11 @@ use grustonnet_node::{
         node_kind::NodeKind,
     },
 };
+use jsonnet_cst::new_tree;
+use jsonnet_location::Location;
 use language_server::cache::Cache;
+use lsp_types::Uri;
+use utils::{cst::CstNodeHelper, uri::UriHelper};
 
 use crate::{
     cache::JsonnetASTGenerator,
@@ -83,14 +87,74 @@ pub struct ApplyFunctionData {
 }
 
 pub trait NodeHelper {
+    // TODO: Move these to the actual node kind
     fn get_apply_function(
         &self,
         root_node: Arc<Node>,
         cache: &Cache<JsonnetASTGenerator>,
     ) -> Option<ApplyFunctionData>;
+
+    fn get_argument_name_at(
+        &self,
+        loc: &Location,
+        cache: &Cache<JsonnetASTGenerator>,
+    ) -> Option<String>;
+
+    fn get_argument_pos(&self, name: &str, cache: &Cache<JsonnetASTGenerator>) -> Option<Location>;
 }
 
 impl NodeHelper for Node {
+    fn get_argument_pos(&self, name: &str, cache: &Cache<JsonnetASTGenerator>) -> Option<Location> {
+        let NodeKind::Function(_) = self.node_kind.as_ref() else {
+            return None;
+        };
+        // The function does have the argument -> consult the cst
+        let doc = cache
+            .get_document(&Uri::from_path(&self.node_base.loc_range.file_name).ok()?)
+            .ok()?;
+        let tree = new_tree(&doc.content)?;
+        let root_node = tree.root_node();
+        let mut loc = self.node_base.loc_range.begin.clone();
+        // Move the window by 1 to always get the correct pos
+        // TODO: fix this
+        loc.column += 1;
+        let cst_function_id = root_node.get_node_at(loc.into())?;
+        let cst_params = cst_function_id.next_sibling()?.next_sibling()?;
+        let mut cursor = cst_params.walk();
+        cursor.goto_first_child();
+
+        loop {
+            if cursor.node().get_name(&doc.content)? == name {
+                return Some(cursor.node().start_position().into());
+            }
+            if !cursor.goto_next_sibling() {
+                return None;
+            }
+        }
+    }
+    fn get_argument_name_at(
+        &self,
+        loc: &Location,
+        cache: &Cache<JsonnetASTGenerator>,
+    ) -> Option<String> {
+        let NodeKind::Apply(_) = self.node_kind.as_ref() else {
+            return None;
+        };
+
+        // The function does have the argument -> consult the cst
+        let doc = cache
+            .get_document(&Uri::from_path(&self.node_base.loc_range.file_name).ok()?)
+            .ok()?;
+        let tree = new_tree(&doc.content)?;
+        let root_node = tree.root_node();
+        let mut loc = loc.clone();
+        // Move the window by 1 to always get the correct pos
+        loc.column += 1;
+
+        let potential_apply = root_node.get_node_at(loc.into())?;
+
+        potential_apply.get_name(&doc.content)
+    }
     fn get_apply_function(
         &self,
         root_node: Arc<Node>,

@@ -13,7 +13,10 @@ use language_server::cache::Cache;
 use lsp_types::Uri;
 use utils::uri::UriHelper;
 
-use crate::{cache::JsonnetASTGenerator, node::Stackhelper};
+use crate::{
+    cache::JsonnetASTGenerator,
+    node::{NodeHelper, Stackhelper},
+};
 
 pub struct DefinitionProvider<'a> {
     pub cache: &'a Cache<JsonnetASTGenerator>,
@@ -125,6 +128,24 @@ impl<'a> DefinitionProvider<'a> {
                 })
             }
             NodeKind::Local(local) => local.get_identifier_position(),
+            // If we hit an argument, we get the actual apply and not the var
+            NodeKind::Apply(_apply) => {
+                let arg_name = built_node
+                    .get_argument_name_at(&pos, self.cache)
+                    .ok_or(anyhow!("No arg"))?;
+                let apply_data = built_node
+                    .get_apply_function(doc.ast.ok_or(anyhow!("no ast"))?, self.cache)
+                    .ok_or(anyhow!("no apply data"))?;
+                let loc = apply_data
+                    .function_node
+                    .get_argument_pos(&arg_name, self.cache)
+                    .ok_or(anyhow!("no arg pos"))?;
+                Some(LocationRange {
+                    begin: loc.clone(),
+                    end: loc,
+                    ..built_node.node_base.loc_range.clone()
+                })
+            }
             _ => {
                 log::debug!(
                     "Unhandled goto definition type {}",
