@@ -2,10 +2,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    naersk = {
-      url = "github:nix-community/naersk/pull/391/head";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    crane.url = "github:ipetkov/crane";
     nix2container.url = "github:nlewo/nix2container";
     recordings.url = "git+https://codeberg.org/kokev/lsp-recorder.git";
     actions-nix = {

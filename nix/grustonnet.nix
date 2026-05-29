@@ -15,7 +15,7 @@
     }:
     let
 
-      naersk' = pkgs.callPackage inputs.naersk { };
+      craneLib = inputs.crane.mkLib pkgs;
       depFile = builtins.fromJSON (builtins.readFile ./../crates/grustonnet-ls-lib/dependencies.json);
       deps = map (dep: {
         inherit (dep) name;
@@ -33,8 +33,9 @@
         {
           doCheck ? false,
         }:
-        naersk'.buildPackage {
+        craneLib.buildPackage rec {
           name = "grustonnet-ls";
+          pname = name;
           src = self;
           inherit doCheck;
 
