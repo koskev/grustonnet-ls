@@ -1,4 +1,3 @@
-use jsonnet_cst::new_tree;
 use jsonnet_location::{FileRange, Location, Range};
 use language_server::cache::Cache;
 use tree_sitter::{Query, QueryCursor, StreamingIterator};
@@ -34,17 +33,12 @@ impl ReferenceProvider for ImportReferences {
         let mut potential_locations: Vec<_> = files
             .iter()
             .filter_map(|uri| {
-                let content = self
-                    .cache
-                    .get_document_with_option(uri, false)
-                    .ok()?
-                    .content;
-                // TODO: Cache the tree for a performance gain
-                let tree = new_tree(&content)?;
+                let doc = self.cache.get_document_with_option(uri, false).ok()?;
+                let tree = doc.cst?;
                 let query = Query::new(&tree.language(), query_source)
                     .unwrap_or_else(|_| panic!("BUG: Invalid query: {}", query_source));
                 let mut cursor = QueryCursor::new();
-                let captures = cursor.captures(&query, tree.root_node(), content.as_bytes());
+                let captures = cursor.captures(&query, tree.root_node(), doc.content.as_bytes());
                 let mut locations: Vec<FileRange> = vec![];
                 captures.for_each(|query_match| {
                     query_match.0.captures.iter().for_each(|capture| {
