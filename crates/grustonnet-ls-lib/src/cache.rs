@@ -18,6 +18,8 @@ use crate::bridge::{GenerateAST, GoJsonnet};
 pub struct JsonnetASTGenerator {
     pub ast: Node,
     pub jsonnet: GoJsonnet,
+
+    pub cst: Option<tree_sitter::Tree>,
 }
 
 impl JsonnetASTGenerator {
@@ -109,5 +111,20 @@ impl ASTGenerator for JsonnetASTGenerator {
     fn update_ast(&self, source_file: &str, new_content: &str) -> Result<Arc<Self::Node>> {
         let current_content = Rope::from_str(new_content);
         self.fix_ast(current_content, source_file)
+    }
+
+    fn update_cst(
+        &self,
+        new_content: &str,
+        old_tree: Option<&tree_sitter::Tree>,
+    ) -> Result<tree_sitter::Tree> {
+        let mut parser = tree_sitter::Parser::new();
+        parser
+            .set_language(&tree_sitter_jsonnet::LANGUAGE.into())
+            .expect("Something is really wrong with the tresitter setup!");
+
+        parser
+            .parse(new_content, old_tree)
+            .ok_or(anyhow!("unable to parse CST"))
     }
 }

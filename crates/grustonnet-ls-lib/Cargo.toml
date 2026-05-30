@@ -46,6 +46,7 @@ assert_unordered = "0.3.5"
 semver = "1.0.27"
 fallible-iterator = "0.3.0"
 stacker = "0.1.23"
+tree-sitter-jsonnet = {git = "https://github.com/koskev/tree-sitter-jsonnet"}
 
 [build-dependencies]
 ureq = "3.3.0"

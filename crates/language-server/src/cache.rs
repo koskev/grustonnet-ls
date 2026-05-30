@@ -24,6 +24,11 @@ where
 {
     type Node;
     fn update_ast(&self, source_file: &str, new_content: &str) -> Result<Arc<Self::Node>>;
+    fn update_cst(
+        &self,
+        new_content: &str,
+        old_tree: Option<&tree_sitter::Tree>,
+    ) -> Result<tree_sitter::Tree>;
 }
 
 pub trait ASTNode: Clone + Default + Debug {}
@@ -42,6 +47,7 @@ pub struct Document<G: ASTGenerator> {
     pub content: String,
 
     pub ast: Option<Arc<G::Node>>,
+    pub cst: Option<tree_sitter::Tree>,
     pub state: ASTState,
 
     ast_generator: Arc<G>,
@@ -74,16 +80,29 @@ impl<G: ASTGenerator> Document<G> {
         {
             self.content = fs::read_to_string(&self.filename)?;
             self.manually_loaded_at = Some(modified);
+            // Since the CST will always have a result, we just load it all the time
+            self.update_cst();
         }
         if load_ast {
             #[allow(clippy::single_match)]
             match self.state {
-                ASTState::NotLoaded => self.update_ast(),
+                ASTState::NotLoaded => {
+                    self.update_ast();
+                }
                 _ => (),
             }
         }
 
         Ok(())
+    }
+
+    pub fn update_cst(&mut self) {
+        let tree = self
+            .ast_generator
+            .update_cst(&self.content, self.cst.as_ref());
+        if let Ok(new_tree) = tree {
+            self.cst = Some(new_tree);
+        }
     }
 
     pub fn update_ast(&mut self) {
@@ -139,6 +158,7 @@ impl<G: ASTGenerator> Cache<G> {
         doc.content = text.into();
 
         doc.update_ast();
+        doc.update_cst();
         doc.manually_loaded_at = None; // Is is now loaded by the lsp
     }
 

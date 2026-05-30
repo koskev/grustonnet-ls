@@ -877,6 +877,7 @@ dependencies = [
  "thiserror",
  "tracy-client",
  "tree-sitter",
+ "tree-sitter-jsonnet",
  "ureq",
  "utils",
  "walkdir",
@@ -1289,6 +1290,7 @@ dependencies = [
  "serde",
  "serde_json",
  "similar",
+ "tree-sitter",
  "utils",
 ]
 

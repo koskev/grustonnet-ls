@@ -22,3 +22,4 @@ mockall = "0.14.0"
 utils = { path = "../utils"}
 rayon.workspace = true
 jsonnet-location = { path = "../jsonnet-location"}
+tree-sitter = { workspace = true }
