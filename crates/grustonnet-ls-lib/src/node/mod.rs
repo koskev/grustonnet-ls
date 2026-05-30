@@ -15,7 +15,6 @@ use grustonnet_node::{
         node_kind::NodeKind,
     },
 };
-use jsonnet_cst::new_tree;
 use jsonnet_location::Location;
 use language_server::cache::Cache;
 use lsp_types::Uri;
@@ -112,7 +111,7 @@ impl NodeHelper for Node {
         let doc = cache
             .get_document(&Uri::from_path(&self.node_base.loc_range.file_name).ok()?)
             .ok()?;
-        let tree = new_tree(&doc.content)?;
+        let tree = doc.cst?;
         let root_node = tree.root_node();
         let mut loc = self.node_base.loc_range.begin.clone();
         // Move the window by 1 to always get the correct pos
@@ -145,7 +144,7 @@ impl NodeHelper for Node {
         let doc = cache
             .get_document(&Uri::from_path(&self.node_base.loc_range.file_name).ok()?)
             .ok()?;
-        let tree = new_tree(&doc.content)?;
+        let tree = doc.cst?;
         let root_node = tree.root_node();
         let mut loc = loc.clone();
         // Move the window by 1 to always get the correct pos

@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 
-use jsonnet_cst::{new_tree, node_type::NodeType};
+use jsonnet_cst::node_type::NodeType;
 use jsonnet_location::Location;
 use language_server::{
     cache::Cache,
@@ -104,7 +104,7 @@ impl Diagnostics for ConditionalParenthesis {
         let Ok(doc) = self.cache.get_document(uri) else {
             return results;
         };
-        let Some(tree) = new_tree(&doc.content) else {
+        let Some(tree) = doc.cst else {
             return results;
         };
         let query_source = r#"

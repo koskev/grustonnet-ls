@@ -747,8 +747,7 @@ impl LSPServer for JsonnetServer {
 
         let mut pos = params.text_document_position_params.position;
 
-        let cst_tree =
-            jsonnet_cst::new_tree(&doc.content).ok_or(anyhow!("Unable to parse cst tree"))?;
+        let cst_tree = doc.cst.ok_or(anyhow!("Unable to get cst tree"))?;
         let cst_loc: Location = pos.into();
         let root_node = cst_tree.root_node();
         let cst_node = root_node

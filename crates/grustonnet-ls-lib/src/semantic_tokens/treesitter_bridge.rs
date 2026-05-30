@@ -6,7 +6,6 @@
 // You should not use this feature! It is just a bad workaround for editors that lack the most essential
 // features
 
-use jsonnet_cst::new_tree;
 use jsonnet_location::LocationRange;
 use language_server::cache::Document;
 use lazy_static::lazy_static;
@@ -50,7 +49,7 @@ lazy_static! {
 }
 
 pub fn get_tokens(doc: Document<JsonnetASTGenerator>) -> SemanticDataList {
-    let Some(tree) = new_tree(&doc.content) else {
+    let Some(tree) = doc.cst else {
         return SemanticDataList::default();
     };
     let data: Vec<SemanticData> = TOKEN_MAP
