@@ -1236,6 +1236,7 @@ dependencies = [
  "regex",
  "rust2go",
  "rust2go-cli",
+ "sha2",
 ]
 
 [[package]]
