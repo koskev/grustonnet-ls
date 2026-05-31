@@ -119,3 +119,55 @@ fn unsupported_part() {
     }
     .check();
 }
+
+#[test]
+#[ignore = "bugged"]
+fn combined_direct() {
+    CompletionTestCase {
+        filename: "testdata/complete/binary/combined.jsonnet".into(),
+        replace_string: "x: (myObjOne + myObjTwo)".into(),
+        replace_by_string: "x: (myObjOne + myObjTwo).".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "one".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "two".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
+#[ignore = "bugged"]
+fn combined_self_obj() {
+    CompletionTestCase {
+        filename: "testdata/complete/binary/combined.jsonnet".into(),
+        replace_string: "y: self.x".into(),
+        replace_by_string: "x: self.x.".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![
+                CompletionItem {
+                    label: "one".to_string(),
+                    ..Default::default()
+                },
+                CompletionItem {
+                    label: "two".to_string(),
+                    ..Default::default()
+                },
+            ],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
