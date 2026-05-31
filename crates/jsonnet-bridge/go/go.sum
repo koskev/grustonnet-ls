@@ -2,12 +2,10 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/ihciah/rust2go v0.0.0-20260314034108-6f06b0697c1b h1:5t8wONjmMs2KNn8E4LAIu0XeYRjv/k7UJ37NZrI62rU=
-github.com/ihciah/rust2go v0.0.0-20260314034108-6f06b0697c1b/go.mod h1:SpcZZoVYDXYhx373JZ1onR8dnEcalKA0H61x/FJ9O0s=
 github.com/ihciah/rust2go v0.0.0-20260507024513-761a64f4bc9c h1:b+mQMHo6htFqf8ToQLq3txLmqzx088yKE7LDLPLjX1M=
 github.com/ihciah/rust2go v0.0.0-20260507024513-761a64f4bc9c/go.mod h1:SpcZZoVYDXYhx373JZ1onR8dnEcalKA0H61x/FJ9O0s=
-github.com/koskev/go-jsonnet v0.0.0-20260327173611-b5123e53fd4d h1:9FTsCHkE4E8YXJDnL7RFvOGJG8tXFZNS8io0HaIo8BE=
-github.com/koskev/go-jsonnet v0.0.0-20260327173611-b5123e53fd4d/go.mod h1:pLhKpu0/ODjL2Zev4y+CmCoHKAgONT1gSLQyriuYh9w=
+github.com/koskev/go-jsonnet v0.0.0-20260531091418-95d8cfa53fc9 h1:4uN5j3CRoqUH6y/S7+k6TQrbm06zNb0HJhmwF4fKZvE=
+github.com/koskev/go-jsonnet v0.0.0-20260531091418-95d8cfa53fc9/go.mod h1:pLhKpu0/ODjL2Zev4y+CmCoHKAgONT1gSLQyriuYh9w=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sergi/go-diff v1.3.1 h1:xkr+Oxo4BOQKmkn/B9eMK0g5Kg/983T9DqqPHwYqD+8=

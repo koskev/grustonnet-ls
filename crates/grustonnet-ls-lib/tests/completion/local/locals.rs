@@ -25,6 +25,25 @@ fn simple_local() {
 }
 
 #[test]
+fn simple_local_parens() {
+    CompletionTestCase {
+        filename: "testdata/simple_object.jsonnet".into(),
+        replace_string: "x: object,".into(),
+        replace_by_string: "x: (object).".into(),
+        expected: CompletionList {
+            is_incomplete: false,
+            items: vec![CompletionItem {
+                label: "key".to_string(),
+                ..Default::default()
+            }],
+        },
+        config: local_config(),
+        ..Default::default()
+    }
+    .check();
+}
+
+#[test]
 fn simple_local_no_text() {
     CompletionTestCase {
         filename: "testdata/simple_object.jsonnet".into(),

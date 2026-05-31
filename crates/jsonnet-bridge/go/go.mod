@@ -20,4 +20,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/google/go-jsonnet => github.com/koskev/go-jsonnet v0.0.0-20260327173611-b5123e53fd4d
+replace github.com/google/go-jsonnet => github.com/koskev/go-jsonnet v0.0.0-20260531091418-95d8cfa53fc9
