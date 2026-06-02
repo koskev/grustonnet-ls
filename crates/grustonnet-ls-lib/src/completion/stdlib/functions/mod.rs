@@ -2,6 +2,8 @@ pub mod ext_vars;
 pub mod flatten_array;
 pub mod fold;
 pub mod get;
+pub mod is_null;
+pub mod is_type;
 pub mod make_array;
 pub mod member;
 pub mod object_has_ex;

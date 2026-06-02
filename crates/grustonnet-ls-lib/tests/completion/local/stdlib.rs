@@ -279,12 +279,11 @@ macro_rules! test_type {
                 .check();
             }
             #[test]
-            #[ignore = "not implemented"]
             fn [<is_ $type _ $result>]() {
                 CompletionTestCase {
                     filename: "testdata/complete/std/functions/type.jsonnet".into(),
                     replace_string: "x: checkType([], 'string')".into(),
-                    replace_by_string: format!("x: checkVal(std.is{}({})).", capitalize_first_char($obj), $type),
+                    replace_by_string: format!("x: checkVal(std.is{}({})).", capitalize_first_char($type), $obj),
                     expected: CompletionList {
                         is_incomplete: false,
                         items: vec![CompletionItem {

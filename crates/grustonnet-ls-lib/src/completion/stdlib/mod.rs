@@ -25,8 +25,9 @@ use crate::{
     completion::{
         std::STD_FUNCTIONS,
         stdlib::functions::{
-            ext_vars::ExtVar, flatten_array::FlattenArray, fold::Fold, get::Get,
-            make_array::MakeArray, member::Member, object_has_ex::ObjectHasEx, r#type::Type,
+            ext_vars::ExtVar, flatten_array::FlattenArray, fold::Fold, get::Get, is_null::IsNull,
+            is_type::IsType, make_array::MakeArray, member::Member, object_has_ex::ObjectHasEx,
+            r#type::Type,
         },
     },
 };
@@ -91,6 +92,7 @@ pub fn call_std_function(
     cache: &Cache<JsonnetASTGenerator>,
     document_stack: &NodeStack,
 ) -> Result<Arc<Node>, StdLibCallError> {
+    log::debug!("Calling std function {}", name);
     let target: Box<dyn StdLibFunction> = match name {
         "makeArray" => Box::new(MakeArray {}),
         "objectHasEx" => Box::new(ObjectHasEx {
@@ -127,6 +129,40 @@ pub fn call_std_function(
             document_stack,
         }),
         "type" => Box::new(Type {
+            cache,
+            document_stack,
+        }),
+        "isArray" => Box::new(IsType {
+            cache,
+            document_stack,
+            name: "array",
+        }),
+        "isFunction" => Box::new(IsType {
+            cache,
+            document_stack,
+            name: "function",
+        }),
+        "isNumber" => Box::new(IsType {
+            cache,
+            document_stack,
+            name: "number",
+        }),
+        "isBoolean" => Box::new(IsType {
+            cache,
+            document_stack,
+            name: "boolean",
+        }),
+        "isString" => Box::new(IsType {
+            cache,
+            document_stack,
+            name: "string",
+        }),
+        "isObject" => Box::new(IsType {
+            cache,
+            document_stack,
+            name: "object",
+        }),
+        "isNull" => Box::new(IsNull {
             cache,
             document_stack,
         }),
