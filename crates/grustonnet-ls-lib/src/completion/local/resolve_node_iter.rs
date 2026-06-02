@@ -69,17 +69,20 @@ impl<'a> ResolveNodeIter<'a> {
 
 fn compare_nodes(a: Arc<Node>, b: Arc<Node>) -> Option<Ordering> {
     // TODO: support more than just numbers
-    let NodeKind::LiteralNumber(num_a) = a.node_kind.as_ref() else {
-        return None;
-    };
-    let NodeKind::LiteralNumber(num_b) = b.node_kind.as_ref() else {
-        return None;
-    };
+    if let NodeKind::LiteralNumber(num_a) = a.node_kind.as_ref()
+        && let NodeKind::LiteralNumber(num_b) = b.node_kind.as_ref()
+    {
+        let float_a: f64 = num_a.original_string.parse().ok()?;
+        let float_b: f64 = num_b.original_string.parse().ok()?;
 
-    let float_a: f64 = num_a.original_string.parse().ok()?;
-    let float_b: f64 = num_b.original_string.parse().ok()?;
-
-    Some(float_a.total_cmp(&float_b))
+        Some(float_a.total_cmp(&float_b))
+    } else if let NodeKind::LiteralString(str_a) = a.node_kind.as_ref()
+        && let NodeKind::LiteralString(str_b) = b.node_kind.as_ref()
+    {
+        Some(str_a.value.cmp(&str_b.value))
+    } else {
+        None
+    }
 }
 
 impl<'a> ResolveNodeIter<'a> {
