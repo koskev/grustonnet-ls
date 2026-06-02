@@ -248,3 +248,77 @@ fn member_false() {
     }
     .check();
 }
+
+fn capitalize_first_char(input: &str) -> String {
+    let mut s = input.to_string();
+    if let Some(c) = s.get_mut(0..1) {
+        c.make_ascii_uppercase();
+    }
+    s
+}
+
+macro_rules! test_type {
+    ($obj:literal, $type:literal, $result:literal ) => {
+        paste::paste! {
+            #[test]
+            fn [<type_ $type _ $result>]() {
+                CompletionTestCase {
+                    filename: "testdata/complete/std/functions/type.jsonnet".into(),
+                    replace_string: "x: checkType([], 'string')".into(),
+                    replace_by_string: format!("x: checkType({}, '{}').", $obj, $type),
+                    expected: CompletionList {
+                        is_incomplete: false,
+                        items: vec![CompletionItem {
+                            label: format!("{}Key", $result),
+                            ..Default::default()
+                        }],
+                    },
+                    config: local_config(),
+                    ..Default::default()
+                }
+                .check();
+            }
+            #[test]
+            #[ignore = "not implemented"]
+            fn [<is_ $type _ $result>]() {
+                CompletionTestCase {
+                    filename: "testdata/complete/std/functions/type.jsonnet".into(),
+                    replace_string: "x: checkType([], 'string')".into(),
+                    replace_by_string: format!("x: checkVal(std.is{}({})).", capitalize_first_char($obj), $type),
+                    expected: CompletionList {
+                        is_incomplete: false,
+                        items: vec![CompletionItem {
+                            label: format!("{}Key", $result),
+                            ..Default::default()
+                        }],
+                    },
+                    config: local_config(),
+                    ..Default::default()
+                }
+                .check();
+            }
+        }
+    };
+}
+
+test_type!("'foo'", "string", true);
+test_type!("[]", "string", false);
+
+test_type!("[]", "array", true);
+test_type!("1", "array", false);
+
+test_type!("true", "boolean", true);
+test_type!("1", "boolean", false);
+
+// FIXME: "function() 1" gets resolved to 1
+//test_type!("function() 1", "function", true);
+test_type!("1", "function", false);
+
+test_type!("1", "number", true);
+test_type!("true", "number", false);
+
+test_type!("{}", "object", true);
+test_type!("true", "object", false);
+
+test_type!("null", "null", true);
+test_type!("true", "null", false);

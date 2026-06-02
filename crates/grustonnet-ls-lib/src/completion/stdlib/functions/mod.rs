@@ -5,6 +5,7 @@ pub mod get;
 pub mod make_array;
 pub mod member;
 pub mod object_has_ex;
+pub mod r#type;
 
 use std::{str::FromStr, sync::Arc};
 

@@ -26,7 +26,7 @@ use crate::{
         std::STD_FUNCTIONS,
         stdlib::functions::{
             ext_vars::ExtVar, flatten_array::FlattenArray, fold::Fold, get::Get,
-            make_array::MakeArray, member::Member, object_has_ex::ObjectHasEx,
+            make_array::MakeArray, member::Member, object_has_ex::ObjectHasEx, r#type::Type,
         },
     },
 };
@@ -123,6 +123,10 @@ pub fn call_std_function(
         }),
         // Not entirely correct, but is close enough
         "contains" => Box::new(Member {
+            cache,
+            document_stack,
+        }),
+        "type" => Box::new(Type {
             cache,
             document_stack,
         }),
