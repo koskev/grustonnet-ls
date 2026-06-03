@@ -165,7 +165,7 @@ impl DiagnosticTestCase {
                 diag
             })
             .collect();
-        let expected = self
+        let expected: Vec<_> = self
             .expected
             .clone()
             .into_iter()

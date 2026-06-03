@@ -42,7 +42,7 @@ tracy-client = { workspace = true, optional = true }
 thiserror = "2.0.12"
 rmp-serde = "1.3.0"
 bincode-next = { workspace = true }
-assert_unordered = "0.3.5"
+assert_unordered = "0.4.0"
 semver = "1.0.27"
 fallible-iterator = "0.3.0"
 stacker = "0.1.23"
