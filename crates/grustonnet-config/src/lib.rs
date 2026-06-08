@@ -46,6 +46,11 @@ pub struct CompletionConfig {
     /// Determines the current targeted jsonnet version. e.g. 21 for 0.21
     /// This will hide functions that are not yet supported for the current version
     pub target_version: u32,
+
+    #[default = 1]
+    /// How many extra nested object fields should be completed. Apply is currently not supported as
+    /// it leads to some weird/unwanted completions
+    pub max_depth: usize,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]

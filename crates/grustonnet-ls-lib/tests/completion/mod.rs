@@ -20,5 +20,6 @@ fn disabled_config() -> CompletionConfig {
         hide_docsonnet_members: true,
         enable_arguments: false,
         target_version: 9999,
+        max_depth: 0,
     }
 }

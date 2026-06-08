@@ -16,13 +16,24 @@ fn local_config() -> Configuration {
             enable_global: false,
             enable_local: true,
             snippets: SnippetConfig { docsonnet: false },
-            ..Default::default()
+            ..disabled_config()
+        },
+        ..Default::default()
+    }
+}
+
+fn local_config_nested(val: usize) -> Configuration {
+    Configuration {
+        completion: CompletionConfig {
+            max_depth: val,
+            ..local_config().completion
         },
         ..Default::default()
     }
 }
 
 use crate::completion::common::CompletionTestCase;
+use crate::completion::disabled_config;
 
 pub mod array;
 pub mod binary;
@@ -36,6 +47,7 @@ pub mod function;
 pub mod import;
 pub mod index;
 pub mod locals;
+pub mod nested;
 pub mod object;
 pub mod selfnode;
 pub mod shadow;

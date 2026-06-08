@@ -21,7 +21,11 @@ use fallible_iterator::FallibleIterator;
 use grustonnet_config::CompletionConfig;
 use grustonnet_node::{
     stack::NodeStack,
-    types::{desugared_object::DesugaredObjectField, node::Node, node_kind::NodeKind},
+    types::{
+        desugared_object::{DesugaredObject, DesugaredObjectField},
+        node::Node,
+        node_kind::NodeKind,
+    },
 };
 use language_server::{
     cache::Cache,
@@ -110,6 +114,99 @@ impl<'a> LocalCompletion<'a> {
     }
 }
 
+#[derive(Debug, Clone)]
+struct ObjectCompletionInfo {
+    field: DesugaredObjectField,
+    item: CompletionItem,
+}
+
+fn complete_object(
+    obj: &DesugaredObject,
+    cache: &Cache<JsonnetASTGenerator>,
+    prefix: &str,
+) -> Vec<ObjectCompletionInfo> {
+    let mut last_docsonnet_node: Option<&DesugaredObjectField> = None;
+    obj.fields
+        .iter()
+        .filter_map(|field| {
+            if field.get_name()?.starts_with("#") {
+                last_docsonnet_node = Some(field);
+            }
+            let detail = field.body.node_kind.get_value();
+            let mut documentation = None;
+            // TODO: better detection
+            if let Some(documentation_node) = &last_docsonnet_node
+                && documentation_node.get_name().unwrap_or_default()
+                    == format!("#{}", field.get_name().unwrap_or_default())
+            {
+                let doc_info =
+                    DocumentationInfo::from_docsonnet_node(cache, documentation_node.body.clone());
+                if let Some(doc_info) = doc_info
+                    && !doc_info.help_text.is_empty()
+                {
+                    documentation = Some(doc_info.build_lsp_documentation());
+                }
+            }
+            Some(ObjectCompletionInfo {
+                field: field.clone(),
+                item: CompletionItem {
+                    label: format!("{}{}", prefix, field.get_name()?),
+                    detail,
+                    documentation,
+                    kind: Some(field.body.node_kind.get_lsp_kind()),
+                    label_details: Some(CompletionItemLabelDetails {
+                        description: Some(field.body.node_kind.get_node_kind_name().into()),
+                        ..Default::default()
+                    }),
+
+                    ..Default::default()
+                },
+            })
+        })
+        .collect()
+}
+
+impl<'a> LocalCompletion<'a> {
+    fn complete_nested_object(
+        &self,
+        obj: &DesugaredObject,
+        stack: NodeStack,
+        prefixes: Vec<String>,
+        max_depth: usize,
+    ) -> Vec<ObjectCompletionInfo> {
+        let prefix = format!(
+            "{}{}",
+            prefixes.join("."),
+            if !prefixes.is_empty() { "." } else { "" }
+        );
+        complete_object(obj, self.cache, &prefix)
+            .into_iter()
+            .flat_map(|info| {
+                let mut nested_stack = stack.clone();
+                let mut infos = vec![info.clone()];
+                nested_stack.push(info.field.body.clone());
+                if prefixes.len() < max_depth
+                    // Filter out Applies for now since this leads to a bunch of unwanted completions
+                    && !matches!(info.field.body.node_kind.as_ref(), NodeKind::Apply(_))
+                    && let Ok(nested_node) = self.build_node(nested_stack.clone())
+                    && let NodeKind::DesugaredObject(nested_obj) = nested_node.node_kind.as_ref()
+                {
+                    let mut nested_prefixes = prefixes.clone();
+                    nested_prefixes.push(info.field.get_name().unwrap_or("<unknown>".to_string()));
+
+                    infos.extend(self.complete_nested_object(
+                        nested_obj,
+                        nested_stack,
+                        nested_prefixes,
+                        max_depth,
+                    ))
+                }
+                infos
+            })
+            .collect()
+    }
+}
+
 impl<'a> Completion for LocalCompletion<'a> {
     fn complete(&self, context: &CompletionContext) -> CompletionResult {
         let start = Instant::now();
@@ -127,47 +224,13 @@ impl<'a> Completion for LocalCompletion<'a> {
         // TODO: Create call stack and get every stage for the completion. Get the first object and
         // use the second one as a filter
         // TODO: Resolve the complete call stack
-        let node = self.build_node(stack)?;
+        let node = self.build_node(stack.clone())?;
         log::trace!("Built node {}", node.node_kind);
-        let mut last_docsonnet_node: Option<&DesugaredObjectField> = None;
         let items = match node.node_kind.as_ref() {
-            NodeKind::DesugaredObject(obj) => obj
-                .fields
+            NodeKind::DesugaredObject(obj) => self
+                .complete_nested_object(obj, stack, vec![], self.config.max_depth)
                 .iter()
-                .filter_map(|field| {
-                    if field.get_name()?.starts_with("#") {
-                        last_docsonnet_node = Some(field);
-                    }
-                    let detail = field.body.node_kind.get_value();
-                    let mut documentation = None;
-                    // TODO: better detection
-                    if let Some(documentation_node) = &last_docsonnet_node
-                        && documentation_node.get_name().unwrap_or_default()
-                            == format!("#{}", field.get_name().unwrap_or_default())
-                    {
-                        let doc_info = DocumentationInfo::from_docsonnet_node(
-                            self.cache,
-                            documentation_node.body.clone(),
-                        );
-                        if let Some(doc_info) = doc_info
-                            && !doc_info.help_text.is_empty()
-                        {
-                            documentation = Some(doc_info.build_lsp_documentation());
-                        }
-                    }
-                    Some(CompletionItem {
-                        label: field.get_name()?,
-                        detail,
-                        documentation,
-                        kind: Some(field.body.node_kind.get_lsp_kind()),
-                        label_details: Some(CompletionItemLabelDetails {
-                            description: Some(field.body.node_kind.get_node_kind_name().into()),
-                            ..Default::default()
-                        }),
-
-                        ..Default::default()
-                    })
-                })
+                .map(|info| info.item.clone())
                 .collect(),
             NodeKind::Var(var) => {
                 if var.is_std() {
