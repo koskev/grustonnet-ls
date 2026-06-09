@@ -5,6 +5,7 @@
 
 use std::{collections::HashMap, str::FromStr};
 
+use anyhow::Result;
 use language_server::{
     cache::Cache,
     server::{LSPError, LSPResponse},
@@ -34,8 +35,11 @@ pub enum Commands {
     /// Takes the path to the file as an argument
     /// Returns a string
     EvalFile,
-    #[strum(serialize = "config.jpaths")]
 
+    #[strum(serialize = "jsonnet.evalSnippet")]
+    /// Same as evalFile but accepts the actual content as the parameter
+    EvalSnippet,
+    #[strum(serialize = "config.jpaths")]
     /// Returns all configured jpaths as an array of strings
     Jpaths,
     #[strum(serialize = "config.extcode")]
@@ -52,6 +56,25 @@ impl From<CommandError> for LSPError {
             message: val.to_string(),
             error_code: ErrorCode::ParseError as i32,
         }
+    }
+}
+
+fn eval_snippet(
+    cache: &Cache<JsonnetASTGenerator>,
+    filename: &str,
+    content: &str,
+) -> Result<LSPResponse, LSPError> {
+    let eval_result = cache
+        .ast_generator
+        .jsonnet
+        .evaluate_snippet(filename, content);
+    match eval_result {
+        Ok(res) => Ok(res.into()),
+        Err(e) => Ok(format!(
+            "File: {}\nStart: {:?}\nEnd: {:?}\nError: {}",
+            e.filename, e.start, e.end, e.message
+        )
+        .into()),
     }
 }
 
@@ -74,18 +97,16 @@ pub fn handle_command(
             let eval_file_arguments: String = serde_json::from_value(argument.clone())
                 .map_err(|_e| CommandError::InvalidArguments)?;
             let document = cache.get_document(&Uri::from_path(&eval_file_arguments)?)?;
-            let eval_result = cache
-                .ast_generator
-                .jsonnet
-                .evaluate_snippet(&eval_file_arguments, &document.content);
-            match eval_result {
-                Ok(res) => Ok(res.into()),
-                Err(e) => Ok(format!(
-                    "File: {}\nStart: {:?}\nEnd: {:?}\nError: {}",
-                    e.filename, e.start, e.end, e.message
-                )
-                .into()),
+            eval_snippet(cache, &eval_file_arguments, &document.content)
+        }
+        Commands::EvalSnippet => {
+            if params.arguments.len() != 1 {
+                return Err(CommandError::InvalidArguments.into());
             }
+            let argument = &params.arguments[0];
+            let eval_snippet_arguments: String = serde_json::from_value(argument.clone())
+                .map_err(|_e| CommandError::InvalidArguments)?;
+            eval_snippet(cache, "snippet", &eval_snippet_arguments)
         }
         Commands::Jpaths => {
             if !params.arguments.is_empty() {
