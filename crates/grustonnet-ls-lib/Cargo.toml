@@ -24,7 +24,7 @@ grustonnet-node = { path = "../grustonnet-node"}
 grustonnet-config = { path = "../grustonnet-config"}
 language-server = { path = "../language-server"}
 utils = { path = "../utils"}
-paste = "1.0.15"
+paste = { package = "pastey", version = "0.2.3" }
 ropey = { workspace = true }
 regex = { workspace = true }
 tree-sitter = { workspace = true }
