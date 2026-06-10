@@ -65,7 +65,7 @@ Then run `jsonnet -S config.jsonnet > ~/.config/helix/languages.toml` (or a temp
 ## VSCodium
 Search for `grustonnet` and install the extension (identifier `koskev.vscode-grustonnet`). I am currently not verified and I am not sure when I'll do that.
 
-For VSCode users: Add the openvsx marketplace to your editor. I really can't be bothered right now to sign up for another closed ecosystem from Microsoft.
+For VSCode users: Add the openvsx marketplace to your editor. I really can't be bothered right now to sign up for another closed ecosystem from Microslop.
 
 Alternatively just download the file from <https://github.com/koskev/vscode-grustonnet/releases>
 
