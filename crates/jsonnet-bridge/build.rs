@@ -80,6 +80,11 @@ impl GoCompiler for CrossGoCompiler {
                 .env("GOARCH", "amd64");
         }
 
+        let extra_args: Vec<&'static str> = vec![
+            #[cfg(debug_assertions)]
+            "-ldflags=-s -w",
+        ];
+
         go_build
             .env("GO111MODULE", "on")
             .current_dir(go_src)
@@ -89,6 +94,7 @@ impl GoCompiler for CrossGoCompiler {
             } else {
                 "-buildmode=c-shared"
             })
+            .args(extra_args)
             .arg("-o")
             .arg(output)
             .arg(".");
