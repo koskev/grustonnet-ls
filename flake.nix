@@ -17,6 +17,11 @@
     };
     import-tree.url = "github:vic/import-tree";
     nix-actions.url = "github:koskev/nix-actions";
+    gomod2nix = {
+      url = "github:nix-community/gomod2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =

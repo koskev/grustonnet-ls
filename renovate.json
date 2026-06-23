@@ -16,5 +16,22 @@
 	},
 	"github-actions": {
 		"enabled": false
-	}
+	},
+	"packageRules": [
+		{
+			"description": "Generate gomod2nix",
+			"matchDatasources": [
+				"go"
+			],
+			"postUpgradeTasks": {
+				"commands": [
+					"nix run .#gomod"
+				],
+				"fileFilters": [
+					"**/*"
+				],
+				"executionMode": "update"
+			}
+		}
+	]
 }

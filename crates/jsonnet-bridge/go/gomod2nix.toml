@@ -1,0 +1,51 @@
+schema = 3
+
+[mod]
+  [mod.'github.com/davecgh/go-spew']
+    version = 'v1.1.1'
+    hash = 'sha256-nhzSUrE1fCkN0+RL04N4h8jWmRFPPPWbCuDc7Ss0akI='
+
+  [mod.'github.com/google/go-jsonnet']
+    version = 'v0.0.0-20260531091418-95d8cfa53fc9'
+    hash = 'sha256-EFiP9bdATII9uJQwNXQJW+pmg+sUHdjXte9/Or4doyM='
+    replaced = 'github.com/koskev/go-jsonnet'
+
+  [mod.'github.com/ihciah/rust2go']
+    version = 'v0.0.0-20260603003846-c069bafe56d6'
+    hash = 'sha256-hB2CPEZIYh3QrIenKAhGpoS5NLc1GZrvG0PfBt04lj8='
+
+  [mod.'github.com/pmezard/go-difflib']
+    version = 'v1.0.0'
+    hash = 'sha256-/FtmHnaGjdvEIKAJtrUfEhV7EVo5A/eYrtdnUkuxLDA='
+
+  [mod.'github.com/stretchr/testify']
+    version = 'v1.11.1'
+    hash = 'sha256-sWfjkuKJyDllDEtnM8sb/pdLzPQmUYWYtmeWz/5suUc='
+
+  [mod.'github.com/vmihailenco/msgpack/v5']
+    version = 'v5.4.1'
+    hash = 'sha256-pDplX6xU6UpNLcFbO1pRREW5vCnSPvSU+ojAwFDv3Hk='
+
+  [mod.'github.com/vmihailenco/tagparser/v2']
+    version = 'v2.0.0'
+    hash = 'sha256-M9QyaKhSmmYwsJk7gkjtqu9PuiqZHSmTkous8VWkWY0='
+
+  [mod.'go.yaml.in/yaml/v2']
+    version = 'v2.4.3'
+    hash = 'sha256-WqfrOUQFvfuORgl1yyVOcsEXU/vwWQHkcVWx3vCxvaw='
+
+  [mod.'golang.org/x/crypto']
+    version = 'v0.45.0'
+    hash = 'sha256-IpNesJYxFcs2jGvagwJrUD/gsJfA3UiETjQwYByXxSY='
+
+  [mod.'golang.org/x/sys']
+    version = 'v0.38.0'
+    hash = 'sha256-1+i5EaG3JwH3KMtefzJLG5R6jbOeJM4GK3/LHBVnSy0='
+
+  [mod.'gopkg.in/yaml.v3']
+    version = 'v3.0.1'
+    hash = 'sha256-FqL9TKYJ0XkNwJFnq9j0VvJ5ZUU1RvH/52h/f5bkYAU='
+
+  [mod.'sigs.k8s.io/yaml']
+    version = 'v1.6.0'
+    hash = 'sha256-49hg7IVPzwxeovp+HTMiWa/10NMMTSTjAdCmIv6p9dw='

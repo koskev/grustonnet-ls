@@ -2,6 +2,7 @@ _: {
   perSystem =
     {
       pkgs,
+      inputs',
       sharedNativeBuildInputs,
       sharedBuildInputs,
       ...
@@ -66,6 +67,7 @@ _: {
               prek
               gnumake
               git-cliff
+              inputs'.gomod2nix.packages.default
             ];
           buildInputs =
             with pkgs;

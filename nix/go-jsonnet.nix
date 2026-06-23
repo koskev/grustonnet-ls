@@ -1,7 +1,7 @@
 { self, ... }:
 {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, inputs', ... }:
     let
       rust2gocli = pkgs.rustPlatform.buildRustPackage rec {
         name = "rust2go-cli";
@@ -17,12 +17,15 @@
     in
     {
       packages = {
-        go-jsonnet = pkgs.stdenv.mkDerivation {
+        go-jsonnet = inputs'.gomod2nix.legacyPackages.buildGoApplication rec {
           name = "rust2go-vendor";
+          pname = "rust2go-vendor";
           src = "${self}/crates/jsonnet-bridge";
+          pwd = "${src}/go";
+          modules = ../crates/jsonnet-bridge/go/gomod2nix.toml;
           dontUnpack = true;
 
-          nativeBuildInputs = [ pkgs.go ];
+          #nativeBuildInputs = [ pkgs.go ];
 
           buildPhase = ''
             # We need to compile go in a subdir since go refuses to work in the "system tmp" directory, which is /build in this case
@@ -33,6 +36,7 @@
             cd go
             export GOPATH="$TMPDIR/go-path"
             export GOCACHE="$TMPDIR/go-cache"
+            unset GOPROXY
             go mod vendor
           '';
 
@@ -40,11 +44,6 @@
             mkdir -p $out
             cp -r vendor $out
           '';
-
-          outputHashMode = "recursive";
-          outputHashAlgo = "sha256";
-          # Do NOT set to `null` for testing. `go mod vendor` WILL break
-          outputHash = "sha256-XlvbSiOlhnmn1guO9QP0poB8qHm59QDTKmOOvlyqHiI=";
         };
       };
     };
