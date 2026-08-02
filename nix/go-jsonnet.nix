@@ -44,7 +44,7 @@
           outputHashMode = "recursive";
           outputHashAlgo = "sha256";
           # Do NOT set to `null` for testing. `go mod vendor` WILL break
-          outputHash = "sha256-XlvbSiOlhnmn1guO9QP0poB8qHm59QDTKmOOvlyqHiI=";
+          outputHash = "sha256-82L+YPEiKFkyCS3WT4kHMsatKiUBmx6t9snto1HDMOs=";
         };
       };
     };
