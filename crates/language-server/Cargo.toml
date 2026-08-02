@@ -18,7 +18,7 @@ ropey = { workspace = true }
 similar = "3.0.0"
 crossbeam = { workspace = true }
 rand = "0.10.0"
-mockall = "0.14.0"
+mockall = "0.15.0"
 utils = { path = "../utils"}
 rayon.workspace = true
 jsonnet-location = { path = "../jsonnet-location"}
