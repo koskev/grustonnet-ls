@@ -68,8 +68,7 @@ macro_rules! lsp_handle_request {
 
                 $server.connection().send(Message::Response(Response {
                     id,
-                    result: result.clone().ok(),
-                    error: result.err(),
+                    response_result: result,
                 }))?;
                 return Ok(());
             }
@@ -266,8 +265,7 @@ where
                     };
                     let _ = server.connection().send(Message::Response(Response {
                         id,
-                        result: result.clone().ok(),
-                        error: result.err(),
+                        response_result: result,
                     }));
                 });
 
