@@ -25,6 +25,7 @@ pub mod docsonnet_default;
 pub mod dollar;
 pub mod empty;
 pub mod error;
+pub mod fmt;
 pub mod local_function;
 pub mod number_rounding;
 pub mod object_function;
@@ -74,6 +75,7 @@ fn disabled_diagnostics_config() -> DiagnosticConfig {
         number_rounding: false,
         unknown_variable: false,
         conditional_parenthesis: false,
+        fmt_performance_hint: false,
     }
 }
 

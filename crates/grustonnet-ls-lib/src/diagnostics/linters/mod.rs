@@ -5,6 +5,7 @@
 
 pub mod dollar;
 pub mod duplicate_values;
+pub mod fmt;
 pub mod number_rounding;
 pub mod object_function;
 pub mod recursive_argument;

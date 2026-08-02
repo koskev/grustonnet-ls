@@ -68,6 +68,7 @@ use crate::{
             self,
             dollar::DollarDiagnostics,
             duplicate_values::DuplicateValuesDiagnostic,
+            fmt::FmtPerformanceDiagnostics,
             number_rounding::NumberRoundingDiagnostics,
             object_function::ObjectFunctionDiagnostics,
             recursive_argument::RecursiveArgumentDiagnostic,
@@ -173,6 +174,7 @@ impl JsonnetServer {
             diagnostics_handler_diags.push(naming_diag);
         }
 
+        add_jsonnet_diag!(fmt_performance_hint, FmtPerformanceDiagnostics);
         add_jsonnet_diag!(prevent_dollar, DollarDiagnostics);
         add_jsonnet_diag!(recursive_arguments, RecursiveArgumentDiagnostic);
         add_jsonnet_diag!(shadow_variable, ShadowVariableDiagnostics);

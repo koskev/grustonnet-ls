@@ -153,6 +153,10 @@ pub struct DiagnosticConfig {
     /// Enable linting suggesting surrounding conditional in parenthesis if they contain a binary
     /// operation
     pub conditional_parenthesis: bool,
+
+    #[default = false]
+    /// Adds hint to fmt expressions if they be written more efficient
+    pub fmt_performance_hint: bool,
 }
 
 #[derive(Debug, SmartDefault, Serialize, Deserialize, Clone, JsonSchema)]
