@@ -21,6 +21,7 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use ropey::Rope;
 use rust2go_env::restart_with_fixed_env;
 use utils::{RwLockPanic, rope::RopeHelper, uri::UriHelper};
+use version_macros::git_commit;
 
 use crate::code_quality::CodeClimate;
 
@@ -56,7 +57,7 @@ impl From<Severity> for miette::Severity {
 }
 
 #[derive(Parser, Debug)]
-#[command(name = env!("CARGO_BIN_NAME"), version, about, long_about = None)]
+#[command(name = env!("CARGO_BIN_NAME"), version = concat!(env!("CARGO_PKG_VERSION"), "-", git_commit!()), about, long_about = None)]
 struct Args {
     paths: Vec<PathBuf>,
 

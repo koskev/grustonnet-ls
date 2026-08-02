@@ -22,6 +22,7 @@ grustonnet-ls-lib = { path = "../grustonnet-ls-lib"}
 grustonnet-config = { path = "../grustonnet-config"}
 language-server = { path = "../language-server"}
 rust2go-env = { path = "../rust2go-env"}
+version-macros = { path = "../version-macros"}
 schemars = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

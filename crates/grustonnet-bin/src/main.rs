@@ -10,9 +10,10 @@ use grustonnet_ls_lib::server::jsonnet::JsonnetServer;
 use language_server::server::{LSPConnection, LSPServerManager};
 use rust2go_env::restart_with_fixed_env;
 use schemars::generate::SchemaSettings;
+use version_macros::git_commit;
 
 #[derive(Parser, Debug)]
-#[command(name = env!("CARGO_BIN_NAME"), version, about, long_about = None)]
+#[command(name = env!("CARGO_BIN_NAME"), version = concat!(env!("CARGO_PKG_VERSION"), "-", git_commit!()), about, long_about = None)]
 struct Args {
     #[arg(long)]
     export_config_schema: bool,

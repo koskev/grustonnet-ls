@@ -9,6 +9,7 @@
         ];
         sharedNativeBuildInputs = with pkgs; [
           pkg-config
+          git
         ];
       };
     };

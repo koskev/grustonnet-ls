@@ -30,6 +30,7 @@ log = { workspace = true }
 rayon = { workspace = true }
 utils = { path = "../utils"}
 crossbeam.workspace = true
+version-macros = { path = "../version-macros"}
 
 [target.'cfg(unix)'.dependencies]
 exec = { version = "0.3.1" }

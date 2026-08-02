@@ -26,6 +26,7 @@ members = [
 "crates/jsonnet-location",
 "crates/language-server",
 "crates/test-macros",
+"crates/version-macros",
 "crates/utils",
 ]
 resolver = "3"

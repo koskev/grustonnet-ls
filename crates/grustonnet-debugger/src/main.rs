@@ -10,13 +10,14 @@ use clap::Parser;
 use env_logger::Env;
 use rust_dap::server::{DAPConnection, DAPServerManager};
 use rust2go_env::restart_with_fixed_env;
+use version_macros::git_commit;
 
 use crate::jsonnet_dap::JsonnetDAPServer;
 
 mod jsonnet_dap;
 
 #[derive(Parser, Debug)]
-#[command(name = env!("CARGO_BIN_NAME"), version, about, long_about = None)]
+#[command(name = env!("CARGO_BIN_NAME"), version = concat!(env!("CARGO_PKG_VERSION"), "-", git_commit!()), about, long_about = None)]
 struct Args {
     #[arg(long, short)]
     port: Option<u16>,
