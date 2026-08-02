@@ -14,7 +14,7 @@ language-server = { path = "../language-server"}
 jsonnet-location = { path = "../jsonnet-location"}
 log = { workspace = true }
 itertools = { workspace = true }
-name-variant = { path = "../name-variant"}
+strum.workspace = true
 jsonnet-bridge = { path = "../jsonnet-bridge"}
 grustonnet-config = { path = "../grustonnet-config"}
 node-stack = { path = "../node-stack"}

@@ -16,7 +16,6 @@ lsp-server = { workspace = true }
 lsp-types = { workspace = true, features = ["proposed"] }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json = { workspace = true }
-name-variant = { path = "../name-variant"}
 jsonnet-bridge = { path = "../jsonnet-bridge"}
 jsonnet-location = { path = "../jsonnet-location"}
 jsonnet-cst = { path = "../jsonnet-cst"}
@@ -34,7 +33,7 @@ log = { workspace = true }
 schemars = { workspace = true }
 jsonnet-std-docs = { path = "../jsonnet-std-docs"}
 test-macros = { path = "../test-macros"}
-strum = { version = "0.28.0", features = ["derive", "strum_macros"] }
+strum.workspace = true
 walkdir = { workspace = true }
 itertools = { workspace = true }
 rayon = { workspace = true }

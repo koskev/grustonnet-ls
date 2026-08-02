@@ -57,3 +57,4 @@ tree-sitter = "0.26.0"
 walkdir = "2.5.0"
 url = "2.5.8"
 utils = { path = "crates/utils"}
+strum = { version = "0.28.0", features = ["derive", "strum_macros"] }

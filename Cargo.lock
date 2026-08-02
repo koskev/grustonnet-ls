@@ -880,7 +880,6 @@ dependencies = [
  "log",
  "lsp-server",
  "lsp-types",
- "name-variant",
  "pastey",
  "pretty_assertions",
  "rayon",
@@ -916,9 +915,9 @@ dependencies = [
  "language-server",
  "log",
  "lsp-types",
- "name-variant",
  "node-stack",
  "serde",
+ "strum",
 ]
 
 [[package]]
@@ -1263,11 +1262,11 @@ dependencies = [
  "jsonnet-location",
  "language-server",
  "lsp-server",
- "name-variant",
  "regex",
  "rust2go",
  "rust2go-cli",
  "sha2",
+ "strum",
 ]
 
 [[package]]
@@ -1539,15 +1538,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
-]
-
-[[package]]
-name = "name-variant"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.3",
 ]
 
 [[package]]

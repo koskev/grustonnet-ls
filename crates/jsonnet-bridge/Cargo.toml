@@ -10,7 +10,7 @@ workspace = true
 rust2go = { version = "0.4.0" }
 regex = { workspace = true }
 lsp-server = { workspace = true }
-name-variant = { path = "../name-variant"}
+strum.workspace = true
 language-server = { path = "../language-server"}
 jsonnet-location = { path = "../jsonnet-location"}
 grustonnet-config = { path = "../grustonnet-config/"}

@@ -8,10 +8,10 @@ use std::{error::Error, fmt::Display};
 use jsonnet_location::Location;
 use language_server::server::LSPError;
 use lsp_server::ErrorCode;
-use name_variant::NamedVariant;
 use regex::Regex;
+use strum::IntoStaticStr;
 
-#[derive(Debug, NamedVariant, Clone, PartialEq, Eq)]
+#[derive(Debug, IntoStaticStr, Clone, PartialEq, Eq)]
 pub enum EvaluateErrorType {
     Unknown(String),
 

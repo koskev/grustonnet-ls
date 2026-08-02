@@ -10,8 +10,8 @@ use std::{
 
 use bincode_next::{Decode, Encode};
 use lsp_types::CompletionItemKind;
-use name_variant::NamedVariant;
 use serde::{Deserialize, Serialize};
+use strum::IntoStaticStr;
 
 use crate::types::{
     Array, Error, Identifier, Import, Local, Unary,
@@ -44,7 +44,7 @@ pub struct SuperIndex {
     pub id: Option<Identifier>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, NamedVariant, PartialEq, Eq, Decode, Encode)]
+#[derive(Debug, Serialize, Deserialize, Clone, IntoStaticStr, PartialEq, Eq, Decode, Encode)]
 #[serde(rename_all = "PascalCase", tag = "T")]
 #[derive(Default)]
 pub enum NodeKind {
@@ -127,6 +127,9 @@ impl Display for NodeKind {
 }
 
 impl NodeKind {
+    pub fn variant_name(&self) -> &'static str {
+        self.into()
+    }
     pub fn get_value(&self) -> Option<String> {
         match self {
             Self::LiteralString(litstr) => Some(litstr.value.clone()),
