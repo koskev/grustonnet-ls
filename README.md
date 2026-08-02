@@ -131,3 +131,7 @@ In VSCodium just install the `grustonnet` plugin. For VSCode add the openvsx mar
     * not part of the spec apart from the reserved keyword
     * no documentation at all
     * in `foo(myArg()) tailstrict` forces myArg to be evaluated before the body, even if it is unused
+
+
+## Stance on LLM code
+Since this is purely a private project of mine I do for fun, I don't want to have to deal with any LLM slop. The only LLM slop is in the LLM instruction files. I just want human slop instead. I also don't care if this software does not run in any LLM based scenario.

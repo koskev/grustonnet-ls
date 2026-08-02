@@ -188,6 +188,8 @@ where
     pub server: S,
 }
 
+const TROUBLESOME_CLIENT_IDS: &[&str] = &["openc"];
+
 impl<S> LSPServerManager<S>
 where
     S: LSPServer,
@@ -204,6 +206,16 @@ where
 
         let params: InitializeParams =
             serde_json::from_value(params).expect("InitializeParams are in the wrong format");
+        let name = match &params.client_info {
+            Some(info) => info.name.as_str(),
+            None => "",
+        };
+        if TROUBLESOME_CLIENT_IDS
+            .iter()
+            .any(|e| name.to_lowercase().starts_with(&e.to_lowercase()))
+        {
+            return Ok(());
+        }
         self.server.handle_init_parameters(params);
         log::info!("Starting main loop");
         for msg in &self.server.connection().connection.receiver {
