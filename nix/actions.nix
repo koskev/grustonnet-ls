@@ -110,13 +110,9 @@ in
               };
             }
             {
-              name = "Upload changelog";
-              uses = actions.upload-artifact;
-              "with" = {
-                name = "changelog";
-                path = "CHANGELOG.md";
-                retention-days = 1;
-              };
+              name = "Create release";
+              run = "gh release create -d \${{ github.ref_name }} --notes-file CHANGELOG.md";
+              env.GH_TOKEN = "\${{ secrets.GITHUB_TOKEN }}";
             }
           ];
           release = {
@@ -184,12 +180,9 @@ in
                 run = builtins.readFile ./scripts/compress-release.sh;
               }
               {
-                name = "Publish artifacts and release";
-                uses = actions.gh-release;
-                "with" = {
-                  files = "\${{ env.RELEASE_TAR }}";
-                  body_path = "changelog/CHANGELOG.md";
-                };
+                name = "Upload binary";
+                run = "gh release upload \${{ github.ref_name }} \${{ env.RELEASE_TAR }} --clobber";
+                env.GH_TOKEN = "\${{ secrets.GITHUB_TOKEN }}";
               }
             ];
           };
