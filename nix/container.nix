@@ -12,6 +12,13 @@ _: {
     {
       packages =
         let
+          extraPackages = with pkgs; [
+            # Useful for modifying a config or quality output
+            jq
+
+            coreutils
+            bash
+          ];
           mkBinaries =
             name:
             pkgs.runCommand "bins"
@@ -34,13 +41,13 @@ _: {
               tag = "latest";
               copyToRoot = pkgs.buildEnv {
                 name = "root";
-                paths = [ pkgs.bash ];
+                paths = extraPackages;
                 pathsToLink = [ "/bin" ];
               };
               config = {
                 Cmd = [ "${binaries}/bin/grustonnet-${name}" ];
                 Env = [
-                  "PATH=${binaries}/bin:${pkgs.bash}/bin:${pkgs.coreutils}/bin:/bin"
+                  "PATH=${binaries}/bin:/bin"
                 ];
               };
             };
@@ -59,14 +66,14 @@ _: {
 
               copyToRoot = pkgs.buildEnv {
                 name = "root";
-                paths = [ pkgs.bash ];
+                paths = extraPackages;
                 pathsToLink = [ "/bin" ];
               };
 
               config = {
                 Cmd = [ "${binaries}/bin/grustonnet-lint" ];
                 Env = [
-                  "PATH=${binaries}/bin:${pkgs.bash}/bin:${pkgs.coreutils}/bin:/bin"
+                  "PATH=${binaries}/bin:/bin"
                 ];
               };
             };
