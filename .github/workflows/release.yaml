@@ -18,12 +18,10 @@ jobs:
       with:
         args: --verbose --current
         config: cliff.toml
-    - name: Upload changelog
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-      with:
-        name: changelog
-        path: CHANGELOG.md
-        retention-days: 1
+    - env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      name: Create release
+      run: gh release create -d ${{ github.ref_name }} --notes-file CHANGELOG.md
   release:
     needs:
     - changelog
@@ -48,11 +46,6 @@ jobs:
         cargo install cargo-set-version
         echo "Setting program version to ${TAG_VERSION}"
         cargo set-version ${TAG_VERSION}
-    - name: Get changelog
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-      with:
-        name: changelog
-        path: changelog
     - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417
       with:
         go-version: '1.25'
@@ -78,11 +71,10 @@ jobs:
         popd || exit 1
         mv "$tmpdir"/"$RELEASE_TAR" ./
         rm -rf "$tmpdir"
-    - name: Publish artifacts and release
-      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
-      with:
-        body_path: changelog/CHANGELOG.md
-        files: ${{ env.RELEASE_TAR }}
+    - env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      name: Upload binary
+      run: gh release upload ${{ github.ref_name }} ${{ env.RELEASE_TAR }} --clobber
     strategy:
       matrix:
         platform:
