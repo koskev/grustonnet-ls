@@ -65,6 +65,28 @@
         default = grustonnet;
         grustonnet = mkGrustonnet { };
         grustonnet-test = mkGrustonnet { doCheck = true; };
+        grustonnetFHSDistribution = pkgs.stdenv.mkDerivation {
+          pname = "grustonnet";
+          version = "0.0.0";
+
+          buildInputs = [ grustonnet ];
+          nativeBuildInputs = [
+            pkgs.patchelf
+          ];
+
+          dontUnpack = true;
+
+          installPhase = ''
+            mkdir -p $out/bin
+            cp ${grustonnet}/bin/* $out/bin/
+            for bin in $out/bin/*; do
+              if [ -f "$bin" ] && [ -x "$bin" ]; then
+                chmod +w "$bin"
+                patchelf --set-interpreter /lib64/ld-linux-x86-64.so.2 "$bin"
+              fi
+            done
+          '';
+        };
       };
     };
 }
