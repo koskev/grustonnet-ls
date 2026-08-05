@@ -176,6 +176,16 @@ in
                 run = "gh release upload \${{ github.ref_name }} \${{ env.RELEASE_TAR }} --clobber";
                 env.GH_TOKEN = "\${{ secrets.GITHUB_TOKEN }}";
               }
+              {
+                # Just upload the schema from one job
+                name = "Upload schema";
+                run = ''
+                  target/${platforms.linux.target}/release/grustonnet-ls --export-config-schema > schema.json
+                  gh release upload ''${{ github.ref_name }} schema.json --clobber
+                '';
+                "if" = "matrix.platform.target == '${platforms.linux.target}'";
+                env.GH_TOKEN = "\${{ secrets.GITHUB_TOKEN }}";
+              }
             ];
           };
         };

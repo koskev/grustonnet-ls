@@ -75,6 +75,13 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       name: Upload binary
       run: gh release upload ${{ github.ref_name }} ${{ env.RELEASE_TAR }} --clobber
+    - env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: matrix.platform.target == 'x86_64-unknown-linux-gnu'
+      name: Upload schema
+      run: |-
+        target/x86_64-unknown-linux-gnu/release/grustonnet-ls --export-config-schema > schema.json
+        gh release upload ${{ github.ref_name }} schema.json --clobber
     strategy:
       matrix:
         platform:

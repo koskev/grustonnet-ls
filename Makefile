@@ -48,7 +48,7 @@ license: check-$(REUSE)
 	$(REUSE) annotate --copyright="Kevin Köster" --license="AGPL-3.0-or-later" -t default $$(find crates -type f -not \( -path "crates/name-variant/*" -prune \) -name '*.rs')
 
 $(SCHEMA_OUTPUT): check-cargo
-	$(CARGO) run -- --export-config-schema > $(SCHEMA_OUTPUT)
+	$(CARGO) run --bin grustonnet-ls -- --export-config-schema > $(SCHEMA_OUTPUT)
 
 .PHONY: schema
 schema: $(SCHEMA_OUTPUT)
