@@ -4,6 +4,7 @@ github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/ihciah/rust2go v0.0.0-20260706074211-1c851bd436aa h1:u8Mzn+6v64BdSV6ry7OGXt2lbSjHQh4711+0whU/sYE=
 github.com/ihciah/rust2go v0.0.0-20260706074211-1c851bd436aa/go.mod h1:SpcZZoVYDXYhx373JZ1onR8dnEcalKA0H61x/FJ9O0s=
+github.com/ihciah/rust2go v0.0.0-20260831013902-329b4e97963f/go.mod h1:SpcZZoVYDXYhx373JZ1onR8dnEcalKA0H61x/FJ9O0s=
 github.com/koskev/go-jsonnet v0.0.0-20260531091418-95d8cfa53fc9 h1:4uN5j3CRoqUH6y/S7+k6TQrbm06zNb0HJhmwF4fKZvE=
 github.com/koskev/go-jsonnet v0.0.0-20260531091418-95d8cfa53fc9/go.mod h1:pLhKpu0/ODjL2Zev4y+CmCoHKAgONT1gSLQyriuYh9w=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
