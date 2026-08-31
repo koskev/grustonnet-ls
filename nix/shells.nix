@@ -6,23 +6,18 @@ _: {
       sharedBuildInputs,
       ...
     }:
+    let
+      rustPlatform = pkgs.makeRustPlatform {
+        inherit (pkgs) rustc;
+        inherit (pkgs) cargo;
+      };
+
+    in
     {
       devShells = {
         test = pkgs.mkShell {
-          nativeBuildInputs =
-            with pkgs;
-            sharedNativeBuildInputs
-            ++ [
-              cargo
-            ];
-          buildInputs =
-            with pkgs;
-            sharedBuildInputs
-            ++ [
-              rustc
-            ];
-          RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
-          LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
+          nativeBuildInputs = sharedNativeBuildInputs;
+          buildInputs = sharedBuildInputs;
         };
         clippy = pkgs.mkShell {
           nativeBuildInputs =
@@ -30,17 +25,12 @@ _: {
             sharedNativeBuildInputs
             ++ [
               cargo
+              rustc
+              rustPlatform.bindgenHook
               clippy
               gnumake
             ];
-          buildInputs =
-            with pkgs;
-            sharedBuildInputs
-            ++ [
-              rustc
-            ];
-          RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
-          LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
+          buildInputs = sharedBuildInputs;
         };
 
         # For `nix develop`:
@@ -49,7 +39,6 @@ _: {
             with pkgs;
             sharedNativeBuildInputs
             ++ [
-              cargo
               gdb
               cargo-tarpaulin
               clippy
@@ -67,14 +56,8 @@ _: {
               gnumake
               git-cliff
             ];
-          buildInputs =
-            with pkgs;
-            sharedBuildInputs
-            ++ [
-              rustc
-            ];
+          buildInputs = sharedBuildInputs;
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
-          LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
           GODEBUG = "invalidptr=0,cgocheck=0";
         };
       };

@@ -2,15 +2,24 @@
   perSystem =
     { pkgs, ... }:
     {
-      _module.args = {
-        sharedBuildInputs = with pkgs; [
-          go
-          clang
-        ];
-        sharedNativeBuildInputs = with pkgs; [
-          pkg-config
-          git
-        ];
-      };
+      _module.args =
+        let
+          rustPlatform = pkgs.makeRustPlatform {
+            inherit (pkgs) rustc;
+            inherit (pkgs) cargo;
+          };
+        in
+        {
+          sharedBuildInputs = with pkgs; [
+            go
+            clang
+            rustc
+            rustPlatform.bindgenHook
+          ];
+          sharedNativeBuildInputs = with pkgs; [
+            pkg-config
+            git
+          ];
+        };
     };
 }

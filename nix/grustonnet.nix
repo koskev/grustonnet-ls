@@ -54,7 +54,6 @@
 
           nativeBuildInputs = sharedNativeBuildInputs;
           buildInputs = sharedBuildInputs;
-          LIBCLANG_PATH = with pkgs; "${llvmPackages.libclang.lib}/lib";
           GODEBUG = "invalidptr=0,cgocheck=0";
           GIT_COMMIT_SHORT = toString (self.shortRev or self.dirtyShortRev or "unknown");
         };
