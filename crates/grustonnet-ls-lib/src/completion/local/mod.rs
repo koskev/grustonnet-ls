@@ -126,23 +126,19 @@ fn complete_object(
     prefix: &str,
     skip_docsonnet_fields: bool,
 ) -> Vec<ObjectCompletionInfo> {
-    let mut last_docsonnet_node: Option<&DesugaredObjectField> = None;
     obj.fields
         .iter()
         .filter_map(|field| {
-            if field.get_name()?.starts_with("#") {
-                last_docsonnet_node = Some(field);
-                if skip_docsonnet_fields {
-                    return None;
-                }
+            if skip_docsonnet_fields && field.get_name()?.starts_with("#") {
+                return None;
             }
             let detail = field.body.node_kind.get_value();
             let mut documentation = None;
-            // TODO: better detection
-            if let Some(documentation_node) = &last_docsonnet_node
-                && documentation_node.get_name().unwrap_or_default()
+            let found_doc_node = obj.fields.iter().find(|f| {
+                f.get_name().unwrap_or_default()
                     == format!("#{}", field.get_name().unwrap_or_default())
-            {
+            });
+            if let Some(documentation_node) = found_doc_node {
                 let doc_info =
                     DocumentationInfo::from_docsonnet_node(cache, documentation_node.body.clone());
                 if let Some(doc_info) = doc_info
