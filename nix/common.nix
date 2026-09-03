@@ -14,6 +14,7 @@
             go
             clang
             rustc
+            cargo
             rustPlatform.bindgenHook
           ];
           sharedNativeBuildInputs = with pkgs; [
