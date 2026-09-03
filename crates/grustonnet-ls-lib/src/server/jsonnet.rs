@@ -501,9 +501,6 @@ impl LSPServer for JsonnetServer {
             items: succeeded
                 .into_iter()
                 .flat_map(|list| list.items.clone())
-                .filter(|item| {
-                    !config.completion.hide_docsonnet_members || !item.label.starts_with("#")
-                })
                 .collect(),
             is_incomplete,
         };

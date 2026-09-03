@@ -124,6 +124,7 @@ fn complete_object(
     obj: &DesugaredObject,
     cache: &Cache<JsonnetASTGenerator>,
     prefix: &str,
+    skip_docsonnet_fields: bool,
 ) -> Vec<ObjectCompletionInfo> {
     let mut last_docsonnet_node: Option<&DesugaredObjectField> = None;
     obj.fields
@@ -131,6 +132,9 @@ fn complete_object(
         .filter_map(|field| {
             if field.get_name()?.starts_with("#") {
                 last_docsonnet_node = Some(field);
+                if skip_docsonnet_fields {
+                    return None;
+                }
             }
             let detail = field.body.node_kind.get_value();
             let mut documentation = None;
@@ -173,16 +177,24 @@ impl<'a> LocalCompletion<'a> {
         stack: NodeStack,
         prefixes: Vec<String>,
         max_depth: usize,
+        skip_docsonnet: bool,
     ) -> Vec<ObjectCompletionInfo> {
         let prefix = format!(
             "{}{}",
             prefixes.join("."),
             if !prefixes.is_empty() { "." } else { "" }
         );
-        complete_object(obj, self.cache, &prefix)
+        complete_object(obj, self.cache, &prefix, skip_docsonnet)
             .into_iter()
             .flat_map(|info| {
+                let mut info = info;
                 let mut nested_stack = stack.clone();
+                // Put the nested objects at the end
+                info.item.filter_text = Some(format!(
+                    "{}{}",
+                    "zzz".repeat(prefixes.len()),
+                    info.item.label
+                ));
                 let mut infos = vec![info.clone()];
                 nested_stack.push(info.field.body.clone());
                 if prefixes.len() < max_depth
@@ -199,6 +211,7 @@ impl<'a> LocalCompletion<'a> {
                         nested_stack,
                         nested_prefixes,
                         max_depth,
+                        skip_docsonnet,
                     ))
                 }
                 infos
@@ -228,7 +241,13 @@ impl<'a> Completion for LocalCompletion<'a> {
         log::trace!("Built node {}", node.node_kind);
         let items = match node.node_kind.as_ref() {
             NodeKind::DesugaredObject(obj) => self
-                .complete_nested_object(obj, stack, vec![], self.config.max_depth)
+                .complete_nested_object(
+                    obj,
+                    stack,
+                    vec![],
+                    self.config.max_depth,
+                    self.config.hide_docsonnet_members,
+                )
                 .iter()
                 .map(|info| info.item.clone())
                 .collect(),

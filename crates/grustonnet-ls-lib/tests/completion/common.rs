@@ -142,6 +142,9 @@ impl CompletionTestCase {
             if expected.label_details.is_none() {
                 item.label_details = None;
             }
+            if expected.filter_text.is_none() {
+                item.filter_text = None;
+            }
         }
 
         assert_eq!(
