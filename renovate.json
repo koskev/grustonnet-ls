@@ -17,5 +17,8 @@
 	},
 	"github-actions": {
 		"enabled": false
-	}
+	},
+	"ignoreDeps": [
+		"github.com/ihciah/rust2go"
+	]
 }
