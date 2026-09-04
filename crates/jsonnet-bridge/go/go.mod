@@ -4,7 +4,7 @@ go 1.24.5
 
 require (
 	github.com/google/go-jsonnet v0.22.0
-	github.com/ihciah/rust2go v0.0.0-20260706074211-1c851bd436aa
+	github.com/ihciah/rust2go v0.0.0-20260904020603-1648bb93fd00
 	github.com/stretchr/testify v1.11.1
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 )
