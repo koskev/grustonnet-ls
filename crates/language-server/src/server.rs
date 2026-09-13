@@ -187,8 +187,6 @@ where
     pub server: S,
 }
 
-const TROUBLESOME_CLIENT_IDS: &[&str] = &["openc"];
-
 impl<S> LSPServerManager<S>
 where
     S: LSPServer,
@@ -205,14 +203,7 @@ where
 
         let params: InitializeParams =
             serde_json::from_value(params).expect("InitializeParams are in the wrong format");
-        let name = match &params.client_info {
-            Some(info) => info.name.as_str(),
-            None => "",
-        };
-        if TROUBLESOME_CLIENT_IDS
-            .iter()
-            .any(|e| name.to_lowercase().starts_with(&e.to_lowercase()))
-        {
+        if !client_is_supported(&params) {
             return Ok(());
         }
         self.server.handle_init_parameters(params);
@@ -530,4 +521,22 @@ pub trait LSPServer: Clone + Send + 'static {
         }
         Ok(())
     }
+}
+
+// They cause weird issues, break, and cause annoying work. Since I don't care about them at all, skipping them is the best choice for now
+const TROUBLESOME_CLIENT_IDS: &[&str] = &["openc", "claude", "cursor", "zed", "windsurf"];
+const VARS: &[&str] = &["CLAUDE", "OPENCODE", "MAPPED_BY_MCP", "AI_AGENT"];
+fn client_is_supported(params: &InitializeParams) -> bool {
+    let name = match &params.client_info {
+        Some(info) => info.name.as_str(),
+        None => "",
+    };
+    let is_troublesome = TROUBLESOME_CLIENT_IDS
+        .iter()
+        .any(|e| name.to_lowercase().starts_with(&e.to_lowercase()))
+        || std::env::vars().any(|(e, _)| {
+            VARS.iter()
+                .any(|v| e.to_lowercase().starts_with(&v.to_lowercase()))
+        });
+    !is_troublesome
 }
