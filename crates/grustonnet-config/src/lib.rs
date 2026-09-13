@@ -51,6 +51,13 @@ pub struct CompletionConfig {
     /// How many extra nested object fields should be completed. Apply is currently not supported as
     /// it leads to some weird/unwanted completions
     pub max_depth: usize,
+
+    /// Enables competing an object by providing a `_grustonnetParentObject` field. This is
+    /// experimental and will change to a comment in the future
+    /// Can be used to complete helm values (in the future) or some config objects
+    /// FIXME: Does currently only work on a fresh document where the lines did not change
+    #[default = true]
+    pub enable_object_ref: bool,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]

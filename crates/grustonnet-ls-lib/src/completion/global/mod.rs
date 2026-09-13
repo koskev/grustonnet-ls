@@ -12,6 +12,8 @@ use lsp_types::{CompletionItem, CompletionItemKind, CompletionItemLabelDetails};
 
 use crate::cache::JsonnetASTGenerator;
 
+pub mod object_ref;
+
 pub struct GlobalCompletion<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
 }

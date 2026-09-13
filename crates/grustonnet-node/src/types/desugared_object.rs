@@ -92,6 +92,13 @@ impl DesugaredObject {
         new_object
     }
 
+    pub fn get_field_for_body_pos(&self, pos: &Location) -> Option<DesugaredObjectField> {
+        self.fields
+            .iter()
+            .find(|field| field.body.node_base.loc_range.in_range(pos))
+            .cloned()
+    }
+
     /// returns the name at the given position. Can either be a [`DesugaredObjectField`] or [`LocalBind`]
     pub fn get_name_at(&self, pos: &Location) -> Option<String> {
         self.fields

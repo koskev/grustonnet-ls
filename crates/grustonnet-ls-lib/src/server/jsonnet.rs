@@ -50,8 +50,11 @@ use crate::{
     code_action::{CodeAction, ParameterCodeAction},
     command::{Commands, handle_command},
     completion::{
-        apply_arguments::ApplyArgumentCompletion, global::GlobalCompletion,
-        import::ImportCompletion, keyword::KeywordCompletion, local::LocalCompletion,
+        apply_arguments::ApplyArgumentCompletion,
+        global::{GlobalCompletion, object_ref},
+        import::ImportCompletion,
+        keyword::KeywordCompletion,
+        local::LocalCompletion,
         snippets::docsonnet::DocsonnetSnippets,
     },
     definition::DefinitionProvider,
@@ -441,6 +444,10 @@ impl LSPServer for JsonnetServer {
                 if config.completion.enable_global {
                     let global_completion = GlobalCompletion::new(&self.cache);
                     completion_list.push(Box::new(global_completion));
+                }
+                if config.completion.enable_object_ref {
+                    let object_ref = object_ref::GlobalObjectRef::new(&self.cache);
+                    completion_list.push(Box::new(object_ref));
                 }
                 if config.completion.enable_arguments {
                     let arg_completion = ApplyArgumentCompletion::new(&self.cache);

@@ -16,6 +16,7 @@ lsp-server = { workspace = true }
 lsp-types = { workspace = true, features = ["proposed"] }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json = { workspace = true }
+serde_yaml = "0.9.34"
 jsonnet-bridge = { path = "../jsonnet-bridge"}
 jsonnet-location = { path = "../jsonnet-location"}
 jsonnet-cst = { path = "../jsonnet-cst"}
@@ -46,6 +47,9 @@ semver = "1.0.27"
 fallible-iterator = "0.3.0"
 stacker = "0.1.23"
 tree-sitter-jsonnet = {git = "https://github.com/koskev/tree-sitter-jsonnet"}
+ureq = "3.3.0"
+dirs = "7.0.0"
+sha2 = "0.11.0"
 
 [build-dependencies]
 ureq = "3.3.0"
