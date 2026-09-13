@@ -35,7 +35,9 @@ where
     }
 
     pub fn peek_n(&self, num: usize) -> Option<T> {
-        self.stack.get(self.stack.len() - 1 - num).cloned()
+        self.stack
+            .get(self.stack.len().checked_sub(1 + num)?)
+            .cloned()
     }
 
     /// Gets an iterator over the stack. Beginning with the newest element and ending with the
