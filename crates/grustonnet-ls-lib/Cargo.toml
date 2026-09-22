@@ -50,6 +50,7 @@ tree-sitter-jsonnet = {git = "https://github.com/koskev/tree-sitter-jsonnet"}
 ureq = "3.3.0"
 dirs = "7.0.0"
 sha2 = "0.11.0"
+url.workspace = true
 
 [build-dependencies]
 ureq = "3.3.0"

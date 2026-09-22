@@ -928,6 +928,7 @@ dependencies = [
  "tree-sitter",
  "tree-sitter-jsonnet",
  "ureq",
+ "url",
  "utils",
  "walkdir",
 ]

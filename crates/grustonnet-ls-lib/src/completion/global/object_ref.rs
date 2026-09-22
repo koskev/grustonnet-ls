@@ -16,6 +16,7 @@ use language_server::{
 use lsp_types::{CompletionItem, CompletionList, Uri};
 use sha2::{Digest, Sha256};
 use tree_sitter::{Query, QueryCursor, QueryMatch, StreamingIterator};
+use url::Url;
 use utils::{RwLockPanic, cst::CstNodeHelper, uri::UriHelper};
 
 use crate::{
@@ -102,15 +103,52 @@ impl CommentParentResolver {
             .node
             .get_name(content)
             .ok_or(anyhow!("No node name"))?;
-        let captures = re.captures(&node_name).ok_or(anyhow!("No captures"))?;
+        let captures = re
+            .captures(&node_name)
+            .ok_or(anyhow!("No captures in {}", node_name))?;
         // Get URL
         let source: String = captures["source"].parse()?;
         // Get yaml
         // TODO: async or thread. This will currently block everything!!
         // TODO: Add additional checks
 
+        let source_url = Url::parse(&source);
+
+        log::error!("Handling parent at {}", source);
+        let imported_node = match source_url {
+            Ok(url) => self.handle_url(url)?,
+            Err(_e) => self.handle_file(&source, &node.node_base.loc_range.file_name)?,
+        };
+
+        Ok((imported_node, object.node.end_position()))
+    }
+
+    fn handle_file(&self, source: &str, source_file: &str) -> Result<Arc<Node>> {
+        let jpaths = self
+            .cache
+            .ast_generator
+            .jsonnet
+            .get_evaluate_params(source_file)
+            .jpaths;
+        let imported_node = jpaths
+            .iter()
+            .find_map(|p| {
+                self.cache
+                    .get_document(&Uri::from_path(format!("{}/{}", p, source)).ok()?)
+                    .ok()?
+                    .ast
+            })
+            .ok_or(anyhow!("Unable to find {source}"))?;
+
+        Ok(imported_node)
+    }
+
+    fn handle_url(&self, url: Url) -> Result<Arc<Node>> {
+        if !url.scheme().starts_with("http") {
+            return Err(anyhow!("Unsupported scheme"));
+        }
         let mut hasher = Sha256::new();
-        hasher.update(source.clone().as_bytes());
+        hasher.update(url.as_str().as_bytes());
         let hash: String = hasher
             .finalize()
             .iter()
@@ -122,7 +160,10 @@ impl CommentParentResolver {
             .join("grustonnet")
             .join(hash);
         let content = if !cache_file.exists() {
-            let response = ureq::get(&source).call()?.body_mut().read_to_string()?;
+            let response = ureq::get(url.as_str())
+                .call()?
+                .body_mut()
+                .read_to_string()?;
             fs::create_dir_all(cache_file.parent().ok_or(anyhow!("no parent"))?)?;
             fs::write(&cache_file, &response)?;
             response
@@ -136,8 +177,7 @@ impl CommentParentResolver {
             .ast_generator
             .jsonnet
             .get_ast_snippet_binary("", &json_value)?;
-
-        Ok((import_ast.into(), object.node.end_position()))
+        Ok(import_ast.into())
     }
 }
 
