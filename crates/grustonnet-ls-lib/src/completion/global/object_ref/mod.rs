@@ -86,12 +86,12 @@ impl CommentParentResolver {
     ) -> Result<(Arc<Node>, tree_sitter::Point)> {
         // Due to the query these unwraps won't crash
         let comment = cap
-            .captures
+            .captures()
             .iter()
             .find(|c| c.index == query.capture_index_for_name("comment").expect("BUG"))
             .ok_or(anyhow!("No capture"))?;
         let object = cap
-            .captures
+            .captures()
             .iter()
             .find(|c| c.index == query.capture_index_for_name("object").expect("BUG"))
             .ok_or(anyhow!("No capture"))?;

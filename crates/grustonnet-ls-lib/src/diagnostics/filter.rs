@@ -39,7 +39,7 @@ impl JsonnetDiagnosticFilter {
         let mut captures = cursor.matches(&query, tree.root_node(), doc.content.as_bytes());
 
         Some(captures.any(|cap| {
-            let Some(sibling) = cap.captures.iter().find(|c| {
+            let Some(sibling) = cap.captures().iter().find(|c| {
                 c.index
                     == query.capture_index_for_name("local_sibling").unwrap_or(
                         query

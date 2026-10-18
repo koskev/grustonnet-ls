@@ -30,11 +30,11 @@ impl DocsonnetDefaultDiagnostics {
         let mut results = vec![];
         // Due to the query these unwraps won't crash
         let default_value = cap
-            .captures
+            .captures()
             .iter()
             .find(|c| c.index == query.capture_index_for_name("default_value").expect("BUG"))?;
         let field = cap
-            .captures
+            .captures()
             .iter()
             .find(|c| c.index == query.capture_index_for_name("field").expect("BUG"))?;
 

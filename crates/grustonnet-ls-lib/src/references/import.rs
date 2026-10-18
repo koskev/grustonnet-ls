@@ -41,7 +41,7 @@ impl ReferenceProvider for ImportReferences {
                 let captures = cursor.captures(&query, tree.root_node(), doc.content.as_bytes());
                 let mut locations: Vec<FileRange> = vec![];
                 captures.for_each(|query_match| {
-                    query_match.0.captures.iter().for_each(|capture| {
+                    query_match.0.captures().iter().for_each(|capture| {
                         let begin: Location = capture.node.start_position().into();
                         let end: Location = capture.node.end_position().into();
                         locations.push(FileRange {
