@@ -64,7 +64,7 @@ pub fn get_tokens(doc: Document<JsonnetASTGenerator>) -> SemanticDataList {
             let captures = cursor.captures(&query, tree.root_node(), doc.content.as_bytes());
             let mut semantic_data = vec![];
             captures.for_each(|query_match| {
-                query_match.0.captures.iter().for_each(|capture| {
+                query_match.0.captures().iter().for_each(|capture| {
                     let start = capture.node.start_position();
                     let end = capture.node.end_position();
                     let rope = Rope::from_str(&doc.content);

@@ -34,19 +34,19 @@ impl LocalFunctionDiagnostics {
         let mut results = vec![];
         // Due to the query these unwraps won't crash
         let id = cap
-            .captures
+            .captures()
             .iter()
             .find(|c| c.index == query.capture_index_for_name("id").expect("BUG"))?;
         let bind = cap
-            .captures
+            .captures()
             .iter()
             .find(|c| c.index == query.capture_index_for_name("bind").expect("BUG"))?;
         let params = cap
-            .captures
+            .captures()
             .iter()
             .find(|c| c.index == query.capture_index_for_name("params").expect("BUG"));
         let params_end = cap
-            .captures
+            .captures()
             .iter()
             .find(|c| c.index == query.capture_index_for_name("params_end").expect("BUG"))?;
         let start: Location = bind.node.start_position().into();
