@@ -904,7 +904,6 @@ dependencies = [
  "jsonnet-location",
  "jsonnet-std-docs",
  "language-server",
- "lazy_static",
  "log",
  "lsp-server",
  "lsp-types",

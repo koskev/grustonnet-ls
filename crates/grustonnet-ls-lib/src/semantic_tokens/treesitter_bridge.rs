@@ -6,9 +6,10 @@
 // You should not use this feature! It is just a bad workaround for editors that lack the most essential
 // features
 
+use std::sync::LazyLock;
+
 use jsonnet_location::LocationRange;
 use language_server::cache::Document;
-use lazy_static::lazy_static;
 use ropey::Rope;
 use tree_sitter::{Query, QueryCursor, StreamingIterator};
 
@@ -29,24 +30,25 @@ macro_rules! add_keyword {
     };
 }
 
-lazy_static! {
-    static ref TOKEN_MAP: Vec<(&'static str, SemanticToken, Vec<SemanticModifier>)> = vec![
-        ("string", SemanticToken::String, vec![]),
-        ("local", SemanticToken::Keyword, vec![]),
-        ("fieldname", SemanticToken::Property, vec![]),
-        ("error", SemanticToken::Keyword, vec![]),
-        add_keyword!("if"),
-        add_keyword!("then"),
-        add_keyword!("else"),
-        add_keyword!("import"),
-        add_keyword!("function"),
-        (
-            "self",
-            SemanticToken::Keyword,
-            vec![SemanticModifier::DefaultLibrary]
-        ),
-    ];
-}
+static TOKEN_MAP: LazyLock<Vec<(&'static str, SemanticToken, Vec<SemanticModifier>)>> =
+    LazyLock::new(|| {
+        vec![
+            ("string", SemanticToken::String, vec![]),
+            ("local", SemanticToken::Keyword, vec![]),
+            ("fieldname", SemanticToken::Property, vec![]),
+            ("error", SemanticToken::Keyword, vec![]),
+            add_keyword!("if"),
+            add_keyword!("then"),
+            add_keyword!("else"),
+            add_keyword!("import"),
+            add_keyword!("function"),
+            (
+                "self",
+                SemanticToken::Keyword,
+                vec![SemanticModifier::DefaultLibrary],
+            ),
+        ]
+    });
 
 pub fn get_tokens(doc: Document<JsonnetASTGenerator>) -> SemanticDataList {
     let Some(tree) = doc.cst else {
