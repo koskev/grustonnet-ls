@@ -8,6 +8,8 @@ use lsp_types::{CompletionItem, CompletionItemKind, CompletionList};
 
 use crate::completion::common::CompletionTestCase;
 
+pub mod object_ref;
+
 fn global_config() -> Configuration {
     Configuration {
         completion: CompletionConfig {

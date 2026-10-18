@@ -21,6 +21,16 @@ pub struct SnippetConfig {
 
 #[derive(Debug, Serialize, Deserialize, Clone, SmartDefault, JsonSchema)]
 #[serde(default)]
+pub struct ObjectRef {
+    #[default = false]
+    pub enabled: bool,
+
+    #[default(_code = "10 * 1024 * 1024")]
+    pub max_download_size: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, SmartDefault, JsonSchema)]
+#[serde(default)]
 pub struct CompletionConfig {
     #[default = true]
     /// Enable completion of keywords. E.g. import, local, etc.
@@ -56,8 +66,7 @@ pub struct CompletionConfig {
     /// experimental and will change to a comment in the future
     /// Can be used to complete helm values (in the future) or some config objects
     /// FIXME: Does currently only work on a fresh document where the lines did not change
-    #[default = true]
-    pub enable_object_ref: bool,
+    pub object_ref: ObjectRef,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone, JsonSchema)]

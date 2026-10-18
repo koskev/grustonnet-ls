@@ -1,5 +1,5 @@
 use std::{
-    fs::{self},
+    path::PathBuf,
     sync::{Arc, RwLock},
 };
 
@@ -14,16 +14,26 @@ use language_server::{
     completion::{Completion, CompletionContext, CompletionResult},
 };
 use lsp_types::{CompletionItem, CompletionList, Uri};
-use sha2::{Digest, Sha256};
 use tree_sitter::{Query, QueryCursor, QueryMatch, StreamingIterator};
 use url::Url;
 use utils::{RwLockPanic, cst::CstNodeHelper, uri::UriHelper};
 
 use crate::{
-    bridge::GenerateAST, cache::JsonnetASTGenerator, completion::stdlib::functions::resolve_node,
+    cache::JsonnetASTGenerator,
+    completion::{
+        global::object_ref::{file_handler::FileImporter, url_resolver::UrlNodeResolver},
+        stdlib::functions::resolve_node,
+    },
 };
 
+mod file_handler;
+mod url_resolver;
+
 const MARKER_PREFIX: &str = "grustonnetParentObject";
+
+pub trait FileResolver {
+    fn resolve_file(&self) -> Result<PathBuf>;
+}
 
 pub struct GlobalObjectRef<'a> {
     cache: &'a Cache<JsonnetASTGenerator>,
@@ -63,6 +73,7 @@ impl ParentObjectResolver for MarkerParentResolver {
 
 pub struct CommentParentResolver {
     cache: Cache<JsonnetASTGenerator>,
+    max_download_size: u64,
 }
 
 impl CommentParentResolver {
@@ -115,69 +126,39 @@ impl CommentParentResolver {
         let source_url = Url::parse(&source);
 
         log::error!("Handling parent at {}", source);
-        let imported_node = match source_url {
-            Ok(url) => self.handle_url(url)?,
-            Err(_e) => self.handle_file(&source, &node.node_base.loc_range.file_name)?,
+        let mut source_file = match source_url {
+            Ok(url) => UrlNodeResolver::new(url, self.max_download_size).resolve_file()?,
+            Err(_e) => source.into(),
         };
+        if source_file.is_relative() {
+            let mut jpaths = self
+                .cache
+                .ast_generator
+                .jsonnet
+                .params
+                .read_or_panic()
+                .jpaths
+                .clone();
+            let parent_path = PathBuf::from(&node.node_base.loc_range.file_name.clone());
+            let parent_str = parent_path
+                .parent()
+                .ok_or(anyhow!("File has no parent"))?
+                .to_str()
+                .unwrap_or_default();
+            jpaths.insert(0, parent_str.to_string());
+
+            source_file = jpaths
+                .iter()
+                .find_map(|path| {
+                    let p = PathBuf::from(path).join(&source_file);
+                    if p.exists() { Some(p) } else { None }
+                })
+                .ok_or(anyhow!("Unable to find file"))?;
+        }
+
+        let imported_node = FileImporter::new(self.cache.clone()).import_file(source_file)?;
 
         Ok((imported_node, object.node.end_position()))
-    }
-
-    fn handle_file(&self, source: &str, source_file: &str) -> Result<Arc<Node>> {
-        let jpaths = self
-            .cache
-            .ast_generator
-            .jsonnet
-            .get_evaluate_params(source_file)
-            .jpaths;
-        let imported_node = jpaths
-            .iter()
-            .find_map(|p| {
-                self.cache
-                    .get_document(&Uri::from_path(format!("{}/{}", p, source)).ok()?)
-                    .ok()?
-                    .ast
-            })
-            .ok_or(anyhow!("Unable to find {source}"))?;
-
-        Ok(imported_node)
-    }
-
-    fn handle_url(&self, url: Url) -> Result<Arc<Node>> {
-        if !url.scheme().starts_with("http") {
-            return Err(anyhow!("Unsupported scheme"));
-        }
-        let mut hasher = Sha256::new();
-        hasher.update(url.as_str().as_bytes());
-        let hash: String = hasher
-            .finalize()
-            .iter()
-            .map(|b| format!("{:02x}", b))
-            .collect();
-
-        let cache_file = dirs::cache_dir()
-            .ok_or(anyhow!("No cache dir"))?
-            .join("grustonnet")
-            .join(hash);
-        let content = if !cache_file.exists() {
-            let response = ureq::get(url.as_str())
-                .call()?
-                .body_mut()
-                .read_to_string()?;
-            fs::create_dir_all(cache_file.parent().ok_or(anyhow!("no parent"))?)?;
-            fs::write(&cache_file, &response)?;
-            response
-        } else {
-            fs::read_to_string(&cache_file)?
-        };
-        let yaml_value: serde_json::Value = serde_yaml::from_str(&content)?;
-        let json_value = serde_json::to_string(&yaml_value)?;
-        let import_ast = self
-            .cache
-            .ast_generator
-            .jsonnet
-            .get_ast_snippet_binary("", &json_value)?;
-        Ok(import_ast.into())
     }
 }
 
@@ -194,6 +175,7 @@ impl ParentObjectResolver for CommentParentResolver {
                 [
                     (object)
                     (member)
+                    (args (object))
                 ] @object
             )
             "#,
@@ -211,6 +193,7 @@ impl ParentObjectResolver for CommentParentResolver {
                     log::debug!("Unable to get parent object: {e}");
                 }
                 Ok((obj, pos)) => {
+                    log::debug!("Handling parent object!");
                     let loc = Location::from(pos);
                     let stack = ast.get_stack_by_position(&loc);
                     if let Some(top_stack) = stack.peek()
@@ -230,13 +213,14 @@ impl ParentObjectResolver for CommentParentResolver {
 }
 
 impl<'a> GlobalObjectRef<'a> {
-    pub fn new(cache: &'a Cache<JsonnetASTGenerator>) -> Self {
+    pub fn new(cache: &'a Cache<JsonnetASTGenerator>, max_download_size: u64) -> Self {
         Self {
             cache,
             resolvers: Arc::new(RwLock::new(vec![
                 Box::new(MarkerParentResolver {}),
                 Box::new(CommentParentResolver {
                     cache: cache.clone(),
+                    max_download_size,
                 }),
             ])),
         }

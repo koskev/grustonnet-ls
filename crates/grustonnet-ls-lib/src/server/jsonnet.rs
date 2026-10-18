@@ -445,8 +445,11 @@ impl LSPServer for JsonnetServer {
                     let global_completion = GlobalCompletion::new(&self.cache);
                     completion_list.push(Box::new(global_completion));
                 }
-                if config.completion.enable_object_ref {
-                    let object_ref = object_ref::GlobalObjectRef::new(&self.cache);
+                if config.completion.object_ref.enabled {
+                    let object_ref = object_ref::GlobalObjectRef::new(
+                        &self.cache,
+                        config.completion.object_ref.max_download_size,
+                    );
                     completion_list.push(Box::new(object_ref));
                 }
                 if config.completion.enable_arguments {

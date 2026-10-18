@@ -1,0 +1,4 @@
+// grustonnetParentObject: parent.yaml
+{
+  // x
+}
