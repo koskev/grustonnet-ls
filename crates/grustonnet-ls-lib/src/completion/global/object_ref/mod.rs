@@ -190,7 +190,7 @@ impl ParentObjectResolver for CommentParentResolver {
         captures.for_each(|cap| {
             match self.handle_query(cap, &query, &doc.content, top_node.clone()) {
                 Err(e) => {
-                    log::debug!("Unable to get parent object: {e}");
+                    log::warn!("Unable to get parent object: {e}");
                 }
                 Ok((obj, pos)) => {
                     log::debug!("Handling parent object!");
