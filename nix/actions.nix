@@ -60,7 +60,9 @@ in
       ".github/workflows/test.yaml" = inputs.nix-actions.lib.mkBuild rec {
         targetName = ".#grustonnet-test";
         # FIXME: Burn this abomination to the ground! Currently the tests are rather unstable. So we just build 3 times to improve the odds of a successful test
-        buildCommand = "nix build ${targetName} || nix build ${targetName} || nix build ${targetName}";
+        buildCommand = builtins.concatStringsSep " && " (
+          builtins.genList (x: "nix build ${targetName} && rm result") 5
+        );
         extraJobs = {
           windows-test = {
             inherit (platforms.windows-cross) runs-on;
