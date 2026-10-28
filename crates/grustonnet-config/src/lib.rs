@@ -13,10 +13,20 @@ use smart_default::SmartDefault;
 
 #[derive(Debug, Serialize, Deserialize, Clone, SmartDefault, JsonSchema)]
 #[serde(default)]
+pub struct DocsonnetSnippetConfig {
+    #[default = true]
+    pub enabled: bool,
+
+    /// Name of the the docsonnet variable used to call all the functions
+    #[default = "__"]
+    pub docsonnet_variable: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, SmartDefault, JsonSchema)]
+#[serde(default)]
 pub struct SnippetConfig {
     /// Enable docsonnet snippets for new values, functions, arguments etc.
-    #[default = true]
-    pub docsonnet: bool,
+    pub docsonnet: DocsonnetSnippetConfig,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, SmartDefault, JsonSchema)]

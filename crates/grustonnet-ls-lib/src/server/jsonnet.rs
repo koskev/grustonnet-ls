@@ -462,8 +462,11 @@ impl LSPServer for JsonnetServer {
                     completion_list.push(Box::new(keyword_completion));
                 }
 
-                if config.completion.snippets.docsonnet {
-                    completion_list.push(Box::new(DocsonnetSnippets::new(&self.cache)));
+                if config.completion.snippets.docsonnet.enabled {
+                    completion_list.push(Box::new(DocsonnetSnippets::new(
+                        &self.cache,
+                        &config.completion.snippets.docsonnet.docsonnet_variable,
+                    )));
                 }
             }
             CompletionType::Local if config.completion.enable_local => {
