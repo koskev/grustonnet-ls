@@ -32,10 +32,11 @@ static DOCSONNET_SNIPPETS: LazyLock<Vec<(&'static str, &'static str)>> = LazyLoc
         (
             "newvalue",
             r#"'#${1:Name}':: __.val(
-    |||
+    type=__.T.${3:any},
+    help=|||
        ${2: Help Text}
     |||,
-    __.T.${3:any},
+    default=self.${1:Name}
 ),
 ${1:Name}: ${4: Default value},
 "#,
@@ -43,10 +44,10 @@ ${1:Name}: ${4: Default value},
         (
             "newfunction",
             r#"'#${1:Name}':: __.fn(
-    |||
+    help=|||
        ${2: Help Text}
     |||,
-    [
+    args=[
     $0
     ]
 ),
@@ -55,12 +56,12 @@ ${1:Name}(${3:Args}):: ${4: Default value},
         ),
         (
             "newarg",
-            r#"__.arg('${1:Name}', __.T.${2:any}, help='${3:Help}'),"#,
+            r#"__.arg(name='${1:Name}', type=__.T.${2:any}, help='${3:Help}'),"#,
         ),
         (
             "newobject",
             r#"'#${1:Name}':: __.obj(
-    |||
+    help=|||
         ${2: Help Text}
     |||,
 ),
